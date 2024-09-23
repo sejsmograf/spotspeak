@@ -20,7 +20,7 @@ public class TraceTypeConverter implements AttributeConverter<TraceType, String>
 			case TraceType.PHOTO:
 				return "PHOTO";
 			case TraceType.TEXTONLY:
-				return "TEXTONlY";
+				return "TEXTONLY";
 			default:
 				throw new IllegalArgumentException(
 						attribute + " is not a valid enum value for TraceType");
