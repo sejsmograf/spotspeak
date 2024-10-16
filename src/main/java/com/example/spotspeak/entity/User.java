@@ -1,5 +1,6 @@
 package com.example.spotspeak.entity;
 
+import java.sql.Date;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -16,19 +17,24 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "user_info")
-public class UserInfo {
+@Table(name = "users")
+public class User {
 
 	@Id
-	@Column(name = "user_id")
 	private UUID user_id;
 
-	@Column(name = "first_name", nullable = false)
+	@Column(nullable = false, length = 100)
 	private String firstName;
 
-	@Column(name = "last_name", nullable = false)
+	@Column(nullable = false, length = 100)
 	private String lastName;
 
-	@Column(name = "username", nullable = false, unique = true)
+	@Column(nullable = false, length = 100)
 	private String username;
+
+	@Column(nullable = true)
+	private String profilePictureUrl;
+
+	@Column(nullable = false)
+	private Date registeredAt;
 }
