@@ -23,15 +23,15 @@ import lombok.NoArgsConstructor;
 public class User {
 
 	@Id
-	private UUID user_id;
+	private UUID id; // Represents UUID given from AuthServer as "sub" claim in access token
 
-	@Column(nullable = false, length = 100)
+	@Column(nullable = false)
 	private String firstName;
 
-	@Column(nullable = false, length = 100)
+	@Column(nullable = false)
 	private String lastName;
 
-	@Column(nullable = false, length = 100)
+	@Column(nullable = false)
 	private String username;
 
 	@Column(nullable = true)
