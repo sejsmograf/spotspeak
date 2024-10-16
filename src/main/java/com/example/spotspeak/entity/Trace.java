@@ -5,6 +5,7 @@ import java.time.Instant;
 import org.locationtech.jts.geom.Point;
 import org.springframework.data.annotation.CreatedDate;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -37,7 +38,7 @@ public class Trace {
 	@Column(nullable = false)
 	private String description;
 
-	@ManyToOne
+	@ManyToOne(cascade = CascadeType.REMOVE)
 	@JoinColumn(name = "author_id", referencedColumnName = "id", nullable = false)
 	private User author;
 
