@@ -12,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,11 +34,17 @@ public class Trace {
 	@Column(nullable = false)
 	private Point location;
 
+	@Column(nullable = false)
+	private String description;
+
 	@ManyToOne
-	@JoinColumn(name = "author_id", referencedColumnName = "user_id", nullable = false)
+	@JoinColumn(name = "author_id", referencedColumnName = "id", nullable = false)
 	private User author;
 
 	@CreatedDate
 	private Instant createdAt;
 
+	@OneToOne
+	@JoinColumn(name = "resource_id", referencedColumnName = "id", nullable = true)
+	private Resource resource;
 }
