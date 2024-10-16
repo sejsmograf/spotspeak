@@ -1,15 +1,18 @@
 package com.example.spotspeak;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+
 import com.example.spotspeak.entity.Trace;
-import com.example.spotspeak.entity.TraceType;
 
 public class TestDataUtil {
 	public static Trace createTrace() {
+		GeometryFactory geometryFactory = new GeometryFactory();
+		Coordinate coordinate = new Coordinate(1.0, 2.0);
+
 		Trace trace = Trace.builder()
 				.id(1L)
-				.latitude(1.0)
-				.longitude(1.0)
-				.type(TraceType.TEXTONLY)
+				.location(geometryFactory.createPoint(coordinate))
 				.build();
 		return trace;
 	}
