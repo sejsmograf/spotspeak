@@ -15,12 +15,14 @@ public class KeycloakClientBuilder {
     private KeycloakAdminClientConfiguration config;
 
     public Keycloak build() {
-        return KeycloakBuilder.builder()
+        var keycloak = KeycloakBuilder.builder()
                 .realm(config.realmName())
                 .serverUrl(config.serverUrl())
                 .clientId(config.clientId())
                 .clientSecret(config.clientSecret())
                 .grantType(CLIENT_CREDENTIALS_GRANT_TYPE)
                 .build();
+
+        return keycloak;
     }
 }
