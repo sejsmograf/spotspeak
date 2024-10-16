@@ -1,13 +1,18 @@
 package com.example.spotspeak.entity;
 
-import com.example.spotspeak.converter.TraceTypeConverter;
+import java.time.Instant;
+
+import org.locationtech.jts.geom.Point;
+import org.springframework.data.annotation.CreatedDate;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +23,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(name = "traces")
 public class Trace {
 
 	@Id
@@ -25,13 +31,13 @@ public class Trace {
 	private Long id;
 
 	@Column(nullable = false)
-	private Double latitude;
+	private Point location;
 
-	@Column(nullable = false)
-	private Double longitude;
+	@ManyToOne
+	@JoinColumn(name = "author_id", referencedColumnName = "user_id", nullable = false)
+	private User author;
 
-	@Column(nullable = false)
-	@Convert(converter = TraceTypeConverter.class)
-	private TraceType type;
+	@CreatedDate
+	private Instant createdAt;
 
 }
