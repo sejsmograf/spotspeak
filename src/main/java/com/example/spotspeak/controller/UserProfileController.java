@@ -30,11 +30,11 @@ public class UserProfileController {
 	}
 
 	@PutMapping
+	@Transactional
 	ResponseEntity<User> updateUser(@AuthenticationPrincipal Jwt jwt,
 			@RequestBody UserUpdateDTO userUpdateDTO) {
 		String userId = jwt.getSubject();
-		User user = userService.findById(userId);
-
+		User user = userService.updateUser(userId, userUpdateDTO);
 		keycloakClientService.updateUser(userId, userUpdateDTO);
 		return ResponseEntity.ok(user);
 	}
@@ -46,9 +46,9 @@ public class UserProfileController {
 		return ResponseEntity.ok(user);
 	}
 
-	@SuppressWarnings("rawtypes")
 	@DeleteMapping
 	@Transactional
+	@SuppressWarnings("rawtypes")
 	ResponseEntity deleteUser(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
 		userService.deleteById(userId);

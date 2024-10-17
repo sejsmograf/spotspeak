@@ -38,8 +38,8 @@ public class KeycloakClientService {
 				throw new KeycloakClientException("Keyclaok user not found");
 			}
 
-			user.setFirstName(user.getFirstName());
-			user.setLastName(user.getLastName());
+			user.setFirstName(updatedUserModel.firstName());
+			user.setLastName(updatedUserModel.lastName());
 			getRealm().users().get(userId).update(user);
 		} catch (ServerErrorException | ClientErrorException e) {
 			int statusCode = e.getResponse().getStatus();
