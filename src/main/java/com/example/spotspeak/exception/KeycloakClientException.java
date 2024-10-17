@@ -1,10 +1,22 @@
 package com.example.spotspeak.exception;
 
-public class KeycloakClientException extends RuntimeException {
-    public int statusCode;
+import lombok.Getter;
 
-    public KeycloakClientException(String message, int statusCode) {
-        super("Keycloak client has thrown an exception: " + statusCode + " " + message);
-        this.statusCode = statusCode;
+@Getter
+public class KeycloakClientException extends RuntimeException {
+    private String details;
+
+    public KeycloakClientException(String message) {
+        super(message);
     }
+
+    public KeycloakClientException(String message, Integer statusCode) {
+        super(message);
+    }
+
+    public KeycloakClientException(String message, String details) {
+        super(message);
+        this.details = details;
+    }
+
 }

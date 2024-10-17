@@ -1,6 +1,6 @@
 package com.example.spotspeak.entity;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,5 +42,5 @@ public class User {
 	private List<Trace> traces;
 
 	@Column(nullable = false)
-	private Date registeredAt;
+	private LocalDateTime registeredAt;
 }

@@ -1,6 +1,5 @@
 package com.example.spotspeak.service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -18,15 +17,19 @@ public class UserService {
 	}
 
 	public User findById(UUID userId) {
-		return repository.findById(userId).orElseGet(
+		return repository.findById(userId).orElseThrow(
 				() -> {
 					throw new UserNotFoundException("Could not find the user");
 				});
 	}
 
-	public Optional<User> findById(String userId) {
-		UUID convertedId = UUID.fromString(userId);
-		return repository.findById(convertedId);
+	public User findById(String userId) {
+		try {
+			UUID convertedId = UUID.fromString(userId);
+			return findById(convertedId);
+		} catch (IllegalArgumentException e) {
+			throw new UserNotFoundException("Invalid user id format, could not parse UUID");
+		}
 	}
 
 	public void deleteById(String userId) {
