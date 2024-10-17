@@ -15,6 +15,8 @@ import com.example.spotspeak.entity.User;
 import com.example.spotspeak.service.KeycloakClientService;
 import com.example.spotspeak.service.UserService;
 
+import jakarta.transaction.Transactional;
+
 @RestController
 @RequestMapping("/account")
 public class UserProfileController {
@@ -31,7 +33,7 @@ public class UserProfileController {
 	ResponseEntity<User> updateUser(@AuthenticationPrincipal Jwt jwt,
 			@RequestBody UserUpdateDTO userUpdateDTO) {
 		String userId = jwt.getSubject();
-		User user = userService.findById(userId).get();
+		User user = userService.findById(userId);
 
 		keycloakClientService.updateUser(userId, userUpdateDTO);
 		return ResponseEntity.ok(user);
@@ -40,16 +42,17 @@ public class UserProfileController {
 	@GetMapping
 	ResponseEntity<User> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
-		User user = userService.findById(userId).get();
+		User user = userService.findById(userId);
 		return ResponseEntity.ok(user);
 	}
 
 	@SuppressWarnings("rawtypes")
 	@DeleteMapping
+	@Transactional
 	ResponseEntity deleteUser(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
-		keycloakClientService.deleteUser(userId);
 		userService.deleteById(userId);
+		keycloakClientService.deleteUser(userId);
 		return ResponseEntity.noContent().build();
 	}
 }

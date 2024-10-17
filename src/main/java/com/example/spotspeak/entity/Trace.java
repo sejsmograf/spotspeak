@@ -1,6 +1,6 @@
 package com.example.spotspeak.entity;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 import org.locationtech.jts.geom.Point;
 import org.springframework.data.annotation.CreatedDate;
@@ -43,7 +43,7 @@ public class Trace {
 	private User author;
 
 	@CreatedDate
-	private Instant createdAt;
+	private LocalDateTime createdAt;
 
 	@OneToOne
 	@JoinColumn(name = "resource_id", referencedColumnName = "id", nullable = true)

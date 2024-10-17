@@ -4,13 +4,9 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
-
 import com.example.spotspeak.config.KeycloakClientConfiguration;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.exception.KeycloakClientException;
-import com.example.spotspeak.exception.KeycloakException;
-import com.example.spotspeak.exception.KeycloakServerException;
-import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.util.KeycloakClientBuilder;
 
 import jakarta.ws.rs.ClientErrorException;
@@ -38,43 +34,31 @@ public class KeycloakClientService {
 			UserRepresentation user = getRealm()
 					.users().get(userId).toRepresentation();
 
+			if (user == null) {
+				throw new KeycloakClientException("Keyclaok user not found");
+			}
+
 			user.setFirstName(user.getFirstName());
 			user.setLastName(user.getLastName());
 			getRealm().users().get(userId).update(user);
-		} catch (ClientErrorException e) {
+		} catch (ServerErrorException | ClientErrorException e) {
 			int statusCode = e.getResponse().getStatus();
-			String message = e.getMessage();
-			throw new KeycloakClientException(message, statusCode);
-		} catch (ServerErrorException e) {
-			int statusCode = e.getResponse().getStatus();
-			String message = e.getMessage();
-			throw new KeycloakServerException(message, statusCode);
+			String message = "Error updating keycloak user ";
+			message += e instanceof ServerErrorException ? "Keyclaok server connection error"
+					: "Keycloak client connection error";
+
+			throw new KeycloakClientException(message, statusCode + e.getMessage());
 		} catch (Exception e) {
-			String message = e.getMessage();
-			throw new KeycloakException(message);
+			throw new KeycloakClientException("Keycloak client exception", e.getMessage());
 		}
 	}
 
 	public void deleteUser(String userId) {
-		try {
-			Response response = getRealm().users().delete(userId);
-			if (response.getStatus() == 404) {
-				throw new UserNotFoundException("User does not exist");
-			}
-			System.out.println("DELETED");
-		} catch (ClientErrorException e) {
-			int statusCode = e.getResponse().getStatus();
-			String message = e.getMessage();
-			throw new KeycloakClientException(message, statusCode);
-		} catch (ServerErrorException e) {
-			int statusCode = e.getResponse().getStatus();
-			String message = e.getMessage();
-			throw new KeycloakServerException(message, statusCode);
-		} catch (UserNotFoundException e) {
-			throw e;
-		} catch (Exception e) {
-			String message = e.getMessage();
-			throw new KeycloakException(message);
+		Response response = getRealm().users().delete(userId);
+		if (response.getStatus() != 200 && response.getStatus() != 204) {
+			throw new KeycloakClientException("Error deleting keycloak user",
+					"Response status: " + response.getStatus());
 		}
 	}
+
 }

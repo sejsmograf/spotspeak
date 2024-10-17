@@ -13,27 +13,19 @@ public class UserProfileControllerExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException ex) {
-        ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+        ErrorResponse response = new ErrorResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(KeycloakClientException.class)
-    public ResponseEntity<ErrorResponse> handleKeycloakClientException(KeycloakClientException ex) {
-        ErrorResponse response = new ErrorResponse(ex.statusCode, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.valueOf(ex.statusCode)).body(response);
-    }
-
-    @ExceptionHandler(KeycloakServerException.class)
-    public ResponseEntity<ErrorResponse> handleKeycloakClientException(KeycloakServerException ex) {
-        ErrorResponse response = new ErrorResponse(ex.statusCode, ex.getMessage());
-        return ResponseEntity.status(HttpStatus.valueOf(ex.statusCode)).body(response);
-    }
-
-    @ExceptionHandler(KeycloakException.class)
-    public ResponseEntity<ErrorResponse> handleKeycloakException(KeycloakException ex) {
-        int statusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-        ErrorResponse response = new ErrorResponse(statusCode, ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleKeycloakException(KeycloakClientException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getMessage(), ex.getDetails());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
+        ErrorResponse response = new ErrorResponse("An unexpected error occurred", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 }
