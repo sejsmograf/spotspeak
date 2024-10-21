@@ -38,7 +38,7 @@ public class User {
 	@Column(nullable = false)
 	private String username;
 
-	@OneToOne(cascade = CascadeType.ALL)
+	@OneToOne
 	@JoinColumn(name = "profile_picture_id", referencedColumnName = "id", nullable = true)
 	private Resource profilePicture;
 

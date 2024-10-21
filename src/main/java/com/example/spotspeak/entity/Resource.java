@@ -2,6 +2,7 @@ package com.example.spotspeak.entity;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 
 import jakarta.persistence.*;
@@ -28,12 +29,7 @@ public class Resource {
 	@Column(nullable = true)
 	private String fileType;
 
-	@CreatedDate
+	@CreationTimestamp
 	private LocalDateTime createdAt;
-
-	@PreRemove
-	public void preRemove() {
-		// removing files from s3 server before deleting from database
-	}
 
 }

@@ -11,46 +11,37 @@ import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
-public class UserService {
+public class UserProfileService {
 	private UserRepository userRepostitory;
 	private ResourceService resourceService;
+	private KeycloakClientService keycloakService;
 
-	public UserService(UserRepository repository, ResourceService resourceService) {
+	public UserProfileService(
+			UserRepository repository,
+			ResourceService resourceService,
+			KeycloakClientService keycloakClientService) {
+
 		this.userRepostitory = repository;
 		this.resourceService = resourceService;
+		this.keycloakService = keycloakClientService;
 	}
 
-	private UUID userIdToUUID(String userId) {
-		try {
-			UUID convertedId = UUID.fromString(userId);
-			return convertedId;
-		} catch (IllegalArgumentException e) {
-			throw new UserNotFoundException("Invalid userId format");
-		}
-	}
-
-	public User findByIdOrThrow(UUID userId) {
-		return userRepostitory.findById(userId).orElseThrow(
-				() -> {
-					throw new UserNotFoundException("Could not find the user");
-				});
-	}
-
-	public User findByIdOrThrow(String userIdString) {
-		UUID convertedId = userIdToUUID(userIdString);
-		return findByIdOrThrow(convertedId);
-	}
-
+	@Transactional
 	public void deleteById(String userIdString) {
-		try {
-			UUID convertedId = UUID.fromString(userIdString);
-			userRepostitory.deleteById(convertedId);
-		} catch (IllegalArgumentException e) {
-			throw new UserNotFoundException("Invalid or non-existent userId");
+		UUID userId = userIdToUUID(userIdString);
+
+		if (!userRepostitory.existsById(userId)) {
+			throw new UserNotFoundException("User with id: " + userIdString + " not found");
 		}
+
+		userRepostitory.deleteById(userId);
+		keycloakService.deleteUser(userIdString);
 	}
 
+	@Transactional
 	public User updateUser(String userIdString, UserUpdateDTO updateDTO) {
 		User user = findByIdOrThrow(userIdString);
 
@@ -62,6 +53,7 @@ public class UserService {
 		}
 
 		userRepostitory.save(user);
+		keycloakService.updateUser(userIdString, updateDTO);
 		return user;
 	}
 
@@ -70,5 +62,26 @@ public class UserService {
 		Resource resource = resourceService.uploadUserProfilePicture(userIdString, file);
 		user.setProfilePicture(resource);
 		return resource;
+	}
+
+	private UUID userIdToUUID(String userId) {
+		try {
+			UUID convertedId = UUID.fromString(userId);
+			return convertedId;
+		} catch (IllegalArgumentException e) {
+			throw new UserNotFoundException("Invalid userId format");
+		}
+	}
+
+	private User findByIdOrThrow(UUID userId) {
+		return userRepostitory.findById(userId).orElseThrow(
+				() -> {
+					throw new UserNotFoundException("Could not find the user");
+				});
+	}
+
+	public User findByIdOrThrow(String userIdString) {
+		UUID convertedId = userIdToUUID(userIdString);
+		return findByIdOrThrow(convertedId);
 	}
 }

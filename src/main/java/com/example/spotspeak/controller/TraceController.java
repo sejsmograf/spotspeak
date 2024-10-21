@@ -4,7 +4,7 @@ import java.util.List;
 import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.User;
-import com.example.spotspeak.service.UserService;
+import com.example.spotspeak.service.UserProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -23,9 +23,9 @@ import com.example.spotspeak.service.TraceService;
 public class TraceController {
 
 	private TraceService traceService;
-	private UserService userService;
+	private UserProfileService userService;
 
-	public TraceController(TraceService traceService, UserService userService) {
+	public TraceController(TraceService traceService, UserProfileService userService) {
 		this.traceService = traceService;
 		this.userService = userService;
 	}

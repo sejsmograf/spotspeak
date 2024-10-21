@@ -16,9 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
-import com.example.spotspeak.service.KeycloakClientService;
-import com.example.spotspeak.service.S3Service;
-import com.example.spotspeak.service.UserService;
+import com.example.spotspeak.service.UserProfileService;
 
 import jakarta.transaction.Transactional;
 
@@ -26,39 +24,31 @@ import jakarta.transaction.Transactional;
 @RequestMapping("/account")
 public class UserProfileController {
 
-	private KeycloakClientService keycloakClientService;
-	private UserService userService;
+	private UserProfileService userProfileService;
 
-	public UserProfileController(KeycloakClientService keycloakClientService,
-			UserService userService,
-			S3Service s3Service) {
-		this.keycloakClientService = keycloakClientService;
-		this.userService = userService;
+	public UserProfileController(UserProfileService userService) {
+		this.userProfileService = userService;
 	}
 
 	@PutMapping
-	@Transactional
 	ResponseEntity<User> updateUser(@AuthenticationPrincipal Jwt jwt,
 			@RequestBody UserUpdateDTO userUpdateDTO) {
 		String userId = jwt.getSubject();
-		User user = userService.updateUser(userId, userUpdateDTO);
-		keycloakClientService.updateUser(userId, userUpdateDTO);
+		User user = userProfileService.updateUser(userId, userUpdateDTO);
 		return ResponseEntity.ok(user);
 	}
 
 	@GetMapping
 	ResponseEntity<User> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
-		User user = userService.findByIdOrThrow(userId);
+		User user = userProfileService.findByIdOrThrow(userId);
 		return ResponseEntity.ok(user);
 	}
 
 	@DeleteMapping
-	@Transactional
 	ResponseEntity<Void> deleteUser(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
-		userService.deleteById(userId);
-		keycloakClientService.deleteUser(userId);
+		userProfileService.deleteById(userId);
 		return ResponseEntity.noContent().build();
 	}
 
@@ -67,7 +57,7 @@ public class UserProfileController {
 	ResponseEntity<Resource> updateProfilePicture(@AuthenticationPrincipal Jwt jwt,
 			@RequestParam("file") MultipartFile file) {
 		String userId = jwt.getSubject();
-		Resource resource = userService.updateUserProfilePicture(userId, file);
+		Resource resource = userProfileService.updateUserProfilePicture(userId, file);
 		return ResponseEntity.ok(resource);
 	}
 }
