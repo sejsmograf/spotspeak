@@ -2,6 +2,8 @@ package com.example.spotspeak.dto;
 
 import com.example.spotspeak.entity.Comment;
 import com.example.spotspeak.entity.Tag;
+import com.example.spotspeak.entity.User;
+
 import java.util.List;
 
 public record TraceDownloadDTO(
@@ -12,7 +14,5 @@ public record TraceDownloadDTO(
         List<Tag> traceTags,
         Double latitude,
         Double longitude,
-        String authorFirstName,
-        String authorLastName,
-        String authorUsername
+        User user
 ) {}
