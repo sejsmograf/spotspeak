@@ -3,7 +3,6 @@ package com.example.spotspeak.controller;
 import java.util.List;
 import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
-import com.example.spotspeak.entity.User;
 import com.example.spotspeak.service.UserProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.locationtech.jts.geom.Point;
 import org.springframework.data.annotation.CreatedDate;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

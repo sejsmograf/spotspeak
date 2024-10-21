@@ -19,8 +19,6 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class S3Service {
