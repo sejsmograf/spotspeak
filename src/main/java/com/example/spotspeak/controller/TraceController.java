@@ -8,15 +8,11 @@ import com.example.spotspeak.service.UserProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.service.TraceService;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/traces")
@@ -37,20 +33,17 @@ public class TraceController {
 
 	@PostMapping
 	public ResponseEntity<Trace> createTrace(@AuthenticationPrincipal Jwt jwt,
-			@RequestBody TraceUploadDTO traceUploadDTO) {
+											 @RequestParam("file") MultipartFile file,
+											 @RequestPart("traceData") TraceUploadDTO traceUploadDTO) {
 		String userId = jwt.getSubject();
-		User user = userService.findByIdOrThrow(userId);
-		Trace trace = traceService.createTrace(traceUploadDTO, user);
-
+		Trace trace = traceService.createTrace(userId, file, traceUploadDTO);
 		return ResponseEntity.ok(trace);
 	}
 
 	@GetMapping("/{traceId}")
-	public ResponseEntity<TraceDownloadDTO> getTraceInfo(@AuthenticationPrincipal Jwt jwt, @PathVariable Long traceId) {
-		String userId = jwt.getSubject();
-		userService.findByIdOrThrow(userId);
-		TraceDownloadDTO traceInfo = traceService.getTraceInfo(traceId);
-
+	public ResponseEntity<TraceDownloadDTO> getTraceInfo(@AuthenticationPrincipal Jwt jwt, @PathVariable String traceId) {
+		String userId = jwt.getSubject(); //should I check if user exists?
+		TraceDownloadDTO traceInfo = traceService.getTraceInfo(userId, traceId);
 		return ResponseEntity.ok(traceInfo);
 	}
 
