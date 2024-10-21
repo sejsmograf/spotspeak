@@ -92,6 +92,16 @@
 			<artifactId>keycloak-admin-client</artifactId>
 			<version>26.0.0</version>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>aws-sdk-java</artifactId>
+			<version>2.28.23</version>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>2.28.24</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
