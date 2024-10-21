@@ -17,11 +17,14 @@ public class ResourceService {
         this.s3Service = s3Service;
     }
 
-    public Resource createAndSaveResource(String keyName, String fileName, String fileType) {
-        Resource resource = new Resource();
-        resource.setS3Key(keyName);
-        // resource.setFileName(fileName);
-        resource.setFileType(fileType);
+    public Resource uploadTraceResource(String userId, MultipartFile file) {
+        String s3Key = s3Service.generateUniqueKeyName(userId, file.getName());
+        s3Service.uploadFile(file, s3Key);
+
+        Resource resource = Resource.builder()
+                .s3Key(s3Key)
+                .fileType(file.getContentType())
+                .build();
 
         return resourceRepository.save(resource);
     }
