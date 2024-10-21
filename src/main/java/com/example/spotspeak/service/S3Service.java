@@ -30,6 +30,7 @@ public class S3Service {
     private final Duration PRESIGNED_URL_EXPIRATION_DURATION = Duration.ofMinutes(10);
     private final String USER_UPLOADS_KEY = "user-uploads";
     private final String PROFILE_PICTURES_KEY = "profile-pictures";
+    private final String TRACE_FILES_KEY = "trace-files";
 
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
@@ -55,8 +56,8 @@ public class S3Service {
         return presignedRequest.url().toExternalForm();
     }
 
-    public PresignedUploadUrlResponse generatePresignedUploadUrl(String fileName) {
-        String uniqueKeyName = generateUniqueKeyName(fileName);
+    public PresignedUploadUrlResponse generatePresignedUploadUrl(String userId, String fileName) {
+        String uniqueKeyName = generateUniqueKeyName(userId, fileName);
 
         PutObjectRequest objectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
@@ -78,7 +79,7 @@ public class S3Service {
     }
 
     public void uploadFile(MultipartFile file) {
-        putObject(file, generateUniqueKeyName(file.getName()));
+        //putObject(file, generateUniqueKeyName(file.getName()));
     }
 
     private void putObject(MultipartFile file, String key) {
@@ -99,9 +100,8 @@ public class S3Service {
         return String.format("%s/%s/%s", USER_UPLOADS_KEY, userId, PROFILE_PICTURES_KEY);
     }
 
-    public String generateUniqueKeyName(String fileName) {
-        String uniqueId = UUID.randomUUID().toString();
-
-        return "user-uploads/" + uniqueId + "_" + fileName;
+    public String generateUniqueKeyName(String userId, String fileName) {
+        long timestamp = System.currentTimeMillis();
+        return String.format("%s/%s/%s/%d_%s", USER_UPLOADS_KEY, userId, TRACE_FILES_KEY, timestamp, fileName);
     }
 }
