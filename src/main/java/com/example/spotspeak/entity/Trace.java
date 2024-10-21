@@ -46,7 +46,7 @@ public class Trace {
 	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@OneToOne(cascade = CascadeType.REMOVE)
+	@OneToOne
 	@JoinColumn(name = "resource_id", referencedColumnName = "id", nullable = true)
 	private Resource resource;
 
