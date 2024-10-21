@@ -36,9 +36,10 @@ public class TraceController {
 	}
 
 	@PostMapping
-	public ResponseEntity<Trace> createTrace(@AuthenticationPrincipal Jwt jwt, @RequestBody TraceUploadDTO traceUploadDTO) {
+	public ResponseEntity<Trace> createTrace(@AuthenticationPrincipal Jwt jwt,
+			@RequestBody TraceUploadDTO traceUploadDTO) {
 		String userId = jwt.getSubject();
-		User user = userService.findById(userId);
+		User user = userService.findByIdOrThrow(userId);
 		Trace trace = traceService.createTrace(traceUploadDTO, user);
 
 		return ResponseEntity.ok(trace);
@@ -47,7 +48,7 @@ public class TraceController {
 	@GetMapping("/{traceId}")
 	public ResponseEntity<TraceDownloadDTO> getTraceInfo(@AuthenticationPrincipal Jwt jwt, @PathVariable Long traceId) {
 		String userId = jwt.getSubject();
-		userService.findById(userId);
+		userService.findByIdOrThrow(userId);
 		TraceDownloadDTO traceInfo = traceService.getTraceInfo(traceId);
 
 		return ResponseEntity.ok(traceInfo);

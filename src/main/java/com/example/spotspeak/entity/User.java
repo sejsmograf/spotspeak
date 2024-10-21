@@ -38,8 +38,9 @@ public class User {
 	@Column(nullable = false)
 	private String username;
 
-	@Column(nullable = true)
-	private String profilePictureUrl;
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "profile_picture_id", referencedColumnName = "id", nullable = true)
+	private Resource profilePicture;
 
 	@OneToMany(mappedBy = "author", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
 	private List<Trace> traces;
