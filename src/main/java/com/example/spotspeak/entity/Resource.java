@@ -22,8 +22,8 @@ public class Resource {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 
-	@Column(nullable = false)
-	private String s3Key;
+	@Column(nullable = false, unique = true)
+	private String key;
 
 	@Column(nullable = true)
 	private String fileType;

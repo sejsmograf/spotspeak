@@ -2,6 +2,9 @@ package com.example.spotspeak.service;
 
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.repository.ResourceRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,12 +24,12 @@ public class ResourceService {
     }
 
     public Resource uploadTraceResource(String userId, MultipartFile file) {
-        String s3Key = keyGenerationService.generateUniqueTraceResourceKey(userId, file.getName());
+        String key = keyGenerationService.generateUniqueTraceResourceKey(userId, file.getName());
 
-        storageService.storeFile(file, s3Key);
+        storageService.storeFile(file, key);
 
         Resource resource = Resource.builder()
-                .s3Key(s3Key)
+                .key(key)
                 .fileType(file.getContentType())
                 .build();
 
@@ -39,10 +42,16 @@ public class ResourceService {
         storageService.storeFile(file, key);
 
         Resource resource = Resource.builder()
-                .s3Key(key)
+                .key(key)
                 .fileType(file.getContentType())
                 .build();
 
         return resourceRepository.save(resource);
+    }
+
+    @Transactional
+    public void deleteResource(Long resourceId) {
+        Resource resource = resourceRepository.findById(resourceId).get();
+        storageService.deleteFile(resource.getKey());
     }
 }

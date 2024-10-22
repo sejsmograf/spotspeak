@@ -14,9 +14,9 @@ import jakarta.validation.Payload;
 public @interface ValidFile {
     String message() default "Invalid file";
 
-    long maxSize() default 1048576; // Default max size: 1 MB
+    long maxSize() default 1048576;
 
-    String[] allowedTypes() default { "image/jpeg", "image/png" }; // Default allowed types
+    String[] allowedTypes() default { "image/jpeg", "image/png" };
 
     Class<?>[] groups() default {};
 

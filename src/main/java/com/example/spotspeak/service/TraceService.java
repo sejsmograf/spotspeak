@@ -24,7 +24,8 @@ public class TraceService {
 	private UserProfileService userProfileService;
 	private S3Service s3Service;
 
-	public TraceService(TraceRepository traceRepository, ResourceService resourceService, TraceTagService traceTagService, UserProfileService userProfileService, S3Service s3Service) {
+	public TraceService(TraceRepository traceRepository, ResourceService resourceService,
+			TraceTagService traceTagService, UserProfileService userProfileService, S3Service s3Service) {
 		this.traceRepository = traceRepository;
 		this.geometryFactory = new GeometryFactory();
 		this.resourceService = resourceService;
@@ -39,7 +40,8 @@ public class TraceService {
 
 	@Transactional
 	public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {
-		Point point = geometryFactory.createPoint(new Coordinate(traceUploadDTO.longitude(), traceUploadDTO.latitude()));
+		Point point = geometryFactory
+				.createPoint(new Coordinate(traceUploadDTO.longitude(), traceUploadDTO.latitude()));
 
 		User user = userProfileService.findByIdOrThrow(userId);
 		Resource resource = resourceService.uploadTraceResource(userId, file);
@@ -58,28 +60,26 @@ public class TraceService {
 	@Transactional
 	public TraceDownloadDTO getTraceInfo(String userId, String traceId) {
 		Trace trace = findByIdOrThrow(traceId);
-		userProfileService.findByIdOrThrow(userId); //maybe not necessary
+		userProfileService.findByIdOrThrow(userId); // maybe not necessary
 
-		String keyName = trace.getResource().getS3Key();
+		String keyName = trace.getResource().getKey();
 
 		String presignedUrl = s3Service.generatePresignedDownloadUrl(keyName);
 
-        return new TraceDownloadDTO(
-			trace.getId(),
-			presignedUrl,
-			trace.getDescription(),
-			trace.getComments(),
-			traceTagService.getTagsForTrace(trace.getId()),
-			trace.getLocation().getX(),
-			trace.getLocation().getY(),
-			trace.getAuthor()
-		);
+		return new TraceDownloadDTO(
+				trace.getId(),
+				presignedUrl,
+				trace.getDescription(),
+				trace.getComments(),
+				traceTagService.getTagsForTrace(trace.getId()),
+				trace.getLocation().getX(),
+				trace.getLocation().getY(),
+				trace.getAuthor());
 	}
 
 	private Trace findByIdOrThrow(Long traceId) {
 		return traceRepository.findById(traceId).orElseThrow(
-				() -> new TraceNotFoundException("Could not find trace with id: " + traceId)
-		);
+				() -> new TraceNotFoundException("Could not find trace with id: " + traceId));
 	}
 
 	private Long traceIdToLong(String traceIdString) {

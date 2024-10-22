@@ -31,13 +31,13 @@ public class UserProfileService {
 
 	@Transactional
 	public void deleteById(String userIdString) {
-		UUID userId = userIdToUUID(userIdString);
+		User user = findByIdOrThrow(userIdString);
 
-		if (!userRepostitory.existsById(userId)) {
-			throw new UserNotFoundException("User with id: " + userIdString + " not found");
+		if (user.getProfilePicture() != null) {
+			resourceService.deleteResource(user.getProfilePicture().getId());
 		}
 
-		userRepostitory.deleteById(userId);
+		userRepostitory.deleteById(user.getId());
 		keycloakService.deleteUser(userIdString);
 	}
 
