@@ -73,8 +73,9 @@ public class TraceService {
 				trace.getComments(),
 				traceTagService.getTagsForTrace(trace.getId()),
 				trace.getLocation().getX(),
-				trace.getLocation().getY(),
-				trace.getAuthor());
+				trace.getLocation().getY()
+				//trace.getAuthor()
+		);
 	}
 
 	private Trace findByIdOrThrow(Long traceId) {
