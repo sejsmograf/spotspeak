@@ -3,6 +3,8 @@ package com.example.spotspeak.service;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.dto.UserUpdateDTO;
@@ -10,8 +12,6 @@ import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.repository.UserRepository;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class UserProfileService {
@@ -33,12 +33,12 @@ public class UserProfileService {
 	public void deleteById(String userIdString) {
 		User user = findByIdOrThrow(userIdString);
 
+		userRepostitory.deleteById(user.getId());
+		keycloakService.deleteUser(userIdString);
+
 		if (user.getProfilePicture() != null) {
 			resourceService.deleteResource(user.getProfilePicture().getId());
 		}
-
-		userRepostitory.deleteById(user.getId());
-		keycloakService.deleteUser(userIdString);
 	}
 
 	@Transactional
@@ -59,9 +59,22 @@ public class UserProfileService {
 
 	public Resource updateUserProfilePicture(String userIdString, MultipartFile file) {
 		User user = findByIdOrThrow(userIdString);
+		deleteUserProfilePicture(userIdString);
+
 		Resource resource = resourceService.uploadUserProfilePicture(userIdString, file);
 		user.setProfilePicture(resource);
+		userRepostitory.save(user);
 		return resource;
+	}
+
+	public void deleteUserProfilePicture(String userId) {
+		User user = findByIdOrThrow(userId);
+		Resource profilePicture = user.getProfilePicture();
+
+		if (profilePicture != null) {
+			user.setProfilePicture(null);
+			resourceService.deleteResource(profilePicture.getId());
+		}
 	}
 
 	private UUID userIdToUUID(String userId) {

@@ -20,7 +20,6 @@ import com.example.spotspeak.entity.User;
 import com.example.spotspeak.service.UserProfileService;
 import com.example.spotspeak.validation.ValidFile;
 
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 @RestController
@@ -57,12 +56,18 @@ public class UserProfileController {
 	}
 
 	@PostMapping("/profile-picture")
-	@Transactional
 	ResponseEntity<Resource> updateProfilePicture(@AuthenticationPrincipal Jwt jwt,
 			@Valid @RequestParam("file") @ValidFile(maxSize = 1024 * 1024 * 5, allowedTypes = { "image/jpeg",
 					"image/jpg", "image/png" }) MultipartFile file) {
 		String userId = jwt.getSubject();
 		Resource resource = userProfileService.updateUserProfilePicture(userId, file);
 		return ResponseEntity.ok(resource);
+	}
+
+	@DeleteMapping("/profile-picture")
+	ResponseEntity<Void> deleteProfilePicture(@AuthenticationPrincipal Jwt jwt) {
+		String userId = jwt.getSubject();
+		userProfileService.deleteUserProfilePicture(userId);
+		return ResponseEntity.noContent().build();
 	}
 }

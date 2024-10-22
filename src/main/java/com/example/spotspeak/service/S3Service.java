@@ -1,6 +1,5 @@
 package com.example.spotspeak.service;
 
-import com.example.spotspeak.dto.PresignedUploadUrlResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -41,7 +40,7 @@ public class S3Service implements StorageService {
 
     @Override
     public void deleteFile(String key) {
-        throw new UnsupportedOperationException("Unimplemented method 'deleteFile'");
+        deleteObject(key);
     }
 
     public String generatePresignedDownloadUrl(String key) {
@@ -85,6 +84,7 @@ public class S3Service implements StorageService {
         try {
             s3Client.deleteObject(request);
         } catch (Exception e) {
+            throw e;
         }
     }
 }
