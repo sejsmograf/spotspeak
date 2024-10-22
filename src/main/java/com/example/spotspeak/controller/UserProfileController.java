@@ -4,6 +4,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,11 +18,14 @@ import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.service.UserProfileService;
+import com.example.spotspeak.validation.ValidFile;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/account")
+@Validated
 public class UserProfileController {
 
 	private UserProfileService userProfileService;
@@ -55,7 +59,8 @@ public class UserProfileController {
 	@PostMapping("/profile-picture")
 	@Transactional
 	ResponseEntity<Resource> updateProfilePicture(@AuthenticationPrincipal Jwt jwt,
-			@RequestParam("file") MultipartFile file) {
+			@Valid @RequestParam("file") @ValidFile(maxSize = 1024 * 1024 * 5, allowedTypes = { "image/jpeg",
+					"image/jpg", "image/png" }) MultipartFile file) {
 		String userId = jwt.getSubject();
 		Resource resource = userProfileService.updateUserProfilePicture(userId, file);
 		return ResponseEntity.ok(resource);

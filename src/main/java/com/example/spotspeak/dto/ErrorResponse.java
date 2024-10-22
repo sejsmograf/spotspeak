@@ -1,17 +1,38 @@
 package com.example.spotspeak.dto;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-public record ErrorResponse(
-                LocalDateTime timestamp,
-                String message,
-                String details) {
+import com.fasterxml.jackson.annotation.JsonFormat;
 
-        public ErrorResponse(String message) {
-                this(LocalDateTime.now(), message, null);
-        };
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-        public ErrorResponse(String message, String details) {
-                this(LocalDateTime.now(), message, details);
-        };
+@Getter
+@Setter
+@Builder
+public class ErrorResponse {
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
+        private ZonedDateTime timestamp;
+
+        private Integer statusCode;
+
+        private List<String> message;
+
+        public static ErrorResponse createInstance() {
+                return ErrorResponse.builder()
+                                .timestamp(ZonedDateTime.now())
+                                .build();
+        }
+
+        public ErrorResponse addMessage(String message) {
+                if (this.message == null) {
+                        this.message = new ArrayList<>();
+                }
+                this.message.add(message);
+                return this;
+        }
 }
