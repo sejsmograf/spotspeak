@@ -9,17 +9,21 @@ import org.springframework.web.multipart.MultipartFile;
 public class ResourceService {
 
     private ResourceRepository resourceRepository;
-    private S3Service s3Service;
+    private StorageService storageService;
+    private KeyGenerationService keyGenerationService;
 
     public ResourceService(ResourceRepository resourceRepository,
-            S3Service s3Service) {
+            StorageService storageService,
+            KeyGenerationService keyGenerationService) {
         this.resourceRepository = resourceRepository;
-        this.s3Service = s3Service;
+        this.storageService = storageService;
+        this.keyGenerationService = keyGenerationService;
     }
 
     public Resource uploadTraceResource(String userId, MultipartFile file) {
-        String s3Key = s3Service.generateUniqueKeyName(userId, file.getName());
-        s3Service.uploadFile(file, s3Key);
+        String s3Key = keyGenerationService.generateUniqueTraceResourceKey(userId, file.getName());
+
+        storageService.storeFile(file, s3Key);
 
         Resource resource = Resource.builder()
                 .s3Key(s3Key)
@@ -30,11 +34,12 @@ public class ResourceService {
     }
 
     public Resource uploadUserProfilePicture(String userId, MultipartFile file) {
-        String s3Key = s3Service.generateUserProfilePictureKey(userId);
-        s3Service.uploadFile(file, s3Key);
+        String key = keyGenerationService.generateUserProfilePictureKey(userId);
+
+        storageService.storeFile(file, key);
 
         Resource resource = Resource.builder()
-                .s3Key(s3Key)
+                .s3Key(key)
                 .fileType(file.getContentType())
                 .build();
 

@@ -3,7 +3,6 @@ package com.example.spotspeak.entity;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
