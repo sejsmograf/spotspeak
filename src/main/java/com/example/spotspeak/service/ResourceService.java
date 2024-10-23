@@ -52,6 +52,6 @@ public class ResourceService {
     @Transactional
     public void deleteResource(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId).get();
-        storageService.deleteFile(resource.getKey());
+        storageService.deleteFile(resource.getResourceKey());
     }
 }

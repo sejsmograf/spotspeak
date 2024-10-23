@@ -62,7 +62,7 @@ public class TraceService {
 		Trace trace = findByIdOrThrow(traceId);
 		userProfileService.findByIdOrThrow(userId); // maybe not necessary
 
-		String keyName = trace.getResource().getKey();
+		String keyName = trace.getResource().getResourceKey();
 
 		String presignedUrl = s3Service.generatePresignedDownloadUrl(keyName);
 
@@ -74,7 +74,7 @@ public class TraceService {
 				traceTagService.getTagsForTrace(trace.getId()),
 				trace.getLocation().getX(),
 				trace.getLocation().getY()
-				//trace.getAuthor()
+		// trace.getAuthor()
 		);
 	}
 
