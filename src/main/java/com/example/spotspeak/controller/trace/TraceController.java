@@ -2,6 +2,7 @@ package com.example.spotspeak.controller.trace;
 
 import java.util.List;
 import com.example.spotspeak.dto.TraceDownloadDTO;
+import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceResponse;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.service.TraceTagService;
@@ -36,10 +37,10 @@ public class TraceController {
 	}
 
 	@GetMapping("/nearby")
-	public ResponseEntity<List<Trace>> getTracesNearby(@RequestParam double longitude,
+	public ResponseEntity<List<TraceLocationDTO>> getTracesNearby(@RequestParam double longitude,
 			@RequestParam double latitude,
 			@RequestParam int distance) {
-		List<Trace> nearbyTraces = traceService.getNearbyTraces(longitude, latitude, distance);
+		List<TraceLocationDTO> nearbyTraces = traceService.getNearbyTraces(longitude, latitude, distance);
 		return ResponseEntity.ok(nearbyTraces);
 	}
 

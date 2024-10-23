@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+
 import com.example.spotspeak.entity.Trace;
 
 public interface TraceRepository extends CrudRepository<Trace, Long> {
@@ -15,4 +16,9 @@ public interface TraceRepository extends CrudRepository<Trace, Long> {
             "ST_SetSRID(ST_MakePoint(?1, ?2), 4326)::geography, " +
             "?3)", nativeQuery = true)
     List<Trace> getNearbyTraces(double longitude, double latitude, int distance);
+
+    @Query(value = "SELECT id, ST_X(location::geometry) AS longitude, ST_Y(location::geometry) AS latitude " +
+            "FROM traces " +
+            "WHERE ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint(?1, ?2), 4326)::geography, ?3)", nativeQuery = true)
+    List<Object[]> findNearbyLocations(double longitude, double latitude, double distance);
 }

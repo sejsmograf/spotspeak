@@ -1,8 +1,10 @@
 package com.example.spotspeak.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.example.spotspeak.dto.TraceDownloadDTO;
+import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.*;
 import com.example.spotspeak.exception.TraceNotFoundException;
@@ -36,8 +38,11 @@ public class TraceService {
 		return (List<Trace>) traceRepository.findAll();
 	}
 
-	public List<Trace> getNearbyTraces(double longitude, double latitude, int distance) {
-		return (List<Trace>) traceRepository.getNearbyTraces(longitude, latitude, distance);
+	public List<TraceLocationDTO> getNearbyTraces(double longitude, double latitude, double distance) {
+		List<Object[]> results = traceRepository.findNearbyLocations(longitude, latitude, distance);
+		return results.stream()
+				.map(result -> new TraceLocationDTO((Long) result[0], (Double) result[1], (Double) result[2]))
+				.collect(Collectors.toList());
 	}
 
 	@Transactional
@@ -76,9 +81,9 @@ public class TraceService {
 		Trace trace = findByIdOrThrow(traceId);
 		userProfileService.findByIdOrThrow(userId); // maybe not necessary
 
-		Long resourceId = trace.getResource().getId();
+		Resource resource = trace.getResource();
 
-		String presignedUrl = resourceService.getResourceAccessUrl(resourceId);
+		String presignedUrl = resource == null ? null : resourceService.getResourceAccessUrl(resource.getId());
 
 		return new TraceDownloadDTO(
 				trace.getId(),
