@@ -22,16 +22,14 @@ public class TraceService {
 	private ResourceService resourceService;
 	private TraceTagService traceTagService;
 	private UserProfileService userProfileService;
-	private S3Service s3Service;
 
 	public TraceService(TraceRepository traceRepository, ResourceService resourceService,
-			TraceTagService traceTagService, UserProfileService userProfileService, S3Service s3Service) {
+			TraceTagService traceTagService, UserProfileService userProfileService) {
 		this.traceRepository = traceRepository;
 		this.geometryFactory = new GeometryFactory();
 		this.resourceService = resourceService;
 		this.traceTagService = traceTagService;
 		this.userProfileService = userProfileService;
-		this.s3Service = s3Service;
 	}
 
 	public List<Trace> getAllTraces() {
@@ -62,9 +60,9 @@ public class TraceService {
 		Trace trace = findByIdOrThrow(traceId);
 		userProfileService.findByIdOrThrow(userId); // maybe not necessary
 
-		String keyName = trace.getResource().getKey();
+		Long resourceId = trace.getResource().getId();
 
-		String presignedUrl = s3Service.generatePresignedDownloadUrl(keyName);
+		String presignedUrl = resourceService.getResourceAccessUrl(resourceId);
 
 		return new TraceDownloadDTO(
 				trace.getId(),
@@ -74,7 +72,7 @@ public class TraceService {
 				traceTagService.getTagsForTrace(trace.getId()),
 				trace.getLocation().getX(),
 				trace.getLocation().getY()
-				//trace.getAuthor()
+		// trace.getAuthor()
 		);
 	}
 

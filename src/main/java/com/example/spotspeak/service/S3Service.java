@@ -43,7 +43,12 @@ public class S3Service implements StorageService {
         deleteObject(key);
     }
 
-    public String generatePresignedDownloadUrl(String key) {
+    @Override
+    public String getResourceAccessUrl(String key) {
+        return generatePresignedDownloadUrl(key);
+    }
+
+    private String generatePresignedDownloadUrl(String key) {
         GetObjectRequest objectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
@@ -87,4 +92,5 @@ public class S3Service implements StorageService {
             throw e;
         }
     }
+
 }

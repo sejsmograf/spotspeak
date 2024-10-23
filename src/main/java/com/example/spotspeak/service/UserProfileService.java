@@ -3,10 +3,10 @@ package com.example.spotspeak.service;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.spotspeak.dto.UserInfoDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
@@ -53,7 +53,7 @@ public class UserProfileService {
 		}
 
 		userRepostitory.save(user);
-		keycloakService.updateUser("SEJSMO", updateDTO);
+		keycloakService.updateUser(userIdString, updateDTO);
 		return user;
 	}
 
@@ -75,6 +75,16 @@ public class UserProfileService {
 			user.setProfilePicture(null);
 			resourceService.deleteResource(profilePicture.getId());
 		}
+	}
+
+	public UserInfoDTO getUserInfo(String userId) {
+		User user = findByIdOrThrow(userId);
+		Resource profilePicture = user.getProfilePicture();
+		String profilePictureUrl = profilePicture != null ? resourceService.getResourceAccessUrl(profilePicture.getId())
+				: null;
+
+		return new UserInfoDTO(user.getId(), user.getUsername(), user.getFirstName(), user.getLastName(),
+				profilePictureUrl);
 	}
 
 	private UUID userIdToUUID(String userId) {
