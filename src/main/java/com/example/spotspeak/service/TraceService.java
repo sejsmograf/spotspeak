@@ -26,21 +26,10 @@ public class TraceService {
 	public TraceService(TraceRepository traceRepository, ResourceService resourceService,
 			TraceTagService traceTagService, UserProfileService userProfileService) {
 		this.traceRepository = traceRepository;
-=======
-
-	private GeometryFactory geometryFactory;
-	private ResourceService resourceService;
-	private TraceTagService traceTagService;
-	private UserProfileService userProfileService;
-
-	public TraceService(TraceRepository traceRepository, ResourceService resourceService,
-			TraceTagService traceTagService, UserProfileService userProfileService) {
-		this.traceRepository = traceRepository;
 		this.geometryFactory = new GeometryFactory();
 		this.resourceService = resourceService;
 		this.traceTagService = traceTagService;
 		this.userProfileService = userProfileService;
->>>>>>> feature/profile-pictures
 	}
 
 	public List<Trace> getAllTraces() {
