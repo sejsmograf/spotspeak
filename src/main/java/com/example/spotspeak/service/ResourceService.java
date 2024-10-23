@@ -29,7 +29,7 @@ public class ResourceService {
         storageService.storeFile(file, key);
 
         Resource resource = Resource.builder()
-                .key(key)
+                .resourceKey(key)
                 .fileType(file.getContentType())
                 .build();
 
@@ -40,7 +40,7 @@ public class ResourceService {
         String key = keyGenerationService.generateUserProfilePictureKey(userId);
         storageService.storeFile(file, key);
         Resource resource = Resource.builder()
-                .key(key)
+                .resourceKey(key)
                 .fileType(file.getContentType())
                 .build();
 
@@ -49,7 +49,7 @@ public class ResourceService {
 
     public String getResourceAccessUrl(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId).get();
-        String resourceAccessUrl = storageService.getResourceAccessUrl(resource.getKey());
+        String resourceAccessUrl = storageService.getResourceAccessUrl(resource.getResourceKey());
         return resourceAccessUrl;
     }
 
@@ -57,6 +57,6 @@ public class ResourceService {
     public void deleteResource(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId).get();
         resourceRepository.deleteById(resource.getId());
-        storageService.deleteFile(resource.getKey());
+        storageService.deleteFile(resource.getResourceKey());
     }
 }

@@ -23,7 +23,7 @@ public class Resource {
 	private Long id;
 
 	@Column(nullable = false, unique = true)
-	private String key;
+	private String resourceKey;
 
 	@Column(nullable = true)
 	private String fileType;
