@@ -10,21 +10,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
+import com.example.spotspeak.dto.ProfilePictureUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.service.UserProfileService;
-import com.example.spotspeak.validation.ValidFile;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/account")
-@Validated
 public class UserProfileController {
 
 	private UserProfileService userProfileService;
@@ -57,10 +54,9 @@ public class UserProfileController {
 
 	@PostMapping("/profile-picture")
 	ResponseEntity<Resource> updateProfilePicture(@AuthenticationPrincipal Jwt jwt,
-			@Valid @RequestParam("file") @ValidFile(maxSize = 1024 * 1024 * 5, allowedTypes = { "image/jpeg",
-					"image/jpg", "image/png" }) MultipartFile file) {
+			@Valid @RequestBody ProfilePictureUpdateDTO dto) {
 		String userId = jwt.getSubject();
-		Resource resource = userProfileService.updateUserProfilePicture(userId, file);
+		Resource resource = userProfileService.updateUserProfilePicture(userId, dto.file());
 		return ResponseEntity.ok(resource);
 	}
 
