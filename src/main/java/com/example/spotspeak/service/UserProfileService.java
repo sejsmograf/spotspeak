@@ -53,7 +53,7 @@ public class UserProfileService {
 		}
 
 		userRepostitory.save(user);
-		keycloakService.updateUser(userIdString, updateDTO);
+		keycloakService.updateUser("SEJSMO", updateDTO);
 		return user;
 	}
 

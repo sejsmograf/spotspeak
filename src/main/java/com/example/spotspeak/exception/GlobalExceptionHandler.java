@@ -22,7 +22,8 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.createInstance();
         e.getConstraintViolations()
                 .forEach(constraintViolation -> response.addMessage(
-                        constraintViolation.getPropertyPath().toString() + " : " + constraintViolation.getMessage()));
+                        constraintViolation.getPropertyPath().toString() + " : "
+                                + constraintViolation.getMessage()));
 
         return response;
     }
@@ -35,7 +36,8 @@ public class GlobalExceptionHandler {
 
         e.getBindingResult().getFieldErrors()
                 .forEach(fieldError -> response
-                        .addMessage(fieldError.getField() + " : " + fieldError.getDefaultMessage()));
+                        .addMessage(fieldError.getField() + " : "
+                                + fieldError.getDefaultMessage()));
 
         return response;
     }
@@ -48,18 +50,8 @@ public class GlobalExceptionHandler {
 
         e.getBindingResult().getFieldErrors()
                 .forEach(fieldError -> response
-                        .addMessage(fieldError.getField() + " : " + fieldError.getDefaultMessage()));
-
-        return response;
-    }
-
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ResponseBody
-    ErrorResponse handleException(Exception e) {
-        ErrorResponse response = ErrorResponse.createInstance();
-
-        response.addMessage(e.getMessage());
+                        .addMessage(fieldError.getField() + " : "
+                                + fieldError.getDefaultMessage()));
 
         return response;
     }

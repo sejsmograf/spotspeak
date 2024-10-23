@@ -1,11 +1,10 @@
-package com.example.spotspeak.controller;
+package com.example.spotspeak.controller.trace;
 
 import java.util.List;
 import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceResponse;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.service.TraceTagService;
-import com.example.spotspeak.service.UserProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -34,27 +33,27 @@ public class TraceController {
 
 	@PostMapping
 	public ResponseEntity<TraceResponse> createTrace(@AuthenticationPrincipal Jwt jwt,
-											 @RequestParam("file") MultipartFile file,
-											 @ModelAttribute TraceUploadDTO traceUploadDTO) {
+			@RequestParam("file") MultipartFile file,
+			@ModelAttribute TraceUploadDTO traceUploadDTO) {
 		String userId = jwt.getSubject();
 		Trace trace = traceService.createTrace(userId, file, traceUploadDTO);
 
-		TraceResponse traceResponse =  new TraceResponse(
+		TraceResponse traceResponse = new TraceResponse(
 				trace.getId(),
 				trace.getDescription(),
 				trace.getLocation().getX(),
 				trace.getLocation().getY(),
 				trace.getComments(),
 				traceTagService.getTagsForTrace(trace.getId()),
-//				trace.getAuthor(),
+				// trace.getAuthor(),
 				trace.getCreatedAt(),
-				trace.getIsActive()
-		);
+				trace.getIsActive());
 		return ResponseEntity.ok(traceResponse);
 	}
 
 	@GetMapping("/{traceId}")
-	public ResponseEntity<TraceDownloadDTO> getTraceInfo(@AuthenticationPrincipal Jwt jwt, @PathVariable String traceId) {
+	public ResponseEntity<TraceDownloadDTO> getTraceInfo(@AuthenticationPrincipal Jwt jwt,
+			@PathVariable String traceId) {
 		String userId = jwt.getSubject();
 		TraceDownloadDTO traceInfo = traceService.getTraceInfo(userId, traceId);
 		return ResponseEntity.ok(traceInfo);

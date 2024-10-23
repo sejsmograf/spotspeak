@@ -1,6 +1,6 @@
 package com.example.spotspeak.exception;
 
-import com.example.spotspeak.controller.TraceController;
+import com.example.spotspeak.controller.trace.TraceController;
 import com.example.spotspeak.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;

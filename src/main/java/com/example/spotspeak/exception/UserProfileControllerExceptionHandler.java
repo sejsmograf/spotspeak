@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.example.spotspeak.controller.UserProfileController;
+import com.example.spotspeak.controller.user.UserProfileController;
 import com.example.spotspeak.dto.ErrorResponse;
 
 @RestControllerAdvice(basePackageClasses = { UserProfileController.class })

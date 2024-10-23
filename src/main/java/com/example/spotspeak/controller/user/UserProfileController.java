@@ -1,4 +1,4 @@
-package com.example.spotspeak.controller;
+package com.example.spotspeak.controller.user;
 
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.springframework.http.ResponseEntity;

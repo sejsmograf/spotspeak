@@ -38,9 +38,7 @@ public class ResourceService {
 
     public Resource uploadUserProfilePicture(String userId, MultipartFile file) {
         String key = keyGenerationService.generateUserProfilePictureKey(userId);
-
         storageService.storeFile(file, key);
-
         Resource resource = Resource.builder()
                 .key(key)
                 .fileType(file.getContentType())
