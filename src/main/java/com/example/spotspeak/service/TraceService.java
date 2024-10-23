@@ -36,6 +36,10 @@ public class TraceService {
 		return (List<Trace>) traceRepository.findAll();
 	}
 
+	public List<Trace> getNearbyTraces(double longitude, double latitude, int distance) {
+		return (List<Trace>) traceRepository.getNearbyTraces(longitude, latitude, distance);
+	}
+
 	@Transactional
 	public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {
 		Point point = geometryFactory
@@ -53,6 +57,18 @@ public class TraceService {
 				.build();
 
 		return traceRepository.save(trace);
+	}
+
+	public void deleteTrace(Long traceId) {
+		Trace trace = findByIdOrThrow(traceId);
+		Resource resource = trace.getResource();
+
+		if (resource != null) {
+			trace.setResource(null);
+			resourceService.deleteResource(resource.getId());
+		}
+
+		traceRepository.deleteById(traceId);
 	}
 
 	@Transactional

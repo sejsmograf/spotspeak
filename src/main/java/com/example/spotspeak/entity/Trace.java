@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.locationtech.jts.geom.Point;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -34,29 +37,35 @@ public class Trace {
 	private Long id;
 
 	@Column(nullable = false)
+	@JsonIgnore
 	private Point location;
 
 	@Column(nullable = false)
 	private String description;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "author_id", referencedColumnName = "id", nullable = false)
+	@JsonIgnore
 	private User author;
 
 	@CreationTimestamp
 	private LocalDateTime createdAt;
 
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "resource_id", referencedColumnName = "id", nullable = true)
+	@JsonIgnore
 	private Resource resource;
 
 	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
+	@JsonIgnore
 	private List<Comment> comments;
 
 	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
+	@JsonIgnore
 	private List<TraceTag> traceTags;
 
 	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
+	@JsonIgnore
 	private List<TraceEvent> traceEvents;
 
 	@Column(nullable = false)

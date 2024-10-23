@@ -5,6 +5,9 @@ import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceResponse;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.service.TraceTagService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -26,15 +29,24 @@ public class TraceController {
 		this.traceTagService = traceTagService;
 	}
 
-	@GetMapping
-	public ResponseEntity<List<Trace>> getAllTraces() {
-		return ResponseEntity.ok(traceService.getAllTraces());
+	@GetMapping()
+	public ResponseEntity<List<Trace>> getTraces() {
+		List<Trace> nearbyTraces = traceService.getAllTraces();
+		return ResponseEntity.ok(nearbyTraces);
+	}
+
+	@GetMapping("/nearby")
+	public ResponseEntity<List<Trace>> getTracesNearby(@RequestParam double longitude,
+			@RequestParam double latitude,
+			@RequestParam int distance) {
+		List<Trace> nearbyTraces = traceService.getNearbyTraces(longitude, latitude, distance);
+		return ResponseEntity.ok(nearbyTraces);
 	}
 
 	@PostMapping
 	public ResponseEntity<TraceResponse> createTrace(@AuthenticationPrincipal Jwt jwt,
 			@RequestParam("file") MultipartFile file,
-			@ModelAttribute TraceUploadDTO traceUploadDTO) {
+			@ModelAttribute @Valid TraceUploadDTO traceUploadDTO) {
 		String userId = jwt.getSubject();
 		Trace trace = traceService.createTrace(userId, file, traceUploadDTO);
 
@@ -49,6 +61,13 @@ public class TraceController {
 				trace.getCreatedAt(),
 				trace.getIsActive());
 		return ResponseEntity.ok(traceResponse);
+	}
+
+	@DeleteMapping("/{traceId}")
+	public ResponseEntity<Void> deleteTrace(@AuthenticationPrincipal Jwt jwt,
+			@PathVariable Long traceId) {
+		traceService.deleteTrace(traceId);
+		return ResponseEntity.noContent().build();
 	}
 
 	@GetMapping("/{traceId}")

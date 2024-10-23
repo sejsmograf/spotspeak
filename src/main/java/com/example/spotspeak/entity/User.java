@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import com.example.spotspeak.entity.achievements.UserAchievement;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -42,14 +45,8 @@ public class User {
 	@JoinColumn(name = "profile_picture_id", referencedColumnName = "id", nullable = true)
 	private Resource profilePicture;
 
-	@OneToMany(mappedBy = "author", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-	private List<Trace> traces;
-
 	@OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
 	private List<UserAchievement> userAchievements;
-
-	@OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
-	private List<Comment> comments;
 
 	@OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
 	private List<FriendRequest> sentRequests;

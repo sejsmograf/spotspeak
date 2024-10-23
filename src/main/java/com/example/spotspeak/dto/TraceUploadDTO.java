@@ -1,7 +1,10 @@
 package com.example.spotspeak.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public record TraceUploadDTO(
-        Double latitude,
-        Double longitude,
-        String description) {
+                @NotNull Double latitude,
+                @NotNull Double longitude,
+                @NotBlank String description) {
 }

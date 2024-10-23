@@ -19,11 +19,11 @@ public class TraceControllerExceptionHandler {
         return response;
     }
 
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleGeneralException(Exception ex) {
-        ErrorResponse response = ErrorResponse.createInstance();
-        response.addMessage(ex.getMessage());
-        return response;
-    }
+    // @ExceptionHandler(Exception.class)
+    // @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    // public ErrorResponse handleGeneralException(Exception ex) {
+    // ErrorResponse response = ErrorResponse.createInstance();
+    // response.addMessage(ex.getMessage());
+    // return response;
+    // }
 }
