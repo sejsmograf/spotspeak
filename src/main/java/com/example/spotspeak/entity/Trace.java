@@ -1,13 +1,21 @@
 package com.example.spotspeak.entity;
 
-import com.example.spotspeak.converter.TraceTypeConverter;
+import java.time.LocalDateTime;
+import java.util.List;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.locationtech.jts.geom.Point;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.FetchType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +26,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(name = "traces")
 public class Trace {
 
 	@Id
@@ -25,13 +34,31 @@ public class Trace {
 	private Long id;
 
 	@Column(nullable = false)
-	private Double latitude;
+	private Point location;
 
 	@Column(nullable = false)
-	private Double longitude;
+	private String description;
+
+	@ManyToOne
+	@JoinColumn(name = "author_id", referencedColumnName = "id", nullable = false)
+	private User author;
+
+	@CreationTimestamp
+	private LocalDateTime createdAt;
+
+	@OneToOne
+	@JoinColumn(name = "resource_id", referencedColumnName = "id", nullable = true)
+	private Resource resource;
+
+	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
+	private List<Comment> comments;
+
+	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
+	private List<TraceTag> traceTags;
+
+	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
+	private List<TraceEvent> traceEvents;
 
 	@Column(nullable = false)
-	@Convert(converter = TraceTypeConverter.class)
-	private TraceType type;
-
+	private Boolean isActive = true;
 }
