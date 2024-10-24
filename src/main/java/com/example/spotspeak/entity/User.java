@@ -39,6 +39,9 @@ public class User {
 	@Column(nullable = false)
 	private String username;
 
+	@Column(nullable = false)
+	private String email;
+
 	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
 	@JoinColumn(name = "profile_picture_id", referencedColumnName = "id", nullable = true)
 	private Resource profilePicture;
