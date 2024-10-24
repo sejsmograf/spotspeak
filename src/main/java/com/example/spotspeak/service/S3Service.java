@@ -23,6 +23,10 @@ public class S3Service implements StorageService {
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
+
+    @Value("${aws.cloudfront.url}")
+    private String cloudfrontUrl;
+
     private final Duration PRESIGNED_URL_EXPIRATION_DURATION = Duration.ofMinutes(10);
 
     private final S3Client s3Client;
@@ -45,7 +49,11 @@ public class S3Service implements StorageService {
 
     @Override
     public String getResourceAccessUrl(String key) {
-        return generatePresignedDownloadUrl(key);
+        return generateCloudFrontUrl(key);
+    }
+
+    private String generateCloudFrontUrl(String key) {
+        return cloudfrontUrl + "/" + key;
     }
 
     private String generatePresignedDownloadUrl(String key) {
