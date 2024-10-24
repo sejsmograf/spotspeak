@@ -51,7 +51,7 @@ public class TraceService {
 				.createPoint(new Coordinate(traceUploadDTO.longitude(), traceUploadDTO.latitude()));
 
 		User user = userProfileService.findByIdOrThrow(userId);
-		Resource resource = resourceService.uploadTraceResource(userId, file);
+		Resource resource = file == null ? null : resourceService.uploadTraceResource(userId, file);
 
 		Trace trace = Trace.builder()
 				.location(point)

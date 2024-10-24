@@ -2,6 +2,7 @@ package com.example.spotspeak.service;
 
 import java.util.UUID;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,12 +34,15 @@ public class UserProfileService {
 	public void deleteById(String userIdString) {
 		User user = findByIdOrThrow(userIdString);
 
-		userRepostitory.deleteById(user.getId());
+		try {
+			userRepostitory.deleteById(user.getId());
+			userRepostitory.flush();
+		} catch (DataIntegrityViolationException e) {
+			throw new RuntimeException("User deletion failed due to foreign key constraint.", e);
+		}
+
 		keycloakService.deleteUser(userIdString);
 
-		if (user.getProfilePicture() != null) {
-			resourceService.deleteResource(user.getProfilePicture().getId());
-		}
 	}
 
 	@Transactional

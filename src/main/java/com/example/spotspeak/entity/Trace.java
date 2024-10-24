@@ -8,6 +8,7 @@ import org.locationtech.jts.geom.Point;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -36,38 +37,38 @@ public class Trace {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 
-	@Column(nullable = false)
 	@JsonIgnore
+	@Column(nullable = false)
 	private Point location;
 
 	@Column(nullable = false)
 	private String description;
 
+	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "author_id", referencedColumnName = "id", nullable = false)
-	@JsonIgnore
 	private User author;
 
-	@CreationTimestamp
-	private LocalDateTime createdAt;
-
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "resource_id", referencedColumnName = "id", nullable = true)
 	@JsonIgnore
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JoinColumn(name = "resource_id", referencedColumnName = "id", nullable = true)
 	private Resource resource;
 
-	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
 	@JsonIgnore
+	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
 	private List<Comment> comments;
 
-	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
 	@JsonIgnore
+	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
 	private List<TraceTag> traceTags;
 
-	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
 	@JsonIgnore
+	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
 	private List<TraceEvent> traceEvents;
 
 	@Column(nullable = false)
 	private Boolean isActive = true;
+
+	@CreationTimestamp
+	private LocalDateTime createdAt;
 }

@@ -11,11 +11,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "resources")
 @Builder
+@Entity
+@EntityListeners(ResourceListener.class)
 public class Resource {
 
 	@Id
@@ -31,4 +32,5 @@ public class Resource {
 	@CreationTimestamp
 	private LocalDateTime createdAt;
 
+	// @PreRemove is handled by ResourceListener
 }

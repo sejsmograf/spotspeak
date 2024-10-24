@@ -46,7 +46,7 @@ public class TraceController {
 
 	@PostMapping
 	public ResponseEntity<TraceResponse> createTrace(@AuthenticationPrincipal Jwt jwt,
-			@RequestParam("file") MultipartFile file,
+			@RequestParam(value = "file", required = false) MultipartFile file,
 			@ModelAttribute @Valid TraceUploadDTO traceUploadDTO) {
 		String userId = jwt.getSubject();
 		Trace trace = traceService.createTrace(userId, file, traceUploadDTO);
