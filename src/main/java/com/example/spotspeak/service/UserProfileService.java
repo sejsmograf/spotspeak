@@ -48,17 +48,26 @@ public class UserProfileService {
 	@Transactional
 	public User updateUser(String userIdString, UserUpdateDTO updateDTO) {
 		User user = findByIdOrThrow(userIdString);
+		updateUserFromDTO(user, updateDTO);
 
+		userRepostitory.save(user);
+		keycloakService.updateUser(userIdString, updateDTO);
+		return user;
+	}
+
+	private void updateUserFromDTO(User user, UserUpdateDTO updateDTO) {
 		if (updateDTO.firstName() != null) {
 			user.setFirstName(updateDTO.firstName());
 		}
 		if (updateDTO.lastName() != null) {
 			user.setLastName(updateDTO.lastName());
 		}
-
-		userRepostitory.save(user);
-		keycloakService.updateUser(userIdString, updateDTO);
-		return user;
+		if (updateDTO.email() != null) {
+			user.setEmail(updateDTO.email());
+		}
+		if (updateDTO.username() != null) {
+			user.setUsername(updateDTO.username());
+		}
 	}
 
 	public Resource updateUserProfilePicture(String userIdString, MultipartFile file) {

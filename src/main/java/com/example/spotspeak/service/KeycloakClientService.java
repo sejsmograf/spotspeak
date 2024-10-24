@@ -31,26 +31,61 @@ public class KeycloakClientService {
 
 	public void updateUser(String userId, UserUpdateDTO updatedUserModel) {
 		try {
-			UserRepresentation user = getRealm()
-					.users().get(userId).toRepresentation();
-
+			UserRepresentation user = getRealm().users().get(userId).toRepresentation();
 			if (user == null) {
-				throw new KeycloakClientException("Keyclaok user not found");
+				throw new KeycloakClientException("Keycloak user not found");
 			}
 
-			user.setFirstName(updatedUserModel.firstName());
-			user.setLastName(updatedUserModel.lastName());
+			if (updatedUserModel.email() != null
+					&& !updatedUserModel.email().equals(user.getEmail())
+					&& checkEmailExists(updatedUserModel.email())) {
+				throw new KeycloakClientException("Email already exists");
+			}
+
+			if (updatedUserModel.username() != null
+					&& !updatedUserModel.username().equals(user.getUsername())
+					&& checkUsernameExists(updatedUserModel.username())) {
+				throw new KeycloakClientException("Username already exists");
+			}
+
+			updateUserFields(user, updatedUserModel);
 			getRealm().users().get(userId).update(user);
 		} catch (ServerErrorException | ClientErrorException e) {
-			int statusCode = e.getResponse().getStatus();
-			String message = "Error updating keycloak user ";
-			message += e instanceof ServerErrorException ? "Keyclaok server connection error"
-					: "Keycloak client connection error";
-
-			throw new KeycloakClientException(message, statusCode + e.getMessage());
+			handleClientError(e);
 		} catch (Exception e) {
 			throw new KeycloakClientException("Keycloak client exception", e.getMessage());
 		}
+	}
+
+	private void updateUserFields(UserRepresentation user, UserUpdateDTO updatedUserModel) {
+		if (updatedUserModel.firstName() != null) {
+			user.setFirstName(updatedUserModel.firstName());
+		}
+		if (updatedUserModel.lastName() != null) {
+			user.setLastName(updatedUserModel.lastName());
+		}
+		if (updatedUserModel.email() != null) {
+			user.setEmail(updatedUserModel.email());
+		}
+		if (updatedUserModel.username() != null) {
+			user.setUsername(updatedUserModel.username());
+		}
+	}
+
+	private void handleClientError(Exception e) {
+		int statusCode = ((ClientErrorException) e).getResponse().getStatus();
+		String message = "Error updating Keycloak user: "
+				+ (e instanceof ServerErrorException ? "Keycloak server connection error"
+						: "Keycloak client connection error");
+		throw new KeycloakClientException(message, statusCode + e.getMessage());
+	}
+
+	private boolean checkEmailExists(String email) {
+		return !getRealm().users().searchByEmail(email, true).isEmpty();
+	}
+
+	private boolean checkUsernameExists(String username) {
+		return !getRealm().users().search(username).isEmpty();
 	}
 
 	public void deleteUser(String userId) {
