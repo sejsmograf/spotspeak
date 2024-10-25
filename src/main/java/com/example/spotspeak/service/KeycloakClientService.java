@@ -55,15 +55,15 @@ public class KeycloakClientService {
 
 	public void updateUser(String userId, UserUpdateDTO updatedUserModel) {
 		try {
-			UserRepresentation user = getRealm().users().get(userId).toRepresentation();
-			if (user == null) {
+			UserRepresentation userRepresentation = getRealm().users().get(userId).toRepresentation();
+			if (userRepresentation == null) {
 				throw new KeycloakClientException("Keycloak user not found");
 			}
 
-			validateUpdatePossible(updatedUserModel);
-			updateUserFields(user, updatedUserModel);
+			validateUpdatePossible(userRepresentation, updatedUserModel);
+			updateUserFields(userRepresentation, updatedUserModel);
 
-			getRealm().users().get(userId).update(user);
+			getRealm().users().get(userId).update(userRepresentation);
 		} catch (ServerErrorException | ClientErrorException e) {
 			handleClientError(e);
 		} catch (Exception e) {
@@ -79,9 +79,13 @@ public class KeycloakClientService {
 		}
 	}
 
-	private void validateUpdatePossible(UserUpdateDTO dto) {
-		validateEmailUnique(dto.email());
-		validateUsernameUnique(dto.username());
+	private void validateUpdatePossible(UserRepresentation user, UserUpdateDTO dto) {
+		if (!user.getEmail().equals(dto.email())) {
+			validateEmailUnique(dto.email());
+		}
+		if (!user.getUsername().equals(dto.username())) {
+			validateUsernameUnique(dto.username());
+		}
 	}
 
 	private void validateEmailUnique(String email) {
