@@ -2,9 +2,11 @@ package com.example.spotspeak.service;
 
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 import com.example.spotspeak.config.KeycloakClientConfiguration;
+import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.exception.KeycloakClientException;
 import com.example.spotspeak.util.KeycloakClientBuilder;
@@ -16,17 +18,39 @@ import jakarta.ws.rs.core.Response;
 @Service
 public class KeycloakClientService {
 
-	public Keycloak client;
+	private KeycloakClientBuilder clientBuilder;
+	private Keycloak adminClient;
 	private String keycloakRealmName;
 
 	public KeycloakClientService(KeycloakClientBuilder clientBuilder,
 			KeycloakClientConfiguration config) {
-		this.client = clientBuilder.build();
+		this.clientBuilder = clientBuilder;
+		this.adminClient = clientBuilder.buildAdminClient();
 		this.keycloakRealmName = config.realmName();
 	}
 
-	private RealmResource getRealm() {
-		return client.realm(keycloakRealmName);
+	public void updatePassword(String userId, PasswordUpdateDTO dto) {
+		try {
+			var user = getRealm().users().get(userId);
+			if (user == null) {
+				throw new KeycloakClientException("Keycloak user not found");
+			}
+			String username = user.toRepresentation().getUsername();
+
+			if (!validateCurrentPassword(username, dto.currentPassword())) {
+				throw new KeycloakClientException("Invalid current password");
+			}
+
+			CredentialRepresentation newCredentials = new CredentialRepresentation();
+			newCredentials.setTemporary(false);
+			newCredentials.setValue(dto.newPassword());
+
+			user.resetPassword(newCredentials);
+		} catch (ServerErrorException | ClientErrorException e) {
+			handleClientError(e);
+		} catch (Exception e) {
+			throw new KeycloakClientException("Keycloak client exception", e.getMessage());
+		}
 	}
 
 	public void updateUser(String userId, UserUpdateDTO updatedUserModel) {
@@ -36,24 +60,39 @@ public class KeycloakClientService {
 				throw new KeycloakClientException("Keycloak user not found");
 			}
 
-			if (updatedUserModel.email() != null
-					&& !updatedUserModel.email().equals(user.getEmail())
-					&& checkEmailExists(updatedUserModel.email())) {
-				throw new KeycloakClientException("Email already exists");
-			}
-
-			if (updatedUserModel.username() != null
-					&& !updatedUserModel.username().equals(user.getUsername())
-					&& checkUsernameExists(updatedUserModel.username())) {
-				throw new KeycloakClientException("Username already exists");
-			}
-
+			validateUpdatePossible(updatedUserModel);
 			updateUserFields(user, updatedUserModel);
+
 			getRealm().users().get(userId).update(user);
 		} catch (ServerErrorException | ClientErrorException e) {
 			handleClientError(e);
 		} catch (Exception e) {
 			throw new KeycloakClientException("Keycloak client exception", e.getMessage());
+		}
+	}
+
+	public void deleteUser(String userId) {
+		Response response = getRealm().users().delete(userId);
+		if (response.getStatus() != 200 && response.getStatus() != 204) {
+			throw new KeycloakClientException("Error deleting keycloak user",
+					"Response status: " + response.getStatus());
+		}
+	}
+
+	private void validateUpdatePossible(UserUpdateDTO dto) {
+		validateEmailUnique(dto.email());
+		validateUsernameUnique(dto.username());
+	}
+
+	private void validateEmailUnique(String email) {
+		if (checkEmailExists(email)) {
+			throw new KeycloakClientException("Email already exists");
+		}
+	}
+
+	private void validateUsernameUnique(String username) {
+		if (checkUsernameExists(username)) {
+			throw new KeycloakClientException("Username already exists");
 		}
 	}
 
@@ -80,6 +119,16 @@ public class KeycloakClientService {
 		throw new KeycloakClientException(message, statusCode + e.getMessage());
 	}
 
+	private boolean validateCurrentPassword(String username, String currentPassword) {
+		try {
+			Keycloak keycloakPasswordClient = clientBuilder.buildPasswordClient(username, currentPassword);
+			keycloakPasswordClient.tokenManager().getAccessToken();
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 	private boolean checkEmailExists(String email) {
 		return !getRealm().users().searchByEmail(email, true).isEmpty();
 	}
@@ -88,12 +137,7 @@ public class KeycloakClientService {
 		return !getRealm().users().search(username).isEmpty();
 	}
 
-	public void deleteUser(String userId) {
-		Response response = getRealm().users().delete(userId);
-		if (response.getStatus() != 200 && response.getStatus() != 204) {
-			throw new KeycloakClientException("Error deleting keycloak user",
-					"Response status: " + response.getStatus());
-		}
+	private RealmResource getRealm() {
+		return adminClient.realm(keycloakRealmName);
 	}
-
 }

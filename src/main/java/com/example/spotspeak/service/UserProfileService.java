@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.dto.CurrentUserInfoDTO;
+import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
@@ -42,6 +43,10 @@ public class UserProfileService {
 	public CurrentUserInfoDTO getUserInfo(String userId) {
 		User user = findByIdOrThrow(userId);
 		return userMapper.toCurrentUserInfoDTO(user);
+	}
+
+	public void updateUserPassword(String userId, PasswordUpdateDTO dto) {
+		keycloakService.updatePassword(userId, dto);
 	}
 
 	@Transactional

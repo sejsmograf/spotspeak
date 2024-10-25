@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.spotspeak.dto.ProfilePictureUpdateDTO;
 import com.example.spotspeak.dto.CurrentUserInfoDTO;
+import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.service.UserProfileService;
@@ -49,6 +51,14 @@ public class UserProfileController {
 	ResponseEntity<Void> deleteProfile(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
 		userProfileService.deleteById(userId);
+		return ResponseEntity.noContent().build();
+	}
+
+	@PutMapping("/update-password")
+	ResponseEntity<Void> updatePassword(@AuthenticationPrincipal Jwt jwt,
+			@Valid @RequestBody PasswordUpdateDTO passwordUpdateDTO) {
+		String userId = jwt.getSubject();
+		userProfileService.updateUserPassword(userId, passwordUpdateDTO);
 		return ResponseEntity.noContent().build();
 	}
 
