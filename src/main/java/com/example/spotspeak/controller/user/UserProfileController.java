@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.spotspeak.dto.ProfilePictureUpdateDTO;
-import com.example.spotspeak.dto.UserInfoDTO;
+import com.example.spotspeak.dto.CurrentUserInfoDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.service.UserProfileService;
@@ -20,7 +20,7 @@ import com.example.spotspeak.service.UserProfileService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/users/profile")
+@RequestMapping("/api/users/me")
 public class UserProfileController {
 
 	private UserProfileService userProfileService;
@@ -30,23 +30,23 @@ public class UserProfileController {
 	}
 
 	@PutMapping
-	ResponseEntity<UserInfoDTO> updateUser(@AuthenticationPrincipal Jwt jwt,
+	ResponseEntity<CurrentUserInfoDTO> updateProfile(@AuthenticationPrincipal Jwt jwt,
 			@RequestBody UserUpdateDTO userUpdateDTO) {
 		String userId = jwt.getSubject();
 		userProfileService.updateUser(userId, userUpdateDTO);
-		UserInfoDTO userInfo = userProfileService.getUserInfo(userId);
+		CurrentUserInfoDTO userInfo = userProfileService.getUserInfo(userId);
 		return ResponseEntity.ok(userInfo);
 	}
 
 	@GetMapping
-	ResponseEntity<UserInfoDTO> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
+	ResponseEntity<CurrentUserInfoDTO> getProfile(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
-		UserInfoDTO userInfo = userProfileService.getUserInfo(userId);
+		CurrentUserInfoDTO userInfo = userProfileService.getUserInfo(userId);
 		return ResponseEntity.ok(userInfo);
 	}
 
 	@DeleteMapping
-	ResponseEntity<Void> deleteUser(@AuthenticationPrincipal Jwt jwt) {
+	ResponseEntity<Void> deleteProfile(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
 		userProfileService.deleteById(userId);
 		return ResponseEntity.noContent().build();
