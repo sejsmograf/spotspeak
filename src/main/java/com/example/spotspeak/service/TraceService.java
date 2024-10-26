@@ -22,15 +22,14 @@ public class TraceService {
 	private TraceRepository traceRepository;
 	private GeometryFactory geometryFactory;
 	private ResourceService resourceService;
-	private TraceTagService traceTagService;
 	private UserProfileService userProfileService;
 
-	public TraceService(TraceRepository traceRepository, ResourceService resourceService,
-			TraceTagService traceTagService, UserProfileService userProfileService) {
+	public TraceService(TraceRepository traceRepository,
+			ResourceService resourceService,
+			UserProfileService userProfileService) {
 		this.traceRepository = traceRepository;
 		this.geometryFactory = new GeometryFactory();
 		this.resourceService = resourceService;
-		this.traceTagService = traceTagService;
 		this.userProfileService = userProfileService;
 	}
 
@@ -40,7 +39,7 @@ public class TraceService {
 
 	public List<TraceLocationDTO> getNearbyTraces(double longitude, double latitude, double distance) {
 		List<Object[]> results = traceRepository.findNearbyLocations(longitude, latitude, distance);
-		return results.stream()
+		return (List<TraceLocationDTO>) results.stream()
 				.map(result -> new TraceLocationDTO((Long) result[0], (Double) result[1], (Double) result[2]))
 				.collect(Collectors.toList());
 	}
@@ -90,7 +89,7 @@ public class TraceService {
 				presignedUrl,
 				trace.getDescription(),
 				trace.getComments(),
-				traceTagService.getTagsForTrace(trace.getId()),
+				trace.getTags(),
 				trace.getLocation().getX(),
 				trace.getLocation().getY()
 		// trace.getAuthor()
@@ -114,4 +113,5 @@ public class TraceService {
 		Long traceId = traceIdToLong(traceIdString);
 		return findByIdOrThrow(traceId);
 	}
+
 }

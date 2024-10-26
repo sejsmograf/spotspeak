@@ -5,7 +5,6 @@ import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceResponse;
 import com.example.spotspeak.dto.TraceUploadDTO;
-import com.example.spotspeak.service.TraceTagService;
 import com.example.spotspeak.validation.ValidFile;
 
 import jakarta.validation.Valid;
@@ -26,15 +25,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class TraceController {
 
 	private TraceService traceService;
-	private TraceTagService traceTagService;
 
-	public TraceController(TraceService traceService, TraceTagService traceTagService) {
+	public TraceController(TraceService traceService) {
 		this.traceService = traceService;
-		this.traceTagService = traceTagService;
 	}
 
-	@GetMapping()
-	public ResponseEntity<List<Trace>> getTraces() {
+	@GetMapping("/my")
+	public ResponseEntity<List<Trace>> getMyTraces(@AuthenticationPrincipal Jwt jwt) {
 		List<Trace> nearbyTraces = traceService.getAllTraces();
 		return ResponseEntity.ok(nearbyTraces);
 	}
@@ -61,7 +58,7 @@ public class TraceController {
 				trace.getLocation().getX(),
 				trace.getLocation().getY(),
 				trace.getComments(),
-				traceTagService.getTagsForTrace(trace.getId()),
+				trace.getTags(),
 				// trace.getAuthor(),
 				trace.getCreatedAt(),
 				trace.getIsActive());
