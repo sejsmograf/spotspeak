@@ -6,12 +6,14 @@ import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceResponse;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.service.TraceTagService;
+import com.example.spotspeak.validation.ValidFile;
 
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.spotspeak.entity.Trace;
@@ -20,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/traces")
+@Validated
 public class TraceController {
 
 	private TraceService traceService;
@@ -46,8 +49,9 @@ public class TraceController {
 
 	@PostMapping
 	public ResponseEntity<TraceResponse> createTrace(@AuthenticationPrincipal Jwt jwt,
-			@RequestParam(value = "file", required = false) MultipartFile file,
-			@RequestParam @Valid TraceUploadDTO traceUploadDTO) {
+			@Valid @ValidFile(required = false, maxSize = 1024 * 1024 * 3, allowedTypes = { "image/jpeg", "image/png",
+					"image/jpg" }) @RequestPart(value = "file", required = false) MultipartFile file,
+			@RequestPart @Valid TraceUploadDTO traceUploadDTO) {
 		String userId = jwt.getSubject();
 		Trace trace = traceService.createTrace(userId, file, traceUploadDTO);
 

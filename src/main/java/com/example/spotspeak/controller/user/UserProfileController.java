@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.spotspeak.dto.ProfilePictureUpdateDTO;
 import com.example.spotspeak.dto.CurrentUserInfoDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
