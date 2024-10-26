@@ -25,6 +25,6 @@ public class Tag {
 	@Column(nullable = false)
 	private String name;
 
-	@ManyToMany
+	@ManyToMany(mappedBy = "tags")
 	Set<Trace> traces;
 }
