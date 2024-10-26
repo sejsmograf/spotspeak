@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.service.TraceService;
 import org.springframework.web.multipart.MultipartFile;
@@ -78,6 +79,12 @@ public class TraceController {
 		String userId = jwt.getSubject();
 		TraceDownloadDTO traceInfo = traceService.getTraceInfo(userId, traceId);
 		return ResponseEntity.ok(traceInfo);
+	}
+
+	@GetMapping("/tags")
+	public ResponseEntity<List<Tag>> getTags() {
+		List<Tag> tags = traceService.getAllTags();
+		return ResponseEntity.ok(tags);
 	}
 
 }

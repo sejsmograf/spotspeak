@@ -23,18 +23,25 @@ public class TraceService {
 	private GeometryFactory geometryFactory;
 	private ResourceService resourceService;
 	private UserProfileService userProfileService;
+	private TagService tagService;
 
 	public TraceService(TraceRepository traceRepository,
 			ResourceService resourceService,
-			UserProfileService userProfileService) {
+			UserProfileService userProfileService,
+			TagService tagService) {
 		this.traceRepository = traceRepository;
 		this.geometryFactory = new GeometryFactory();
 		this.resourceService = resourceService;
 		this.userProfileService = userProfileService;
+		this.tagService = tagService;
 	}
 
 	public List<Trace> getAllTraces() {
 		return (List<Trace>) traceRepository.findAll();
+	}
+
+	public List<Tag> getAllTags() {
+		return tagService.getAllTags();
 	}
 
 	public List<TraceLocationDTO> getNearbyTraces(double longitude, double latitude, double distance) {
@@ -50,12 +57,19 @@ public class TraceService {
 				.createPoint(new Coordinate(traceUploadDTO.longitude(), traceUploadDTO.latitude()));
 
 		User user = userProfileService.findByIdOrThrow(userId);
-		Resource resource = file == null ? null : resourceService.uploadTraceResource(userId, file);
+		Resource resource = file == null
+				? null
+				: resourceService.uploadTraceResource(userId, file);
+
+		List<Tag> tags = traceUploadDTO.tagIds() == null
+				? null
+				: tagService.getTagsByIds(traceUploadDTO.tagIds());
 
 		Trace trace = Trace.builder()
 				.location(point)
 				.description(traceUploadDTO.description())
 				.author(user)
+				.tags(tags)
 				.resource(resource)
 				.isActive(true)
 				.build();
