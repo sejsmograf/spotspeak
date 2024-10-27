@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Data
 @Entity
@@ -34,6 +34,6 @@ public class Friendship {
     @JoinColumn(name = "user_reveiving_id", referencedColumnName = "id", nullable = false)
     private User userReceiving;
 
-    @CreatedDate
+    @CreationTimestamp
     private LocalDateTime createdAt;
 }
