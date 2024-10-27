@@ -2,12 +2,12 @@ package com.example.spotspeak.repository;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 
 import com.example.spotspeak.entity.Trace;
 
-public interface TraceRepository extends CrudRepository<Trace, Long> {
+public interface TraceRepository extends JpaRepository<Trace, Long> {
 
     @Query(value = "SELECT * " +
             "FROM traces " +
