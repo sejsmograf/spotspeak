@@ -50,6 +50,7 @@ public class FriendRequestService {
                 .sender(sender)
                 .receiver(receiver)
                 .status(EFriendRequestStatus.PENDING)
+                .sentAt(LocalDateTime.now())
                 .build();
 
         friendRequestRepository.save(friendRequest);
