@@ -21,10 +21,10 @@ public class FriendRequestService {
 
     FriendRequestRepository friendRequestRepository;
     FriendshipService friendshipService;
-    UserService userService;
+    UserProfileService userService;
     FriendRequestMapper friendRequestMapper;
 
-    public FriendRequestService(FriendRequestRepository friendRequestRepository, FriendshipService friendshipService, UserService userService, FriendRequestMapper friendRequestMapper) {
+    public FriendRequestService(FriendRequestRepository friendRequestRepository, FriendshipService friendshipService, UserProfileService userService, FriendRequestMapper friendRequestMapper) {
         this.friendRequestRepository = friendRequestRepository;
         this.friendshipService = friendshipService;
         this.userService = userService;
@@ -33,8 +33,8 @@ public class FriendRequestService {
 
     @Transactional
     public FriendRequestDTO sendFriendRequest(String senderId, UUID receiverId) {
-        User sender = userService.findById(senderId);
-        User receiver = userService.findById(receiverId);
+        User sender = userService.findByIdOrThrow(senderId);
+        User receiver = userService.findByIdOrThrow(String.valueOf(receiverId));
 
         if (friendRequestRepository.existsBySenderAndReceiverAndStatus(receiver, sender, EFriendRequestStatus.PENDING)) {
             throw new FriendRequestExistsException("Request already received from this user");
@@ -59,7 +59,7 @@ public class FriendRequestService {
 
     @Transactional
     public FriendRequestDTO acceptFriendRequest(String currentUserId, Long requestId) {
-        User currentUser = userService.findById(currentUserId);
+        User currentUser = userService.findByIdOrThrow(currentUserId);
         FriendRequest friendRequest = validateAndGetPendingRequest(currentUser, requestId);
 
         friendRequest.setStatus(EFriendRequestStatus.ACCEPTED);
@@ -73,7 +73,7 @@ public class FriendRequestService {
 
     @Transactional
     public FriendRequestDTO rejectFriendRequest(String currentUserId, Long requestId) {
-        User currentUser = userService.findById(currentUserId);
+        User currentUser = userService.findByIdOrThrow(currentUserId);
         FriendRequest friendRequest = validateAndGetPendingRequest(currentUser, requestId);
 
         friendRequest.setStatus(EFriendRequestStatus.REJECTED);
@@ -85,7 +85,7 @@ public class FriendRequestService {
 
     @Transactional
     public void cancelFriendRequest(String currentUserId, Long requestId) {
-        User currentUser = userService.findById(currentUserId);
+        User currentUser = userService.findByIdOrThrow(currentUserId);
         FriendRequest friendRequest = findById(requestId);
 
         if (!friendRequest.getSender().equals(currentUser)) {
@@ -100,7 +100,7 @@ public class FriendRequestService {
     }
 
     public List<FriendRequestUserInfoDTO> getSentFriendRequests(String senderId) {
-        User sender = userService.findById(senderId);
+        User sender = userService.findByIdOrThrow(senderId);
         List<FriendRequest> sentRequests = friendRequestRepository.findBySenderAndStatus(sender, EFriendRequestStatus.PENDING);
         return sentRequests.stream()
                 .map(request -> friendRequestMapper.toUserInfoFriendRequestDTO(request, request.getReceiver()))
@@ -108,7 +108,7 @@ public class FriendRequestService {
     }
 
     public List<FriendRequestUserInfoDTO> getReceivedFriendRequests(String receiverId) {
-        User receiver = userService.findById(receiverId);
+        User receiver = userService.findByIdOrThrow(receiverId);
         List<FriendRequest> receivedRequests = friendRequestRepository.findByReceiverAndStatus(receiver, EFriendRequestStatus.PENDING);
         return receivedRequests.stream()
                 .map(request -> friendRequestMapper.toUserInfoFriendRequestDTO(request, request.getSender()))
@@ -124,7 +124,7 @@ public class FriendRequestService {
 
     private FriendRequest validateAndGetPendingRequest(User currentUser, Long requestId) {
         FriendRequest friendRequest = findById(requestId);
-        userService.findById(friendRequest.getSender().getId());
+        userService.findByIdOrThrow(String.valueOf(friendRequest.getSender().getId()));
 
         if (friendRequest.getStatus() != EFriendRequestStatus.PENDING) {
             throw new InvalidFriendRequestStatusException("Only pending friend requests can be processed.");

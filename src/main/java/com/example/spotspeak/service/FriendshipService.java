@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 @Service
 public class FriendshipService {
     FriendshipRepository friendshipRepository;
-    UserService userService;
+    UserProfileService userService;
     FriendshipMapper friendshipMapper;
 
-    public FriendshipService(FriendshipRepository friendshipRepository, UserService userService, FriendshipMapper friendshipMapper) {
+    public FriendshipService(FriendshipRepository friendshipRepository, UserProfileService userService, FriendshipMapper friendshipMapper) {
         this.friendshipRepository = friendshipRepository;
         this.userService = userService;
         this.friendshipMapper = friendshipMapper;
@@ -39,7 +39,7 @@ public class FriendshipService {
     }
 
     public List<FriendshipUserInfoDTO> getFriendsList(String userId) {
-        User currentUser = userService.findById(userId);
+        User currentUser = userService.findByIdOrThrow(userId);
 
         List<Friendship> friendships = friendshipRepository.findAllByUser(currentUser);
 
@@ -56,8 +56,8 @@ public class FriendshipService {
 
     @Transactional
     public void deleteFriend(String userId, UUID friendId) {
-        User user = userService.findById(userId);
-        User friend = userService.findById(friendId);
+        User user = userService.findByIdOrThrow(userId);
+        User friend = userService.findByIdOrThrow(String.valueOf(friendId));
         Friendship friendship = friendshipRepository.findByUsers(user, friend)
                 .orElseThrow(() -> new FriendshipNotFoundException("Friendship not found between users"));
         friendshipRepository.delete(friendship);
