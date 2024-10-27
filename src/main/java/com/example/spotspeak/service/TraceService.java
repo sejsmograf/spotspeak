@@ -22,25 +22,31 @@ public class TraceService {
 	private TraceRepository traceRepository;
 	private GeometryFactory geometryFactory;
 	private ResourceService resourceService;
-	private TraceTagService traceTagService;
 	private UserProfileService userProfileService;
+	private TagService tagService;
 
-	public TraceService(TraceRepository traceRepository, ResourceService resourceService,
-			TraceTagService traceTagService, UserProfileService userProfileService) {
+	public TraceService(TraceRepository traceRepository,
+			ResourceService resourceService,
+			UserProfileService userProfileService,
+			TagService tagService) {
 		this.traceRepository = traceRepository;
 		this.geometryFactory = new GeometryFactory();
 		this.resourceService = resourceService;
-		this.traceTagService = traceTagService;
 		this.userProfileService = userProfileService;
+		this.tagService = tagService;
 	}
 
 	public List<Trace> getAllTraces() {
 		return (List<Trace>) traceRepository.findAll();
 	}
 
+	public List<Tag> getAllTags() {
+		return tagService.getAllTags();
+	}
+
 	public List<TraceLocationDTO> getNearbyTraces(double longitude, double latitude, double distance) {
 		List<Object[]> results = traceRepository.findNearbyLocations(longitude, latitude, distance);
-		return results.stream()
+		return (List<TraceLocationDTO>) results.stream()
 				.map(result -> new TraceLocationDTO((Long) result[0], (Double) result[1], (Double) result[2]))
 				.collect(Collectors.toList());
 	}
@@ -51,12 +57,19 @@ public class TraceService {
 				.createPoint(new Coordinate(traceUploadDTO.longitude(), traceUploadDTO.latitude()));
 
 		User user = userProfileService.findByIdOrThrow(userId);
-		Resource resource = file == null ? null : resourceService.uploadTraceResource(userId, file);
+		Resource resource = file == null
+				? null
+				: resourceService.uploadTraceResource(userId, file);
+
+		List<Tag> tags = traceUploadDTO.tagIds() == null
+				? null
+				: tagService.getTagsByIds(traceUploadDTO.tagIds());
 
 		Trace trace = Trace.builder()
 				.location(point)
 				.description(traceUploadDTO.description())
 				.author(user)
+				.tags(tags)
 				.resource(resource)
 				.isActive(true)
 				.build();
@@ -90,7 +103,7 @@ public class TraceService {
 				presignedUrl,
 				trace.getDescription(),
 				trace.getComments(),
-				traceTagService.getTagsForTrace(trace.getId()),
+				trace.getTags(),
 				trace.getLocation().getX(),
 				trace.getLocation().getY()
 		// trace.getAuthor()
@@ -114,4 +127,5 @@ public class TraceService {
 		Long traceId = traceIdToLong(traceIdString);
 		return findByIdOrThrow(traceId);
 	}
+
 }

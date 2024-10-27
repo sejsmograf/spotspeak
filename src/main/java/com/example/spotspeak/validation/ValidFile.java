@@ -16,6 +16,8 @@ public @interface ValidFile {
 
     long maxSize() default 1048576;
 
+    boolean required() default true;
+
     String[] allowedTypes() default { "image/jpeg", "image/png" };
 
     Class<?>[] groups() default {};
