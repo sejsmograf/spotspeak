@@ -1,28 +1,31 @@
 package com.example.spotspeak.controller.user;
 
-import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.example.spotspeak.dto.ProfilePictureUpdateDTO;
 import com.example.spotspeak.dto.CurrentUserInfoDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.service.UserProfileService;
+import com.example.spotspeak.validation.ValidFile;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users/me")
+@Validated
 public class UserProfileController {
 
 	private UserProfileService userProfileService;
@@ -64,10 +67,11 @@ public class UserProfileController {
 
 	@PostMapping("/picture")
 	ResponseEntity<Resource> updateProfilePicture(@AuthenticationPrincipal Jwt jwt,
-			@Valid @RequestBody ProfilePictureUpdateDTO profilePictureUpdateDTO) {
+			@Valid @ValidFile(maxSize = 1024 * 1024 * 2, allowedTypes = {
+					"image/jpeg", "image/jpg", "image/png"
+			}) @RequestPart MultipartFile file) {
 		String userId = jwt.getSubject();
-		Resource resource = userProfileService.updateUserProfilePicture(userId,
-				profilePictureUpdateDTO.file());
+		Resource resource = userProfileService.updateUserProfilePicture(userId, file);
 		return ResponseEntity.ok(resource);
 	}
 

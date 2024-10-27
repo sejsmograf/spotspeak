@@ -2,6 +2,7 @@ package com.example.spotspeak.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.locationtech.jts.geom.Point;
@@ -15,6 +16,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
@@ -58,17 +61,27 @@ public class Trace {
 	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
 	private List<Comment> comments;
 
-	@JsonIgnore
-	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
-	private List<TraceTag> traceTags;
+	@ManyToMany
+	@JoinTable(name = "trace_tags", joinColumns = @JoinColumn(name = "trace_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+	@Builder.Default
+	private List<Tag> tags = new ArrayList<>();
 
 	@JsonIgnore
 	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
 	private List<TraceEvent> traceEvents;
 
 	@Column(nullable = false)
+	@Builder.Default
 	private Boolean isActive = true;
 
 	@CreationTimestamp
 	private LocalDateTime createdAt;
+
+	public double getLongitude() {
+		return location.getX();
+	}
+
+	public double getLatitude() {
+		return location.getY();
+	}
 }

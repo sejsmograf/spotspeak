@@ -80,10 +80,10 @@ public class KeycloakClientService {
 	}
 
 	private void validateUpdatePossible(UserRepresentation user, UserUpdateDTO dto) {
-		if (!user.getEmail().equals(dto.email())) {
+		if (dto.email() != null && !user.getEmail().equals(dto.email())) {
 			validateEmailUnique(dto.email());
 		}
-		if (!user.getUsername().equals(dto.username())) {
+		if (dto.username() != null && !user.getUsername().equals(dto.username())) {
 			validateUsernameUnique(dto.username());
 		}
 	}

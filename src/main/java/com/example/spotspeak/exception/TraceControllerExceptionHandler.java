@@ -14,16 +14,17 @@ public class TraceControllerExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleTraceNotFoundException(TraceNotFoundException ex) {
         ErrorResponse response = ErrorResponse.createInstance();
-
         response.addMessage(ex.getMessage());
+
         return response;
     }
 
-    // @ExceptionHandler(Exception.class)
-    // @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    // public ErrorResponse handleGeneralException(Exception ex) {
-    // ErrorResponse response = ErrorResponse.createInstance();
-    // response.addMessage(ex.getMessage());
-    // return response;
-    // }
+    @ExceptionHandler(TraceNotWithinDistanceException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleTraceNotWithinDistanceException(TraceNotWithinDistanceException ex) {
+        ErrorResponse response = ErrorResponse.createInstance();
+        response.addMessage(ex.getMessage());
+
+        return response;
+    }
 }
