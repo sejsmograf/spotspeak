@@ -3,6 +3,7 @@ package com.example.spotspeak.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,6 +39,16 @@ public class GlobalExceptionHandler {
                 .forEach(fieldError -> response
                         .addMessage(fieldError.getField() + " : "
                                 + fieldError.getDefaultMessage()));
+
+        return response;
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    ErrorResponse handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        ErrorResponse response = ErrorResponse.createInstance();
+        response.addMessage(e.getParameterName() + " : " + e.getMessage());
 
         return response;
     }

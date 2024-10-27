@@ -76,4 +76,12 @@ public class Trace {
 
 	@CreationTimestamp
 	private LocalDateTime createdAt;
+
+	public double getLongitude() {
+		return location.getX();
+	}
+
+	public double getLatitude() {
+		return location.getY();
+	}
 }

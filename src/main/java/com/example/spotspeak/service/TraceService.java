@@ -3,11 +3,15 @@ package com.example.spotspeak.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.example.spotspeak.constants.TraceConstants;
 import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.*;
 import com.example.spotspeak.exception.TraceNotFoundException;
+import com.example.spotspeak.exception.TraceNotWithinDistanceException;
+import com.example.spotspeak.mapper.TraceMapper;
+
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import com.example.spotspeak.repository.TraceRepository;
@@ -24,16 +28,20 @@ public class TraceService {
 	private ResourceService resourceService;
 	private UserProfileService userProfileService;
 	private TagService tagService;
+	private TraceMapper traceMapper;
 
-	public TraceService(TraceRepository traceRepository,
+	public TraceService(
+			TraceRepository traceRepository,
 			ResourceService resourceService,
 			UserProfileService userProfileService,
-			TagService tagService) {
+			TagService tagService,
+			TraceMapper traceMapper) {
 		this.traceRepository = traceRepository;
 		this.geometryFactory = new GeometryFactory();
 		this.resourceService = resourceService;
 		this.userProfileService = userProfileService;
 		this.tagService = tagService;
+		this.traceMapper = traceMapper;
 	}
 
 	public List<Trace> getAllTraces() {
@@ -45,7 +53,7 @@ public class TraceService {
 	}
 
 	public List<TraceLocationDTO> getNearbyTraces(double longitude, double latitude, double distance) {
-		List<Object[]> results = traceRepository.findNearbyLocations(longitude, latitude, distance);
+		List<Object[]> results = traceRepository.findNearbyTracesLocations(longitude, latitude, distance);
 		return (List<TraceLocationDTO>) results.stream()
 				.map(result -> new TraceLocationDTO((Long) result[0], (Double) result[1], (Double) result[2]))
 				.collect(Collectors.toList());
@@ -53,10 +61,9 @@ public class TraceService {
 
 	@Transactional
 	public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {
+		User user = userProfileService.findByIdOrThrow(userId);
 		Point point = geometryFactory
 				.createPoint(new Coordinate(traceUploadDTO.longitude(), traceUploadDTO.latitude()));
-
-		User user = userProfileService.findByIdOrThrow(userId);
 		Resource resource = file == null
 				? null
 				: resourceService.uploadTraceResource(userId, file);
@@ -89,43 +96,30 @@ public class TraceService {
 		traceRepository.deleteById(traceId);
 	}
 
+	public TraceDownloadDTO discoverTrace(Long traceId, double longitude, double latitude) {
+		boolean withinDiscoveryDistance = traceRepository.isTraceWithingDistance(traceId,
+				longitude,
+				latitude,
+				TraceConstants.TRACE_DISCOVERY_DISTANCE);
+
+		if (!withinDiscoveryDistance) {
+			throw new TraceNotWithinDistanceException("Trace is not within discovery distance");
+		}
+
+		Trace discoveredTrace = findByIdOrThrow(traceId);
+		return traceMapper.toTraceDownloadDTO(discoveredTrace);
+	}
+
 	@Transactional
-	public TraceDownloadDTO getTraceInfo(String userId, String traceId) {
+	public TraceDownloadDTO getTraceInfo(String userId, Long traceId) {
 		Trace trace = findByIdOrThrow(traceId);
 		userProfileService.findByIdOrThrow(userId); // maybe not necessary
 
-		Resource resource = trace.getResource();
-
-		String presignedUrl = resource == null ? null : resourceService.getResourceAccessUrl(resource.getId());
-
-		return new TraceDownloadDTO(
-				trace.getId(),
-				presignedUrl,
-				trace.getDescription(),
-				trace.getComments(),
-				trace.getTags(),
-				trace.getLocation().getX(),
-				trace.getLocation().getY()
-		// trace.getAuthor()
-		);
+		return traceMapper.toTraceDownloadDTO(trace);
 	}
 
 	private Trace findByIdOrThrow(Long traceId) {
 		return traceRepository.findById(traceId).orElseThrow(
 				() -> new TraceNotFoundException("Could not find trace with id: " + traceId));
 	}
-
-	private Long traceIdToLong(String traceIdString) {
-		try {
-			return Long.valueOf(traceIdString);
-		} catch (NumberFormatException e) {
-			throw new TraceNotFoundException("Invalid traceId format: " + traceIdString);
-		}
-	}
-
-	public Trace findByIdOrThrow(String traceIdString) {
-		Long traceId = traceIdToLong(traceIdString);
-		return findByIdOrThrow(traceId);
-	}
-
 }
