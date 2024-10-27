@@ -64,6 +64,7 @@ public class FriendshipService {
     }
 
     public boolean checkFriendshipExists(User user1, User user2) {
+        if(user1.equals(user2)) return true;
         return friendshipRepository.findByUsers(user1, user2).isPresent();
     }
 }
