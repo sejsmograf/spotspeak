@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.time.Duration;
 
 @Service
-@Profile("remote")
+@Profile({ "remote", "test" })
 public class S3Service implements StorageService {
 
     @Value("${aws.s3.bucket-name}")
