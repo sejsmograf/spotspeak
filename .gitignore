@@ -34,3 +34,4 @@ build/
 
 secret.properties
 user-uploads/
+static/

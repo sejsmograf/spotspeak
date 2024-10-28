@@ -17,7 +17,7 @@ import jakarta.annotation.PostConstruct;
 @Profile("local")
 public class LocalStorageService implements StorageService {
 
-	private final Path rootLocation = Paths.get("user-uploads");
+	private final Path rootLocation = Paths.get("src/main/resources/static/");
 
 	@PostConstruct
 	public void init() {
@@ -33,8 +33,7 @@ public class LocalStorageService implements StorageService {
 	@Override
 	public void storeFile(MultipartFile file, String key) {
 		try {
-			Path destinationFile = this.rootLocation.resolve(
-					Paths.get(key).normalize().toAbsolutePath());
+			Path destinationFile = this.rootLocation.resolve(key);
 			System.out.println("STORING FILE AT: " + destinationFile);
 
 			Path parentDir = destinationFile.getParent();
@@ -63,7 +62,7 @@ public class LocalStorageService implements StorageService {
 
 	@Override
 	public String getResourceAccessUrl(String key) {
-		return rootLocation.resolve(key).toString();
+		return "http://localhost:8080/" + key;
 	}
 
 }
