@@ -1,6 +1,7 @@
 package com.example.spotspeak.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.time.Duration;
 
 @Service
+@Profile("remote")
 public class S3Service implements StorageService {
 
     @Value("${aws.s3.bucket-name}")
