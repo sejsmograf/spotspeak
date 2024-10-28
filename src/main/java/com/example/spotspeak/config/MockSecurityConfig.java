@@ -44,7 +44,7 @@ public class MockSecurityConfig {
             @Override
             protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                     FilterChain filterChain) throws ServletException, IOException {
-                String userId = "1f6e9b7d-8c47-4b68-8e80-27e5a9c73917";
+                String userId = "5b5f7e1b-3c5a-461b-82ab-098ba8b8b5f3";
                 Jwt mockJwt = createMockJwt(userId);
                 AbstractAuthenticationToken auth = new UsernamePasswordAuthenticationToken(mockJwt, null);
                 SecurityContextHolder.getContext().setAuthentication(auth);

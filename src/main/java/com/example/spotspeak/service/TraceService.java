@@ -48,7 +48,11 @@ public class TraceService {
 	}
 
 	public List<Trace> getAllTraces() {
-		return (List<Trace>) traceRepository.findAll();
+		return traceRepository.findAll();
+	}
+
+	public List<Trace> getTracesForAuthor(String authorId) {
+		return traceRepository.findAllByAuthor(UUID.fromString(authorId));
 	}
 
 	public List<Tag> getAllTags() {
