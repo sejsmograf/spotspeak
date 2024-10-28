@@ -15,7 +15,7 @@ public class TraceMapper {
         this.resourceService = resourceService;
     }
 
-    public TraceDownloadDTO toTraceDownloadDTO(Trace trace) {
+    public TraceDownloadDTO createTraceDownloadDTO(Trace trace) {
         Resource resource = trace.getResource();
         String resourceUrl = resource != null
                 ? resourceService.getResourceAccessUrl(resource.getId())

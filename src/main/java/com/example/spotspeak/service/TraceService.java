@@ -1,6 +1,7 @@
 package com.example.spotspeak.service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.example.spotspeak.constants.TraceConstants;
@@ -13,6 +14,8 @@ import com.example.spotspeak.exception.TraceNotWithinDistanceException;
 import com.example.spotspeak.mapper.TraceMapper;
 
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.ForbiddenException;
+
 import org.springframework.stereotype.Service;
 import com.example.spotspeak.repository.TraceRepository;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -84,8 +87,12 @@ public class TraceService {
 		return traceRepository.save(trace);
 	}
 
-	public void deleteTrace(Long traceId) {
+	public void deleteTrace(Long traceId, String userId) {
 		Trace trace = findByIdOrThrow(traceId);
+		if (!canUserDeleteTrace(trace, userId)) {
+			throw new ForbiddenException("Only author can delete trace");
+		}
+
 		Resource resource = trace.getResource();
 
 		if (resource != null) {
@@ -107,7 +114,7 @@ public class TraceService {
 		}
 
 		Trace discoveredTrace = findByIdOrThrow(traceId);
-		return traceMapper.toTraceDownloadDTO(discoveredTrace);
+		return traceMapper.createTraceDownloadDTO(discoveredTrace);
 	}
 
 	@Transactional
@@ -115,11 +122,15 @@ public class TraceService {
 		Trace trace = findByIdOrThrow(traceId);
 		userProfileService.findByIdOrThrow(userId); // maybe not necessary
 
-		return traceMapper.toTraceDownloadDTO(trace);
+		return traceMapper.createTraceDownloadDTO(trace);
 	}
 
 	private Trace findByIdOrThrow(Long traceId) {
 		return traceRepository.findById(traceId).orElseThrow(
 				() -> new TraceNotFoundException("Could not find trace with id: " + traceId));
+	}
+
+	private boolean canUserDeleteTrace(Trace trace, String userId) {
+		return trace.getAuthor().getId().equals(UUID.fromString(userId));
 	}
 }

@@ -8,6 +8,7 @@ import com.example.spotspeak.dto.TraceResponse;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
+import com.example.spotspeak.mapper.TraceMapper;
 import com.example.spotspeak.service.TraceService;
 import com.example.spotspeak.validation.ValidFile;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -26,9 +27,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class TraceController {
 
     private TraceService traceService;
+    private TraceMapper mapper;
 
-    public TraceController(TraceService traceService) {
+    public TraceController(TraceService traceService,
+            TraceMapper mapper) {
         this.traceService = traceService;
+        this.mapper = mapper;
     }
 
     @GetMapping("/my")
@@ -68,7 +72,7 @@ public class TraceController {
     }
 
     @PostMapping
-    public ResponseEntity<TraceResponse> createTrace(
+    public ResponseEntity<TraceDownloadDTO> createTrace(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @ValidFile(required = false, maxSize = FileUploadConsants.TRACE_MEDIA_MAX_SIZE, allowedTypes = {
                     "image/jpeg", "image/png",
@@ -76,24 +80,16 @@ public class TraceController {
             @RequestPart @Valid TraceUploadDTO traceUploadDTO) {
         String userId = jwt.getSubject();
         Trace trace = traceService.createTrace(userId, file, traceUploadDTO);
+        TraceDownloadDTO dto = mapper.createTraceDownloadDTO(trace);
 
-        TraceResponse traceResponse = new TraceResponse(
-                trace.getId(),
-                trace.getDescription(),
-                trace.getLocation().getX(),
-                trace.getLocation().getY(),
-                trace.getComments(),
-                trace.getTags(),
-                // trace.getAuthor(),
-                trace.getCreatedAt(),
-                trace.getIsActive());
-        return ResponseEntity.ok(traceResponse);
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{traceId}")
     public ResponseEntity<Void> deleteTrace(
             @AuthenticationPrincipal Jwt jwt, @PathVariable Long traceId) {
-        traceService.deleteTrace(traceId);
+        String userId = jwt.getSubject();
+        traceService.deleteTrace(traceId, userId);
         return ResponseEntity.noContent().build();
     }
 
