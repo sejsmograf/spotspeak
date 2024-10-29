@@ -42,7 +42,7 @@ public class UserProfileService {
 
 	public CurrentUserInfoDTO getUserInfo(String userId) {
 		User user = findByIdOrThrow(userId);
-		return userMapper.toCurrentUserInfoDTO(user);
+		return userMapper.createCurrentUserInfoDTO(user);
 	}
 
 	public void updateUserPassword(String userId, PasswordUpdateDTO dto) {
@@ -67,7 +67,7 @@ public class UserProfileService {
 	@Transactional
 	public User updateUser(String userIdString, UserUpdateDTO updateDTO) {
 		User user = findByIdOrThrow(userIdString);
-		userMapper.updateFromDTO(user, updateDTO);
+		userMapper.updateUserFromDTO(user, updateDTO);
 
 		userRepostitory.save(user);
 		keycloakService.updateUser(userIdString, updateDTO);

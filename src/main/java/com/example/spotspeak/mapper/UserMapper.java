@@ -16,7 +16,7 @@ public class UserMapper {
         this.resourceService = resourceService;
     }
 
-    public CurrentUserInfoDTO toCurrentUserInfoDTO(User user) {
+    public CurrentUserInfoDTO createCurrentUserInfoDTO(User user) {
         Resource profilePicture = user.getProfilePicture();
         String profilePictureUrl = profilePicture != null
                 ? resourceService.getResourceAccessUrl(profilePicture.getId())
@@ -31,7 +31,7 @@ public class UserMapper {
                 profilePictureUrl);
     }
 
-    public void updateFromDTO(User user, UserUpdateDTO updateDTO) {
+    public void updateUserFromDTO(User user, UserUpdateDTO updateDTO) {
         if (updateDTO.firstName() != null) {
             user.setFirstName(updateDTO.firstName());
         }
