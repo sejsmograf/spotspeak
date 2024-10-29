@@ -1,6 +1,6 @@
 package com.example.spotspeak.entity;
 
-import java.util.Set;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -34,5 +34,5 @@ public class Tag {
 
 	@JsonIgnore
 	@ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
-	Set<Trace> traces;
+	List<Trace> traces;
 }

@@ -98,6 +98,10 @@ public class UserService {
 		}
 	}
 
+	public void saveUser(User user) {
+		userRepostitory.save(user);
+	}
+
 	private User findByIdOrThrow(UUID userId) {
 		return userRepostitory.findById(userId).orElseThrow(
 				() -> {
