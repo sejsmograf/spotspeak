@@ -2,7 +2,8 @@ package com.example.spotspeak.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.example.spotspeak.dto.CurrentUserInfoDTO;
+import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserProfileDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
@@ -16,18 +17,30 @@ public class UserMapper {
         this.resourceService = resourceService;
     }
 
-    public CurrentUserInfoDTO createCurrentUserInfoDTO(User user) {
+    public AuthenticatedUserProfileDTO createAuthenticatedUserProfileDTO(User user) {
         Resource profilePicture = user.getProfilePicture();
         String profilePictureUrl = profilePicture != null
                 ? resourceService.getResourceAccessUrl(profilePicture.getId())
                 : null;
 
-        return new CurrentUserInfoDTO(
+        return new AuthenticatedUserProfileDTO(
                 user.getId(),
                 user.getUsername(),
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
+                profilePictureUrl);
+    }
+
+    public PublicUserProfileDTO createPublicUserProfileDTO(User user) {
+        Resource profilePicture = user.getProfilePicture();
+        String profilePictureUrl = profilePicture != null
+                ? resourceService.getResourceAccessUrl(profilePicture.getId())
+                : null;
+
+        return new PublicUserProfileDTO(
+                user.getId(),
+                user.getUsername(),
                 profilePictureUrl);
     }
 

@@ -1,14 +1,16 @@
 package com.example.spotspeak.service;
 
 import java.util.UUID;
+import java.util.List;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.spotspeak.dto.CurrentUserInfoDTO;
+import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
+import com.example.spotspeak.dto.PublicUserProfileDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
@@ -17,13 +19,13 @@ import com.example.spotspeak.mapper.UserMapper;
 import com.example.spotspeak.repository.UserRepository;
 
 @Service
-public class UserProfileService {
+public class UserService {
 	private UserRepository userRepostitory;
 	private ResourceService resourceService;
 	private KeycloakClientService keycloakService;
 	private UserMapper userMapper;
 
-	public UserProfileService(
+	public UserService(
 			UserRepository repository,
 			ResourceService resourceService,
 			KeycloakClientService keycloakClientService,
@@ -35,14 +37,16 @@ public class UserProfileService {
 		this.userMapper = userMapper;
 	}
 
-	public User findByIdOrThrow(String userIdString) {
-		UUID convertedId = userIdToUUID(userIdString);
-		return findByIdOrThrow(convertedId);
+	public List<PublicUserProfileDTO> searchUsersByUsername(String username) {
+		List<User> matchingUsers = userRepostitory.findAllByUsernameIgnoreCase(username);
+		return matchingUsers.stream()
+				.map(user -> userMapper.createPublicUserProfileDTO(user))
+				.toList();
 	}
 
-	public CurrentUserInfoDTO getUserInfo(String userId) {
+	public AuthenticatedUserProfileDTO getUserInfo(String userId) {
 		User user = findByIdOrThrow(userId);
-		return userMapper.createCurrentUserInfoDTO(user);
+		return userMapper.createAuthenticatedUserProfileDTO(user);
 	}
 
 	public void updateUserPassword(String userId, PasswordUpdateDTO dto) {
@@ -108,5 +112,10 @@ public class UserProfileService {
 		} catch (IllegalArgumentException e) {
 			throw new UserNotFoundException("Invalid userId format");
 		}
+	}
+
+	public User findByIdOrThrow(String userIdString) {
+		UUID convertedId = userIdToUUID(userIdString);
+		return findByIdOrThrow(convertedId);
 	}
 }

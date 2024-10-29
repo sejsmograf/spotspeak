@@ -2,7 +2,7 @@ package com.example.spotspeak.dto;
 
 import java.util.UUID;
 
-public record CurrentUserInfoDTO(
+public record AuthenticatedUserProfileDTO(
         UUID id,
         String username,
         String firstName,

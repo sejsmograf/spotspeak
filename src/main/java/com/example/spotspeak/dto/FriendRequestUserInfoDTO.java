@@ -6,10 +6,9 @@ import java.time.LocalDateTime;
 
 public record FriendRequestUserInfoDTO(
         Long id,
-        CurrentUserInfoDTO userInfo,
+        PublicUserProfileDTO userInfo,
         EFriendRequestStatus status,
         LocalDateTime sentAt,
         LocalDateTime acceptedAt,
-        LocalDateTime rejectedAt
-) {
+        LocalDateTime rejectedAt) {
 }

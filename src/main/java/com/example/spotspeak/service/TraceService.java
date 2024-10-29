@@ -29,20 +29,20 @@ public class TraceService {
 	private TraceRepository traceRepository;
 	private GeometryFactory geometryFactory;
 	private ResourceService resourceService;
-	private UserProfileService userProfileService;
+	private UserService userService;
 	private TagService tagService;
 	private TraceMapper traceMapper;
 
 	public TraceService(
 			TraceRepository traceRepository,
 			ResourceService resourceService,
-			UserProfileService userProfileService,
+			UserService userService,
 			TagService tagService,
 			TraceMapper traceMapper) {
 		this.traceRepository = traceRepository;
 		this.geometryFactory = new GeometryFactory();
 		this.resourceService = resourceService;
-		this.userProfileService = userProfileService;
+		this.userService = userService;
 		this.tagService = tagService;
 		this.traceMapper = traceMapper;
 	}
@@ -68,7 +68,7 @@ public class TraceService {
 
 	@Transactional
 	public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {
-		User user = userProfileService.findByIdOrThrow(userId);
+		User user = userService.findByIdOrThrow(userId);
 		Point point = geometryFactory
 				.createPoint(new Coordinate(traceUploadDTO.longitude(), traceUploadDTO.latitude()));
 		Resource resource = file == null
@@ -124,7 +124,7 @@ public class TraceService {
 	@Transactional
 	public TraceDownloadDTO getTraceInfo(String userId, Long traceId) {
 		Trace trace = findByIdOrThrow(traceId);
-		userProfileService.findByIdOrThrow(userId); // maybe not necessary
+		userService.findByIdOrThrow(userId); // maybe not necessary
 
 		return traceMapper.createTraceDownloadDTO(trace);
 	}

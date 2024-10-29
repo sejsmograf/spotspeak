@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.spotspeak.dto.CurrentUserInfoDTO;
+import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
-import com.example.spotspeak.service.UserProfileService;
+import com.example.spotspeak.service.UserService;
 import com.example.spotspeak.validation.ValidFile;
 
 import jakarta.validation.Valid;
@@ -28,32 +28,32 @@ import jakarta.validation.Valid;
 @Validated
 public class UserProfileController {
 
-	private UserProfileService userProfileService;
+	private UserService userService;
 
-	public UserProfileController(UserProfileService userService) {
-		this.userProfileService = userService;
+	public UserProfileController(UserService userService) {
+		this.userService = userService;
 	}
 
 	@PutMapping
-	ResponseEntity<CurrentUserInfoDTO> updateProfile(@AuthenticationPrincipal Jwt jwt,
+	ResponseEntity<AuthenticatedUserProfileDTO> updateProfile(@AuthenticationPrincipal Jwt jwt,
 			@RequestBody UserUpdateDTO userUpdateDTO) {
 		String userId = jwt.getSubject();
-		userProfileService.updateUser(userId, userUpdateDTO);
-		CurrentUserInfoDTO userInfo = userProfileService.getUserInfo(userId);
+		userService.updateUser(userId, userUpdateDTO);
+		AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(userId);
 		return ResponseEntity.ok(userInfo);
 	}
 
 	@GetMapping
-	ResponseEntity<CurrentUserInfoDTO> getProfile(@AuthenticationPrincipal Jwt jwt) {
+	ResponseEntity<AuthenticatedUserProfileDTO> getProfile(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
-		CurrentUserInfoDTO userInfo = userProfileService.getUserInfo(userId);
+		AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(userId);
 		return ResponseEntity.ok(userInfo);
 	}
 
 	@DeleteMapping
 	ResponseEntity<Void> deleteProfile(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
-		userProfileService.deleteById(userId);
+		userService.deleteById(userId);
 		return ResponseEntity.noContent().build();
 	}
 
@@ -61,7 +61,7 @@ public class UserProfileController {
 	ResponseEntity<Void> updatePassword(@AuthenticationPrincipal Jwt jwt,
 			@Valid @RequestBody PasswordUpdateDTO passwordUpdateDTO) {
 		String userId = jwt.getSubject();
-		userProfileService.updateUserPassword(userId, passwordUpdateDTO);
+		userService.updateUserPassword(userId, passwordUpdateDTO);
 		return ResponseEntity.noContent().build();
 	}
 
@@ -71,14 +71,14 @@ public class UserProfileController {
 					"image/jpeg", "image/jpg", "image/png"
 			}) @RequestPart MultipartFile file) {
 		String userId = jwt.getSubject();
-		Resource resource = userProfileService.updateUserProfilePicture(userId, file);
+		Resource resource = userService.updateUserProfilePicture(userId, file);
 		return ResponseEntity.ok(resource);
 	}
 
 	@DeleteMapping("/picture")
 	ResponseEntity<Void> deleteProfilePicture(@AuthenticationPrincipal Jwt jwt) {
 		String userId = jwt.getSubject();
-		userProfileService.deleteUserProfilePicture(userId);
+		userService.deleteUserProfilePicture(userId);
 		return ResponseEntity.noContent().build();
 	}
 }

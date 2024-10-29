@@ -16,10 +16,11 @@ import java.util.stream.Collectors;
 @Service
 public class FriendshipService {
     FriendshipRepository friendshipRepository;
-    UserProfileService userService;
+    UserService userService;
     FriendshipMapper friendshipMapper;
 
-    public FriendshipService(FriendshipRepository friendshipRepository, UserProfileService userService, FriendshipMapper friendshipMapper) {
+    public FriendshipService(FriendshipRepository friendshipRepository, UserService userService,
+            FriendshipMapper friendshipMapper) {
         this.friendshipRepository = friendshipRepository;
         this.userService = userService;
         this.friendshipMapper = friendshipMapper;
@@ -27,7 +28,7 @@ public class FriendshipService {
 
     @Transactional
     public void createFriendship(User userInitiating, User userReceiving) {
-        if(checkFriendshipExists(userInitiating, userReceiving)) {
+        if (checkFriendshipExists(userInitiating, userReceiving)) {
             throw new FriendshipNotFoundException("Friendship between users already exists");
         }
 
@@ -64,7 +65,8 @@ public class FriendshipService {
     }
 
     public boolean checkFriendshipExists(User user1, User user2) {
-        if(user1.equals(user2)) return true;
+        if (user1.equals(user2))
+            return true;
         return friendshipRepository.findByUsers(user1, user2).isPresent();
     }
 }

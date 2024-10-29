@@ -21,10 +21,11 @@ public class FriendRequestService {
 
     FriendRequestRepository friendRequestRepository;
     FriendshipService friendshipService;
-    UserProfileService userService;
+    UserService userService;
     FriendRequestMapper friendRequestMapper;
 
-    public FriendRequestService(FriendRequestRepository friendRequestRepository, FriendshipService friendshipService, UserProfileService userService, FriendRequestMapper friendRequestMapper) {
+    public FriendRequestService(FriendRequestRepository friendRequestRepository, FriendshipService friendshipService,
+            UserService userService, FriendRequestMapper friendRequestMapper) {
         this.friendRequestRepository = friendRequestRepository;
         this.friendshipService = friendshipService;
         this.userService = userService;
@@ -36,13 +37,15 @@ public class FriendRequestService {
         User sender = userService.findByIdOrThrow(senderId);
         User receiver = userService.findByIdOrThrow(String.valueOf(receiverId));
 
-        if (friendRequestRepository.existsBySenderAndReceiverAndStatus(receiver, sender, EFriendRequestStatus.PENDING)) {
+        if (friendRequestRepository.existsBySenderAndReceiverAndStatus(receiver, sender,
+                EFriendRequestStatus.PENDING)) {
             throw new FriendRequestExistsException("Request already received from this user");
         }
-        if(friendRequestRepository.existsBySenderAndReceiverAndStatus(sender,receiver, EFriendRequestStatus.PENDING)) {
+        if (friendRequestRepository.existsBySenderAndReceiverAndStatus(sender, receiver,
+                EFriendRequestStatus.PENDING)) {
             throw new FriendRequestExistsException("Request already sent to this user");
         }
-        if(friendshipService.checkFriendshipExists(sender, receiver)) {
+        if (friendshipService.checkFriendshipExists(sender, receiver)) {
             throw new FriendshipExistsException("Friendship between users already exists");
         }
 
@@ -102,15 +105,17 @@ public class FriendRequestService {
 
     public List<FriendRequestUserInfoDTO> getSentFriendRequests(String senderId) {
         User sender = userService.findByIdOrThrow(senderId);
-        List<FriendRequest> sentRequests = friendRequestRepository.findBySenderAndStatus(sender, EFriendRequestStatus.PENDING);
+        List<FriendRequest> sentRequests = friendRequestRepository.findBySenderAndStatus(sender,
+                EFriendRequestStatus.PENDING);
         return sentRequests.stream()
                 .map(request -> friendRequestMapper.toUserInfoFriendRequestDTO(request, request.getReceiver()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<FriendRequestUserInfoDTO> getReceivedFriendRequests(String receiverId) {
         User receiver = userService.findByIdOrThrow(receiverId);
-        List<FriendRequest> receivedRequests = friendRequestRepository.findByReceiverAndStatus(receiver, EFriendRequestStatus.PENDING);
+        List<FriendRequest> receivedRequests = friendRequestRepository.findByReceiverAndStatus(receiver,
+                EFriendRequestStatus.PENDING);
         return receivedRequests.stream()
                 .map(request -> friendRequestMapper.toUserInfoFriendRequestDTO(request, request.getSender()))
                 .collect(Collectors.toList());

@@ -1,6 +1,6 @@
 package com.example.spotspeak.mapper;
 
-import com.example.spotspeak.dto.CurrentUserInfoDTO;
+import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.FriendshipUserInfoDTO;
 import com.example.spotspeak.entity.Friendship;
 import com.example.spotspeak.entity.User;
@@ -15,7 +15,7 @@ public class FriendshipMapper {
     }
 
     public FriendshipUserInfoDTO toFriendshipUserInfoDTO(Friendship friendship, User friend) {
-        CurrentUserInfoDTO friendInfo = userMapper.createCurrentUserInfoDTO(friend);
+        AuthenticatedUserProfileDTO friendInfo = userMapper.createAuthenticatedUserProfileDTO(friend);
         return new FriendshipUserInfoDTO(
                 friendship.getId(),
                 friendInfo,

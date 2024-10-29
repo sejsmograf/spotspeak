@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 public record FriendshipUserInfoDTO(
         Long id,
-        CurrentUserInfoDTO friendInfo,
-        LocalDateTime createdAt
-) {
+        AuthenticatedUserProfileDTO friendInfo,
+        LocalDateTime createdAt) {
 }

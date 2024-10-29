@@ -1,11 +1,12 @@
 package com.example.spotspeak.mapper;
 
-import com.example.spotspeak.dto.CurrentUserInfoDTO;
+import org.springframework.stereotype.Component;
+
 import com.example.spotspeak.dto.FriendRequestDTO;
 import com.example.spotspeak.dto.FriendRequestUserInfoDTO;
+import com.example.spotspeak.dto.PublicUserProfileDTO;
 import com.example.spotspeak.entity.FriendRequest;
 import com.example.spotspeak.entity.User;
-import org.springframework.stereotype.Component;
 
 @Component
 public class FriendRequestMapper {
@@ -28,7 +29,8 @@ public class FriendRequestMapper {
     }
 
     public FriendRequestUserInfoDTO toUserInfoFriendRequestDTO(FriendRequest friendRequest, User senderOrReceiver) {
-        CurrentUserInfoDTO senderOrReceiverInfo = userMapper.createCurrentUserInfoDTO(senderOrReceiver);
+        PublicUserProfileDTO senderOrReceiverInfo = userMapper
+                .createPublicUserProfileDTO(senderOrReceiver);
 
         return new FriendRequestUserInfoDTO(
                 friendRequest.getId(),
