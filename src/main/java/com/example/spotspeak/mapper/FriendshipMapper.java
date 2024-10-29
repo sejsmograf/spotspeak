@@ -15,11 +15,10 @@ public class FriendshipMapper {
     }
 
     public FriendshipUserInfoDTO toFriendshipUserInfoDTO(Friendship friendship, User friend) {
-        CurrentUserInfoDTO friendInfo = userMapper.toCurrentUserInfoDTO(friend);
+        CurrentUserInfoDTO friendInfo = userMapper.createCurrentUserInfoDTO(friend);
         return new FriendshipUserInfoDTO(
                 friendship.getId(),
                 friendInfo,
-                friendship.getCreatedAt()
-        );
+                friendship.getCreatedAt());
     }
 }

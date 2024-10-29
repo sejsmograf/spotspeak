@@ -22,18 +22,18 @@ import org.hibernate.annotations.CreationTimestamp;
 @Table(name = "friendships")
 public class Friendship {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_initiating_id", referencedColumnName = "id", nullable = false)
-    private User userInitiating;
+	@ManyToOne
+	@JoinColumn(name = "user_initiating_id", referencedColumnName = "id", nullable = false)
+	private User userInitiating;
 
-    @ManyToOne
-    @JoinColumn(name = "user_reveiving_id", referencedColumnName = "id", nullable = false)
-    private User userReceiving;
+	@ManyToOne
+	@JoinColumn(name = "user_reveiving_id", referencedColumnName = "id", nullable = false)
+	private User userReceiving;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+	@CreationTimestamp
+	private LocalDateTime createdAt;
 }
