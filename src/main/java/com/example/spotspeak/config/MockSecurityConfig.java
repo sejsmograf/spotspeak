@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -38,14 +39,17 @@ public class MockSecurityConfig {
         return http.build();
     }
 
+    @Value("${mock.user.id}")
+    private String mockUserId;
+
     @Bean
     OncePerRequestFilter mockJwtAuthenticationFilter() {
         return new OncePerRequestFilter() {
             @Override
             protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                     FilterChain filterChain) throws ServletException, IOException {
-                String userId = "91b6fd3e-658c-45bb-8a2d-3d2f3e6594ae";
-                Jwt mockJwt = createMockJwt(userId);
+
+                Jwt mockJwt = createMockJwt(mockUserId);
                 AbstractAuthenticationToken auth = new UsernamePasswordAuthenticationToken(mockJwt, null);
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 filterChain.doFilter(request, response);

@@ -24,12 +24,11 @@ public class FriendRequestMapper {
                 friendRequest.getStatus(),
                 friendRequest.getSentAt(),
                 friendRequest.getAcceptedAt(),
-                friendRequest.getRejectedAt()
-        );
+                friendRequest.getRejectedAt());
     }
 
     public FriendRequestUserInfoDTO toUserInfoFriendRequestDTO(FriendRequest friendRequest, User senderOrReceiver) {
-        CurrentUserInfoDTO senderOrReceiverInfo = userMapper.toCurrentUserInfoDTO(senderOrReceiver);
+        CurrentUserInfoDTO senderOrReceiverInfo = userMapper.createCurrentUserInfoDTO(senderOrReceiver);
 
         return new FriendRequestUserInfoDTO(
                 friendRequest.getId(),
@@ -37,7 +36,6 @@ public class FriendRequestMapper {
                 friendRequest.getStatus(),
                 friendRequest.getSentAt(),
                 friendRequest.getAcceptedAt(),
-                friendRequest.getRejectedAt()
-        );
+                friendRequest.getRejectedAt());
     }
 }

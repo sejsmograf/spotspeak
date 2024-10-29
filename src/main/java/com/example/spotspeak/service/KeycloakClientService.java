@@ -138,7 +138,7 @@ public class KeycloakClientService {
 	}
 
 	private boolean checkUsernameExists(String username) {
-		return !getRealm().users().search(username).isEmpty();
+		return !getRealm().users().search(username, true).isEmpty();
 	}
 
 	private RealmResource getRealm() {
