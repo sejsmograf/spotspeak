@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class FriendshipService {
-    FriendshipRepository friendshipRepository;
-    UserService userService;
-    FriendshipMapper friendshipMapper;
+    private FriendshipRepository friendshipRepository;
+    private UserService userService;
+    private FriendshipMapper friendshipMapper;
 
     public FriendshipService(FriendshipRepository friendshipRepository, UserService userService,
             FriendshipMapper friendshipMapper) {
