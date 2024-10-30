@@ -129,7 +129,7 @@ public class TraceService {
 		return traceMapper.createTraceDownloadDTO(trace);
 	}
 
-	private Trace findByIdOrThrow(Long traceId) {
+	public Trace findByIdOrThrow(Long traceId) {
 		return traceRepository.findById(traceId).orElseThrow(
 				() -> new TraceNotFoundException("Could not find trace with id: " + traceId));
 	}
