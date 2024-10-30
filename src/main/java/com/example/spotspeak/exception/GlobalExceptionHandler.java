@@ -1,5 +1,6 @@
 package com.example.spotspeak.exception;
 
+import jakarta.ws.rs.ForbiddenException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -64,6 +65,15 @@ public class GlobalExceptionHandler {
                         .addMessage(fieldError.getField() + " : "
                                 + fieldError.getDefaultMessage()));
 
+        return response;
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseBody
+    ErrorResponse handleForbiddenException(ForbiddenException e) {
+        ErrorResponse response = ErrorResponse.createInstance();
+        response.addMessage("Access Denied: " + e.getMessage());
         return response;
     }
 

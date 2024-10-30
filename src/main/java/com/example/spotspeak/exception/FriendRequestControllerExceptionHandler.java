@@ -41,12 +41,4 @@ public class FriendRequestControllerExceptionHandler {
         response.addMessage(ex.getMessage());
         return response;
     }
-
-    @ExceptionHandler(UnauthorizedFriendRequestAccessException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ErrorResponse handleUnauthorizedFriendRequestAccessException(UnauthorizedFriendRequestAccessException ex) {
-        ErrorResponse response = ErrorResponse.createInstance();
-        response.addMessage(ex.getMessage());
-        return response;
-    }
 }
