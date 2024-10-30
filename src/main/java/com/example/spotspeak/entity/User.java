@@ -52,10 +52,10 @@ public class User {
 	@OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
 	private List<UserAchievement> userAchievements;
 
-	@OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "sender", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<FriendRequest> sentRequests;
 
-	@OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<FriendRequest> receivedRequests;
 
 	@Column(nullable = false)
