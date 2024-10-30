@@ -118,4 +118,11 @@ public class UserService {
 		UUID convertedId = userIdToUUID(userIdString);
 		return findByIdOrThrow(convertedId);
 	}
+
+	public List<User> findUsersByUsernames(List<String> usernames) {
+		if (usernames == null || usernames.isEmpty()) {
+			return List.of();
+		}
+		return userRepostitory.findByUsernameIn(usernames);
+	}
 }
