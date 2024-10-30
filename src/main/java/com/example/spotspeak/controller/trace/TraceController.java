@@ -1,7 +1,6 @@
 package com.example.spotspeak.controller.trace;
 
 import com.example.spotspeak.constants.FileUploadConsants;
-import com.example.spotspeak.constants.TraceConstants;
 import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
@@ -10,7 +9,6 @@ import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.mapper.TraceMapper;
 import com.example.spotspeak.service.TraceService;
 import com.example.spotspeak.validation.ValidFile;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -69,11 +67,6 @@ public class TraceController {
     }
 
     @GetMapping("/discover/{traceId}")
-    @Schema(description = "This endpoint checks if the user is within the trace's radius and returns the trace's information. "
-            + "currently the default discovery radius is "
-            + TraceConstants.TRACE_DISCOVERY_DISTANCE
-            + " meters")
-
     public ResponseEntity<TraceDownloadDTO> discoverTrace(@AuthenticationPrincipal Jwt jwt,
             @PathVariable Long traceId,
             @RequestParam double currentLongitude, @RequestParam double currentLatitude) {
