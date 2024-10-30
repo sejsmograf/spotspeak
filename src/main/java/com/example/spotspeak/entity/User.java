@@ -34,21 +34,6 @@ import lombok.Setter;
 @Table(name = "users")
 public class User {
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null || getClass() != obj.getClass())
-			return false;
-		User user = (User) obj;
-		return Objects.equals(id, user.id);
-	}
-
 	@Id
 	private UUID id; // Represents UUID given from AuthServer as "sub" claim in access token
 
@@ -87,4 +72,24 @@ public class User {
 
 	@Column(nullable = false)
 	private LocalDateTime registeredAt;
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null || getClass() != obj.getClass())
+			return false;
+		User user = (User) obj;
+		return Objects.equals(id, user.id);
+	}
+
+	public void removeDiscoveredTrace(Trace trace) {
+		discoveredTraces.remove(trace);
+		trace.getDiscoverers().remove(this);
+	}
 }

@@ -101,17 +101,17 @@ public class TraceService {
 		return traceRepository.save(trace);
 	}
 
+	@Transactional
 	public void deleteTrace(Long traceId, String userId) {
 		Trace trace = findByIdOrThrow(traceId);
 		if (!canUserDeleteTrace(trace, userId)) {
 			throw new ForbiddenException("Only author can delete trace");
 		}
 
-		Resource resource = trace.getResource();
+		trace.setResource(null);
 
-		if (resource != null) {
-			trace.setResource(null);
-			resourceService.deleteResource(resource.getId());
+		for (User user : trace.getDiscoverers()) {
+			user.removeDiscoveredTrace(trace);
 		}
 
 		traceRepository.deleteById(traceId);
