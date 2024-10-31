@@ -166,4 +166,21 @@ public class TraceRepositoryTest {
 		assertTrue(traceRepository.findById(savedTrace.getId()).isPresent());
 	}
 
+	@Test
+	@Rollback
+	public void savedTraceWithLocation_whenRetrievedByNearbyLocation_shouldBeRetrievable() {
+		double longitude = 0;
+		double latitude = 0;
+		int searchDistance = 1;
+		User savedUser = userRepository.save(TestDataFactory.createValidUser());
+		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser, latitude, longitude);
+		Trace savedTrace = traceRepository.save(validTrace);
+
+		List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(longitude,
+				latitude,
+				searchDistance);
+
+		assertFalse(nearbyTraces.isEmpty());
+		assertEquals(savedTrace.getId(), nearbyTraces.get(0)[0]);
+	}
 }
