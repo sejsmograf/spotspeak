@@ -50,7 +50,6 @@ public class User {
 	private String email;
 
 	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-	@JoinColumn(name = "profile_picture_id", referencedColumnName = "id", nullable = true)
 	private Resource profilePicture;
 
 	@OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)

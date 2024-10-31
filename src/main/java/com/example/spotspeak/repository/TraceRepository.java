@@ -23,8 +23,6 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
             "ON t.id = dt.trace_id AND dt.user_id = :userId " +
             "WHERE ST_DWithin(location::geography, " +
             "ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, :distance)", nativeQuery = true)
-    // returns an array [Long id, Double longitude, Double latiude, boolean
-    // hasDiscovered]
     List<Object[]> findNearbyTracesLocationsForUser(UUID userId, double longitude, double latitude,
             double distance);
 

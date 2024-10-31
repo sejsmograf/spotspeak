@@ -19,7 +19,7 @@ public class TestDataFactory {
 	public static User createValidUser() {
 		User user = User.builder()
 				.id(UUID.randomUUID())
-				.username("test")
+				.username("testuser")
 				.email("test@test.co")
 				.firstName("test")
 				.lastName("user")
@@ -29,9 +29,9 @@ public class TestDataFactory {
 		return user;
 	}
 
-	public static Trace createTraceWithoutAuthor() {
+	public static Trace createTraceWithoutAuthor(double latitude, double longitude) {
 		Trace trace = Trace.builder()
-				.location(geometryFactory.createPoint(new Coordinate(0, 0)))
+				.location(geometryFactory.createPoint(new Coordinate(latitude, longitude)))
 				.description("Test trace")
 				.isActive(true)
 				.build();
@@ -39,13 +39,16 @@ public class TestDataFactory {
 		return trace;
 	}
 
+	public static Trace createTraceWithAuthor(User author, double latitude, double longitude) {
+		Trace trace = createTraceWithoutAuthor(latitude, longitude);
+		trace.setAuthor(author);
+
+		return trace;
+	}
+
 	public static Trace createTraceWithAuthor(User author) {
-		Trace trace = Trace.builder()
-				.location(geometryFactory.createPoint(new Coordinate(0, 0)))
-				.description("Test trace")
-				.isActive(true)
-				.author(author)
-				.build();
+		Trace trace = createTraceWithoutAuthor(0, 0);
+		trace.setAuthor(author);
 
 		return trace;
 	}
