@@ -39,7 +39,7 @@ public class TraceRepositoryTest {
 	EntityManager entityManager;
 
 	@Test
-	public void saveTrace_withoutAuthor_shouldFail() {
+	public void givenTraceWithoutAuthor_whenSaved_shouldTrowDataIntegrityViolation() {
 		Trace withoutAuthor = TestDataFactory.createTraceWithoutAuthor(0, 0);
 		assertThrows(DataIntegrityViolationException.class, () -> {
 			traceRepository.save(withoutAuthor);
@@ -48,87 +48,78 @@ public class TraceRepositoryTest {
 
 	@Test
 	@Rollback
-	public void saveTrace_withAuthor_shouldSucceed() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		Trace savedTrace = traceRepository.save(validTrace);
+	public void givenTraceWithAuthor_whenSaved_shouldPersist() {
+		User author = createAndSaveUser();
+		Trace savedTrace = createAndSaveTraceWithAuthor(author);
 
 		assertNotNull(savedTrace.getId());
 	}
 
 	@Test
 	@Rollback
-	public void savedTraceAuthor_whenRetrievedFromTrace_shouldEqualOriginal() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		Trace savedTrace = traceRepository.save(validTrace);
+	public void givenSavedTrace_whenRetrieved_shouldContainEqualAuthor() {
+		User author = createAndSaveUser();
+		Trace savedTrace = createAndSaveTraceWithAuthor(author);
 
 		assertNotNull(savedTrace.getAuthor());
-		assertEquals(savedUser, savedTrace.getAuthor());
+		assertEquals(author, savedTrace.getAuthor());
 	}
 
 	@Test
 	@Rollback
-	public void savedTrace_whenRetrievedById_shouldEqualOriginal() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		Trace savedTrace = traceRepository.save(validTrace);
+	public void givenSavedTrace_whenRetrievedById_shouldEqualOriginal() {
+		User author = createAndSaveUser();
+		Trace savedTrace = createAndSaveTraceWithAuthor(author);
 
 		Optional<Trace> retrievedTrace = traceRepository.findById(savedTrace.getId());
-
 		assertTrue(retrievedTrace.isPresent());
 		assertEquals(savedTrace, retrievedTrace.get());
 	}
 
 	@Test
 	@Rollback
-	public void savedTrace_whenDeleted_shouldNotBeRetrievable() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		Trace savedTrace = traceRepository.save(validTrace);
+	public void givenSavedTrace_whenDeleted_shouldNotBeRetrievable() {
+		User author = createAndSaveUser();
+		Trace savedTrace = createAndSaveTraceWithAuthor(author);
 
 		traceRepository.deleteById(savedTrace.getId());
 
 		assertFalse(traceRepository.findById(savedTrace.getId()).isPresent());
-		assertTrue(userRepository.findById(savedUser.getId()).isPresent());
+		assertTrue(userRepository.findById(author.getId()).isPresent());
 	}
 
 	@Test
 	@Rollback
-	public void savedTraceWithTags_whenRetrieved_shouldContainEqualTags() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		List<Tag> tags = (List<Tag>) tagRepository.saveAll(TestDataFactory.createTags());
-		validTrace.setTags(tags);
-		Trace savedTrace = traceRepository.save(validTrace);
+	public void givenSavedTraceWithTags_whenRetrieved_shouldContainEqualTags() {
+		List<Tag> tags = (List<Tag>) TestDataFactory.createTags();
+		User author = createAndSaveUser();
+		Trace savedTrace = createAndSaveTraceWithTags(author, tags);
 
-		Optional<Trace> retrievedTraceOptional = traceRepository.findById(savedTrace.getId());
-		entityManager.flush();
+		Optional<Trace> retrievedTrace = traceRepository.findById(savedTrace.getId());
 
-		assertTrue(retrievedTraceOptional.isPresent());
-		Trace retrievedTrace = retrievedTraceOptional.get();
-
-		assertEquals(savedTrace, retrievedTrace);
-		assertNotNull(retrievedTrace.getTags());
-		assertFalse(retrievedTrace.getTags().isEmpty());
-		assertEquals(savedTrace.getTags(), retrievedTrace.getTags());
+		assertTrue(retrievedTrace.isPresent());
+		assertEquals(savedTrace, retrievedTrace.get());
+		assertNotNull(retrievedTrace.get().getTags());
+		assertFalse(retrievedTrace.get().getTags().isEmpty());
+		assertEquals(savedTrace.getTags(), retrievedTrace.get().getTags());
+		assertEquals(tags, retrievedTrace.get().getTags());
 	}
 
 	@Test
 	@Rollback
 	public void savedTraceWithTags_whenDeleted_shouldNotDeleteTags() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		List<Tag> savedTags = (List<Tag>) tagRepository.saveAll(TestDataFactory.createTags());
-		validTrace.setTags(savedTags);
-		Trace savedTrace = traceRepository.save(validTrace);
+		List<Tag> tags = (List<Tag>) TestDataFactory.createTags();
+		User author = createAndSaveUser();
+		Trace savedTrace = createAndSaveTraceWithTags(author, tags);
+
+		tags.stream().forEach(tag -> assertTrue(tagRepository.findById(tag.getId()).isPresent()));
 
 		traceRepository.deleteById(savedTrace.getId());
 		entityManager.flush();
 
 		assertTrue(tagRepository.findAll().iterator().hasNext());
 		assertFalse(traceRepository.findById(savedTrace.getId()).isPresent());
-		for (Tag tag : savedTags) {
+		for (Tag tag : tags) {
 			assertTrue(tagRepository.findById(tag.getId()).isPresent());
 		}
 	}
@@ -182,5 +173,21 @@ public class TraceRepositoryTest {
 
 		assertFalse(nearbyTraces.isEmpty());
 		assertEquals(savedTrace.getId(), nearbyTraces.get(0)[0]);
+	}
+
+	private User createAndSaveUser() {
+		return userRepository.save(TestDataFactory.createValidUser());
+	}
+
+	private Trace createAndSaveTraceWithAuthor(User author) {
+		Trace trace = TestDataFactory.createTraceWithAuthor(author);
+		return traceRepository.save(trace);
+	}
+
+	private Trace createAndSaveTraceWithTags(User author, List<Tag> tags) {
+		Trace trace = TestDataFactory.createTraceWithAuthor(author);
+		tagRepository.saveAll(tags);
+		trace.setTags(tags);
+		return traceRepository.save(trace);
 	}
 }
