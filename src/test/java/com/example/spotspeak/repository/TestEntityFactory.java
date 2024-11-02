@@ -1,5 +1,6 @@
 package com.example.spotspeak.repository;
 
+import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
@@ -17,56 +18,67 @@ import org.springframework.stereotype.Component;
 @Component
 public class TestEntityFactory {
 
-	private static final Random RANDOM = new Random();
+    private static final Random RANDOM = new Random();
 
-	private TestEntityFactory() {
-	}
+    private TestEntityFactory() {
+    }
 
-	private static GeometryFactory geometryFactory = new GeometryFactory();
+    private static GeometryFactory geometryFactory = new GeometryFactory();
 
-	public static User createPersistedUser(EntityManager em) {
+    public static User createPersistedUser(EntityManager em) {
 
-		User user = User.builder()
-				.id(UUID.randomUUID())
-				.username("user" + RANDOM.nextInt(10000))
-				.email("user" + RANDOM.nextInt(10000) + "@example.com")
-				.firstName("test")
-				.lastName("user")
-				.registeredAt(LocalDateTime.now())
-				.build();
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .username("user" + RANDOM.nextInt(10000))
+                .email("user" + RANDOM.nextInt(10000) + "@example.com")
+                .firstName("test")
+                .lastName("user")
+                .registeredAt(LocalDateTime.now())
+                .build();
 
-		em.persist(user);
-		return user;
-	}
+        em.persist(user);
+        return user;
+    }
 
-	public static Trace createPersistedTrace(EntityManager em, User author, List<Tag> tags) {
-		double latitude = RANDOM.nextDouble() * 180 - 90;
-		double longitude = RANDOM.nextDouble() * 360 - 180;
-		Point location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+    public static Trace createPersistedTrace(EntityManager em, User author, List<Tag> tags) {
+        double latitude = RANDOM.nextDouble() * 180 - 90;
+        double longitude = RANDOM.nextDouble() * 360 - 180;
+        Point location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
 
-		Trace trace = Trace.builder()
-				.author(author)
-				.location(location)
-				.description("description")
-				.isActive(true)
-				.build();
+        Trace trace = Trace.builder()
+                .author(author)
+                .location(location)
+                .description("description")
+                .isActive(true)
+                .build();
 
-		if (tags != null) {
-			tags.forEach(em::persist);
-			trace.setTags(new ArrayList<>(tags));
-		}
+        if (tags != null) {
+            tags.forEach(em::persist);
+            trace.setTags(new ArrayList<>(tags));
+        }
 
-		em.persist(trace);
-		return trace;
-	}
+        em.persist(trace);
+        return trace;
+    }
 
-	public static List<Tag> createPersistedTags(EntityManager em, int count) {
-		List<Tag> tags = new ArrayList<>();
-		for (int i = 0; i < count; i++) {
-			Tag tag = Tag.builder().name("tag" + RANDOM.nextInt(10000)).build();
-			em.persist(tag);
-			tags.add(tag);
-		}
-		return tags;
-	}
+    public static List<Tag> createPersistedTags(EntityManager em, int count) {
+        List<Tag> tags = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            Tag tag = Tag.builder().name("tag" + RANDOM.nextInt(10000)).build();
+            em.persist(tag);
+            tags.add(tag);
+        }
+
+        return tags;
+    }
+
+    public static Resource createPersistedResource(EntityManager em) {
+        Resource resource = Resource.builder()
+                .resourceKey("resource" + RANDOM.nextInt(10000))
+                .fileType("fileType")
+                .build();
+
+        em.persist(resource);
+        return resource;
+    }
 }
