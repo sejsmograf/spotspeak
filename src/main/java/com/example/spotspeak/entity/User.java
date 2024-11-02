@@ -34,61 +34,61 @@ import lombok.Setter;
 @Table(name = "users")
 public class User {
 
-	@Id
-	private UUID id; // Represents UUID given from AuthServer as "sub" claim in access token
+    @Id
+    private UUID id; // Represents UUID given from AuthServer as "sub" claim in access token
 
-	@Column(nullable = false)
-	private String firstName;
+    @Column(nullable = false)
+    private String firstName;
 
-	@Column(nullable = false)
-	private String lastName;
+    @Column(nullable = false)
+    private String lastName;
 
-	@Column(nullable = false)
-	private String username;
+    @Column(nullable = false)
+    private String username;
 
-	@Column(nullable = false)
-	private String email;
+    @Column(nullable = false)
+    private String email;
 
-	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-	private Resource profilePicture;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    private Resource profilePicture;
 
-	@OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Trace> traces;
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Trace> traces;
 
-	@ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
-	@JoinTable(name = "discovered_traces", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "trace_id"))
-	@Builder.Default
-	private Set<Trace> discoveredTraces = new HashSet<>();
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    @JoinTable(name = "discovered_traces", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "trace_id"))
+    @Builder.Default
+    private Set<Trace> discoveredTraces = new HashSet<>();
 
-	@OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-	private List<UserAchievement> userAchievements;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<UserAchievement> userAchievements;
 
-	@OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
-	private List<FriendRequest> sentRequests;
+    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
+    private List<FriendRequest> sentRequests;
 
-	@OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY)
-	private List<FriendRequest> receivedRequests;
+    @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY)
+    private List<FriendRequest> receivedRequests;
 
-	@Column(nullable = false)
-	private LocalDateTime registeredAt;
+    @Column(nullable = false)
+    private LocalDateTime registeredAt;
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null || getClass() != obj.getClass())
-			return false;
-		User user = (User) obj;
-		return Objects.equals(id, user.id);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        User user = (User) obj;
+        return id.equals(user.id);
+    }
 
-	public void removeDiscoveredTrace(Trace trace) {
-		discoveredTraces.remove(trace);
-		trace.getDiscoverers().remove(this);
-	}
+    public void removeDiscoveredTrace(Trace trace) {
+        discoveredTraces.remove(trace);
+        trace.getDiscoverers().remove(this);
+    }
 }

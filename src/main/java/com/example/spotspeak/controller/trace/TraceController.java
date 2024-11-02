@@ -7,6 +7,7 @@ import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.mapper.TraceMapper;
+import com.example.spotspeak.service.TagService;
 import com.example.spotspeak.service.TraceService;
 import com.example.spotspeak.validation.ValidFile;
 import jakarta.validation.Valid;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class TraceController {
 
     private TraceService traceService;
+    private TagService tagService;
     private TraceMapper mapper;
 
     public TraceController(TraceService traceService,
@@ -100,7 +102,7 @@ public class TraceController {
 
     @GetMapping("/tags")
     public ResponseEntity<List<Tag>> getTags() {
-        List<Tag> tags = traceService.getAllTags();
+        List<Tag> tags = tagService.findAll();
         return ResponseEntity.ok(tags);
     }
 }
