@@ -9,20 +9,20 @@ import org.testcontainers.utility.DockerImageName;
 @ActiveProfiles("test")
 public abstract class BaseTest {
 
-	static DockerImageName image = DockerImageName.parse("postgis/postgis:17-3.5")
-			.asCompatibleSubstituteFor("postgres");
+    static DockerImageName image = DockerImageName.parse("postgis/postgis:17-3.5")
+            .asCompatibleSubstituteFor("postgres");
 
-	static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(image).withReuse(true);
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(image).withReuse(true);
 
-	static {
-		postgres.start();
-	}
+    static {
+        postgres.start();
+    }
 
-	@DynamicPropertySource
-	static void configureProperties(DynamicPropertyRegistry registry) {
-		System.out.println("JDBC URL: " + postgres.getJdbcUrl());
-		registry.add("spring.datasource.url", postgres::getJdbcUrl);
-		registry.add("spring.datasource.username", postgres::getUsername);
-		registry.add("spring.datasource.password", postgres::getPassword);
-	}
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        System.out.println("JDBC URL: " + postgres.getJdbcUrl());
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
 }

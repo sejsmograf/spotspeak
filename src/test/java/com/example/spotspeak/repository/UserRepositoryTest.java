@@ -15,7 +15,6 @@ import com.example.spotspeak.entity.ResourceListener;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.service.StorageService;
 
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class UserRepositoryTest extends BaseRepositoryTest {
 
     @Autowired
