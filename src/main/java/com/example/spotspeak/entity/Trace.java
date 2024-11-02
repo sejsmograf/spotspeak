@@ -27,14 +27,16 @@ import jakarta.persistence.Table;
 import jakarta.persistence.FetchType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Getter
+@Setter
 @Table(name = "traces")
 public class Trace {
 
@@ -61,7 +63,8 @@ public class Trace {
 
     @JsonIgnore
     @OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
-    private List<Comment> comments;
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(name = "trace_tags", joinColumns = @JoinColumn(name = "trace_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
@@ -75,7 +78,8 @@ public class Trace {
 
     @JsonIgnore
     @OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
-    private List<TraceEvent> traceEvents;
+    @Builder.Default
+    private List<TraceEvent> traceEvents = new ArrayList<>();
 
     @Column(nullable = false)
     @Builder.Default
@@ -90,5 +94,24 @@ public class Trace {
 
     public double getLatitude() {
         return location.getY();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+
+        Trace trace = (Trace) obj;
+        return id.equals(trace.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

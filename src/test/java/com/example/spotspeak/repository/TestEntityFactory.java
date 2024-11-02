@@ -1,5 +1,6 @@
 package com.example.spotspeak.repository;
 
+import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
@@ -13,6 +14,7 @@ import java.util.UUID;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -82,6 +84,10 @@ public class TestEntityFactory {
         return tags;
     }
 
+    public static TraceUploadDTO createTraceUploadDTO(List<Long> tagIds) {
+        return new TraceUploadDTO(12., 12., "description", tagIds);
+    }
+
     public static Resource createPersistedResource(EntityManager em) {
         Resource resource = Resource.builder()
                 .resourceKey("resource" + RANDOM.nextInt(10000))
@@ -90,5 +96,11 @@ public class TestEntityFactory {
 
         em.persist(resource);
         return resource;
+    }
+
+    public static MockMultipartFile createMockMultipartFile(String contentType, int byteSize) {
+        byte[] bytes = new byte[byteSize];
+        RANDOM.nextBytes(bytes);
+        return new MockMultipartFile("file", "file", contentType, bytes);
     }
 }
