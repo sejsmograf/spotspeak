@@ -38,57 +38,57 @@ import lombok.NoArgsConstructor;
 @Table(name = "traces")
 public class Trace {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
-	@JsonIgnore
-	@Column(nullable = false)
-	private Point location;
+    @JsonIgnore
+    @Column(nullable = false)
+    private Point location;
 
-	@Column(nullable = false)
-	private String description;
+    @Column(nullable = false)
+    private String description;
 
-	@JsonIgnore
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "author_id", referencedColumnName = "id", nullable = false)
-	private User author;
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", referencedColumnName = "id", nullable = false)
+    private User author;
 
-	@JsonIgnore
-	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn(name = "resource_id", referencedColumnName = "id", nullable = true)
-	private Resource resource;
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "resource_id", referencedColumnName = "id", nullable = true)
+    private Resource resource;
 
-	@JsonIgnore
-	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
-	private List<Comment> comments;
+    @JsonIgnore
+    @OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
+    private List<Comment> comments;
 
-	@ManyToMany
-	@JoinTable(name = "trace_tags", joinColumns = @JoinColumn(name = "trace_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
-	@Builder.Default
-	private List<Tag> tags = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(name = "trace_tags", joinColumns = @JoinColumn(name = "trace_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    @Builder.Default
+    private List<Tag> tags = new ArrayList<>();
 
-	@JsonIgnore
-	@ManyToMany(cascade = CascadeType.MERGE, mappedBy = "discoveredTraces", fetch = FetchType.LAZY)
-	@Builder.Default
-	Set<User> discoverers = new HashSet<>();
+    @JsonIgnore
+    @ManyToMany(cascade = CascadeType.MERGE, mappedBy = "discoveredTraces", fetch = FetchType.LAZY)
+    @Builder.Default
+    Set<User> discoverers = new HashSet<>();
 
-	@JsonIgnore
-	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
-	private List<TraceEvent> traceEvents;
+    @JsonIgnore
+    @OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
+    private List<TraceEvent> traceEvents;
 
-	@Column(nullable = false)
-	@Builder.Default
-	private Boolean isActive = true;
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
 
-	@CreationTimestamp
-	private LocalDateTime createdAt;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
-	public double getLongitude() {
-		return location.getX();
-	}
+    public double getLongitude() {
+        return location.getX();
+    }
 
-	public double getLatitude() {
-		return location.getY();
-	}
+    public double getLatitude() {
+        return location.getY();
+    }
 }

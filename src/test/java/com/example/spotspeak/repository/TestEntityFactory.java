@@ -61,6 +61,16 @@ public class TestEntityFactory {
         return trace;
     }
 
+    public static Trace createPersistedTrace(EntityManager em, User author, List<Tag> tags, double longitude,
+            double latitude) {
+        Point location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+        Trace trace = createPersistedTrace(em, author, tags);
+        trace.setLocation(location);
+
+        em.persist(trace);
+        return trace;
+    }
+
     public static List<Tag> createPersistedTags(EntityManager em, int count) {
         List<Tag> tags = new ArrayList<>();
         for (int i = 0; i < count; i++) {
