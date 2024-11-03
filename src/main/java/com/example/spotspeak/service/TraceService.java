@@ -2,7 +2,6 @@ package com.example.spotspeak.service;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import com.example.spotspeak.constants.TraceConstants;
 import com.example.spotspeak.dto.TraceDownloadDTO;
@@ -33,8 +32,7 @@ public class TraceService {
 	private TagService tagService;
 	private TraceMapper traceMapper;
 
-	public TraceService(
-			TraceRepository traceRepository,
+	public TraceService(TraceRepository traceRepository,
 			ResourceService resourceService,
 			UserService userService,
 			TagService tagService,
@@ -47,23 +45,35 @@ public class TraceService {
 		this.traceMapper = traceMapper;
 	}
 
-	public List<Trace> getAllTraces() {
-		return traceRepository.findAll();
+	public List<TraceDownloadDTO> getTracesForAuthor(String userId) {
+		return findTracesWithAuthor(userId).stream()
+				.map(traceMapper::createTraceDownloadDTO)
+				.toList();
 	}
 
-	public List<Trace> getTracesForAuthor(String authorId) {
-		return traceRepository.findAllByAuthor(UUID.fromString(authorId));
+	public List<TraceDownloadDTO> getDiscoveredTraces(String userId) {
+		return findDiscoveredTraces(userId).stream()
+				.map(traceMapper::createTraceDownloadDTO)
+				.toList();
+	}
+
+	public List<Trace> getAllTraces() {
+		return traceRepository.findAll();
 	}
 
 	public List<Tag> getAllTags() {
 		return tagService.getAllTags();
 	}
 
-	public List<TraceLocationDTO> getNearbyTraces(double longitude, double latitude, double distance) {
-		List<Object[]> results = traceRepository.findNearbyTracesLocations(longitude, latitude, distance);
+	public List<TraceLocationDTO> getNearbyTracesForUser(String userId, double longitude, double latitude,
+			double distance) {
+		List<Object[]> results = traceRepository.findNearbyTracesLocationsForUser(UUID.fromString(userId),
+				longitude, latitude, distance);
+
 		return (List<TraceLocationDTO>) results.stream()
-				.map(result -> new TraceLocationDTO((Long) result[0], (Double) result[1], (Double) result[2]))
-				.collect(Collectors.toList());
+				.map(result -> new TraceLocationDTO((Long) result[0], (Double) result[1], (Double) result[2],
+						(boolean) result[3]))
+				.toList();
 	}
 
 	@Transactional
@@ -91,23 +101,27 @@ public class TraceService {
 		return traceRepository.save(trace);
 	}
 
+	@Transactional
 	public void deleteTrace(Long traceId, String userId) {
 		Trace trace = findByIdOrThrow(traceId);
 		if (!canUserDeleteTrace(trace, userId)) {
 			throw new ForbiddenException("Only author can delete trace");
 		}
 
-		Resource resource = trace.getResource();
+		trace.setResource(null);
 
-		if (resource != null) {
-			trace.setResource(null);
-			resourceService.deleteResource(resource.getId());
+		for (User user : trace.getDiscoverers()) {
+			user.removeDiscoveredTrace(trace);
 		}
 
 		traceRepository.deleteById(traceId);
 	}
 
-	public TraceDownloadDTO discoverTrace(Long traceId, double longitude, double latitude) {
+	public TraceDownloadDTO discoverTrace(String userId,
+			Long traceId,
+			double longitude,
+			double latitude) {
+
 		boolean withinDiscoveryDistance = traceRepository.isTraceWithingDistance(traceId,
 				longitude,
 				latitude,
@@ -118,18 +132,42 @@ public class TraceService {
 		}
 
 		Trace discoveredTrace = findByIdOrThrow(traceId);
+		User user = userService.findByIdOrThrow(userId);
+		markTraceAsDiscovered(discoveredTrace, user);
 		return traceMapper.createTraceDownloadDTO(discoveredTrace);
 	}
 
-	@Transactional
-	public TraceDownloadDTO getTraceInfo(String userId, Long traceId) {
+	public TraceDownloadDTO getTraceInfoForUser(String userId, Long traceId) {
 		Trace trace = findByIdOrThrow(traceId);
-		userService.findByIdOrThrow(userId); // maybe not necessary
+		User user = userService.findByIdOrThrow(userId);
+
+		if (!hasUserDiscoveredTrace(trace, user)) {
+			throw new ForbiddenException("User has not discovered trace");
+		}
 
 		return traceMapper.createTraceDownloadDTO(trace);
 	}
 
-	public Trace findByIdOrThrow(Long traceId) {
+	private List<Trace> findTracesWithAuthor(String authorId) {
+		return traceRepository.findAllByAuthor(UUID.fromString(authorId));
+	}
+
+	private List<Trace> findDiscoveredTraces(String authorId) {
+		return traceRepository.findDiscoveredTracesByUserId(UUID.fromString(authorId));
+	}
+
+	private boolean hasUserDiscoveredTrace(Trace trace, User user) {
+		return trace.getDiscoverers().contains(user);
+	}
+
+	private void markTraceAsDiscovered(Trace trace, User user) {
+		trace.getDiscoverers().add(user);
+		user.getDiscoveredTraces().add(trace);
+		traceRepository.save(trace);
+		userService.saveUser(user);
+	}
+
+	private Trace findByIdOrThrow(Long traceId) {
 		return traceRepository.findById(traceId).orElseThrow(
 				() -> new TraceNotFoundException("Could not find trace with id: " + traceId));
 	}

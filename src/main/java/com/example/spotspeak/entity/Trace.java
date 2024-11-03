@@ -3,6 +3,7 @@ package com.example.spotspeak.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.locationtech.jts.geom.Point;
@@ -65,6 +66,10 @@ public class Trace {
 	@JoinTable(name = "trace_tags", joinColumns = @JoinColumn(name = "trace_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
 	@Builder.Default
 	private List<Tag> tags = new ArrayList<>();
+
+	@JsonIgnore
+	@ManyToMany(cascade = CascadeType.MERGE, mappedBy = "discoveredTraces", fetch = FetchType.LAZY)
+	Set<User> discoverers;
 
 	@JsonIgnore
 	@OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)

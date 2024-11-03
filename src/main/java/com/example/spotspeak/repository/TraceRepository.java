@@ -13,7 +13,25 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
     @Query(value = "SELECT id, ST_X(location::geometry) AS longitude, ST_Y(location::geometry) AS latitude " +
             "FROM traces " +
             "WHERE ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint(?1, ?2), 4326)::geography, ?3)", nativeQuery = true)
+    // returns an array [Long id, Double longitude, Double latitude]
     List<Object[]> findNearbyTracesLocations(double longitude, double latitude, double distance);
+
+    @Query(value = "SELECT t.id, ST_X(t.location::geometry) AS longitude, ST_Y(t.location::geometry) AS latitude, "
+            +
+            "dt.user_id IS NOT NULL AS has_discovered " +
+            "FROM traces t left join discovered_traces dt " +
+            "ON t.id = dt.trace_id AND dt.user_id = :userId " +
+            "WHERE ST_DWithin(location::geography, " +
+            "ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, :distance)", nativeQuery = true)
+    // returns an array [Long id, Double longitude, Double latiude, boolean
+    // hasDiscovered]
+    List<Object[]> findNearbyTracesLocationsForUser(UUID userId, double longitude, double latitude,
+            double distance);
+
+    @Query("SELECT t " +
+            "FROM Trace t join t.discoverers d " +
+            "WHERE d.id = :userId")
+    List<Trace> findDiscoveredTracesByUserId(UUID userId);
 
     @Query(value = "SELECT COUNT(*) > 0 " +
             "FROM traces " +
