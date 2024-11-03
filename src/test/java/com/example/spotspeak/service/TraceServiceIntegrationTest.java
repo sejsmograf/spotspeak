@@ -5,8 +5,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +20,7 @@ import com.example.spotspeak.repository.TestEntityFactory;
 
 import jakarta.transaction.Transactional;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TraceServiceIntegrationTest
         extends BaseServiceIntegrationTest {
 
@@ -26,6 +29,11 @@ public class TraceServiceIntegrationTest
 
     @Autowired
     private LocalStorageService localStorageService;
+
+    @AfterAll
+    public void cleanUp() {
+        localStorageService.cleanUp();
+    }
 
     private User userWithTraces;
     private final int USER_TRACES_COUNT = 3;

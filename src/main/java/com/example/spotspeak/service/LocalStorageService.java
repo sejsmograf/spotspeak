@@ -77,7 +77,7 @@ public class LocalStorageService implements StorageService {
     @Override
     public void cleanUp() {
         try {
-            FileUtils.delete(rootLocation.toFile());
+            FileUtils.deleteDirectory(rootLocation.toFile());
         } catch (IOException e) {
             logger.error("Failed to clean up storage.", e);
         }
