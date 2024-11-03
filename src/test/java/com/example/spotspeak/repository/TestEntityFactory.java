@@ -1,10 +1,8 @@
 package com.example.spotspeak.repository;
 
 import com.example.spotspeak.dto.TraceUploadDTO;
-import com.example.spotspeak.entity.Resource;
-import com.example.spotspeak.entity.Tag;
-import com.example.spotspeak.entity.Trace;
-import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.*;
+import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -103,4 +101,47 @@ public class TestEntityFactory {
         RANDOM.nextBytes(bytes);
         return new MockMultipartFile("file", "file", contentType, bytes);
     }
+
+    public static Friendship createPersistedFriendship(EntityManager em, User userInitiating, User userReceiving) {
+        Friendship friendship = Friendship.builder()
+            .userInitiating(userInitiating)
+            .userReceiving(userReceiving)
+            .createdAt(LocalDateTime.now())
+            .build();
+        em.persist(friendship);
+        return friendship;
+    }
+
+    public static FriendRequest createPersistedFriendRequest(EntityManager em, User sender, User receiver, EFriendRequestStatus status) {
+        FriendRequest friendRequest = FriendRequest.builder()
+            .sender(sender)
+            .receiver(receiver)
+            .status(status)
+            .sentAt(LocalDateTime.now())
+            .build();
+        em.persist(friendRequest);
+        return friendRequest;
+    }
+
+    public static Comment createPersistedComment(EntityManager em, User author, Trace trace, String content) {
+        Comment comment = Comment.builder()
+            .author(author)
+            .trace(trace)
+            .content(content)
+            .build();
+
+        em.persist(comment);
+        return comment;
+    }
+
+    public static CommentMention createPersistedCommentMention(EntityManager em, Comment comment, User mentionedUser) {
+        CommentMention mention = CommentMention.builder()
+            .comment(comment)
+            .mentionedUser(mentionedUser)
+            .build();
+
+        em.persist(mention);
+        return mention;
+    }
+
 }
