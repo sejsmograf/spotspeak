@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class FriendRequestService {
@@ -119,7 +118,7 @@ public class FriendRequestService {
                 EFriendRequestStatus.PENDING);
         return receivedRequests.stream()
                 .map(request -> friendRequestMapper.toUserInfoFriendRequestDTO(request, request.getSender()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private FriendRequest findById(Long requestId) {
