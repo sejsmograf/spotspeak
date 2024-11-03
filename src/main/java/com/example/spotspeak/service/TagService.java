@@ -10,17 +10,17 @@ import com.example.spotspeak.repository.TagRepository;
 @Service
 public class TagService {
 
-	private TagRepository tagRepository;
+    private TagRepository tagRepository;
 
-	public TagService(TagRepository tagRepository) {
-		this.tagRepository = tagRepository;
-	}
+    public TagService(TagRepository tagRepository) {
+        this.tagRepository = tagRepository;
+    }
 
-	public List<Tag> getAllTags() {
-		return (List<Tag>) tagRepository.findAll();
-	}
+    public List<Tag> findAll() {
+        return (List<Tag>) tagRepository.findAll();
+    }
 
-	public List<Tag> getTagsByIds(List<Long> tagIds) {
-		return (List<Tag>) tagRepository.findAllById(tagIds);
-	}
+    public List<Tag> findAllByIds(List<Long> tagIds) {
+        return (List<Tag>) tagRepository.findAllById(tagIds);
+    }
 }

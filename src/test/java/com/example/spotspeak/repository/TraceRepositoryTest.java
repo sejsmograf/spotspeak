@@ -1,129 +1,228 @@
 package com.example.spotspeak.repository;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Optional;
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.annotation.Rollback;
-
-import com.example.spotspeak.TestDataFactory;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
+import java.util.ArrayList;
+import java.util.List;
+import org.hibernate.exception.ConstraintViolationException;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
-@DataJpaTest
-public class TraceRepositoryTest {
+class TraceRepositoryTest extends BaseRepositoryTest {
 
-	@Autowired
-	TraceRepository traceRepository;
+    @Autowired
+    private TraceRepository traceRepository;
 
-	@Autowired
-	TagRepository tagRepository;
+    @Autowired
+    private TagRepository tagRepository;
 
-	@Autowired
-	UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-	@Test
-	public void saveTrace_withoutAuthor_shouldFail() {
-		Trace withoutAuthor = TestDataFactory.createTraceWithoutAuthor();
-		assertThrows(DataIntegrityViolationException.class, () -> {
-			traceRepository.save(withoutAuthor);
-		});
-	}
+    @Nested
+    class BasicTraceOperationsTests {
+        @Test
+        void saveTrace_shouldThrowException_whenAuthorIsNull() {
+            Trace withoutAuthor = Trace.builder().description("description").build();
 
-	@Test
-	@Rollback
-	public void saveTrace_withAuthor_shouldSucceed() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		Trace savedTrace = traceRepository.save(validTrace);
+            assertThrows(
+                    DataIntegrityViolationException.class, () -> traceRepository.save(withoutAuthor));
+        }
 
-		assertNotNull(savedTrace.getId());
-	}
+        @Test
+        void saveTrace_shouldPersist_whenAuthorProvided() {
+            User author = TestEntityFactory.createPersistedUser(entityManager);
 
-	@Test
-	@Rollback
-	public void savedTraceAuthor_whenRetrievedFromTrace_shouldEqualOriginal() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		Trace savedTrace = traceRepository.save(validTrace);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            flushAndClear();
 
-		assertNotNull(savedTrace.getAuthor());
-		assertEquals(savedUser, savedTrace.getAuthor());
-	}
+            assertThat(trace.getId()).isNotNull();
+        }
 
-	@Test
-	@Rollback
-	public void savedTrace_whenRetrievedById_shouldEqualOriginal() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		Trace savedTrace = traceRepository.save(validTrace);
+        @Test
+        void findTraceById_shouldReturnCorrectActor() {
+            User author = TestEntityFactory.createPersistedUser(entityManager);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            flushAndClear();
 
-		Optional<Trace> retrievedTrace = traceRepository.findById(savedTrace.getId());
+            Trace found = traceRepository.findById(trace.getId()).orElseThrow();
 
-		assertTrue(retrievedTrace.isPresent());
-		assertEquals(savedTrace, retrievedTrace.get());
-	}
+            assertThat(found.getAuthor()).isEqualTo(author);
+        }
 
-	@Test
-	@Rollback
-	public void savedTrace_whenDeleted_shouldNotBeRetrievable() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		Trace savedTrace = traceRepository.save(validTrace);
+        @Test
+        void deleteTrace_shouldNotDeleteAuthor() {
+            User author = TestEntityFactory.createPersistedUser(entityManager);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            flushAndClear();
 
-		traceRepository.deleteById(savedTrace.getId());
+            traceRepository.deleteById(trace.getId());
+            flushAndClear();
 
-		assertFalse(traceRepository.findById(savedTrace.getId()).isPresent());
-		assertTrue(userRepository.findById(savedUser.getId()).isPresent());
-	}
+            assertThat(traceRepository.findById(trace.getId())).isEmpty();
+            assertThat(userRepository.findById(author.getId())).isPresent();
+        }
+    }
 
-	@Test
-	@Rollback
-	public void savedTraceWithTags_whenRetrieved_shouldContainEqualTags() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		List<Tag> tags = (List<Tag>) tagRepository.saveAll(TestDataFactory.createTags());
-		validTrace.setTags(tags);
-		Trace savedTrace = traceRepository.save(validTrace);
+    @Nested
+    class TraceWithTagsTests {
+        @Test
+        void findTraceById_shouldReturnCorrectTags() {
+            User author = TestEntityFactory.createPersistedUser(entityManager);
+            List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, tags);
+            flushAndClear();
 
-		Optional<Trace> retrievedTraceOptional = traceRepository.findById(savedTrace.getId());
-		traceRepository.flush();
+            Trace found = traceRepository.findById(trace.getId()).orElseThrow();
 
-		assertTrue(retrievedTraceOptional.isPresent(), "Expected the retrieved trace to be present");
-		Trace retrievedTrace = retrievedTraceOptional.get();
+            assertThat(found.getTags()).isNotEmpty().containsExactlyInAnyOrderElementsOf(tags);
+        }
 
-		assertEquals(savedTrace, retrievedTrace, "Saved and retrieved traces should be equal");
+        @Test
+        void deleteTrace_shouldNotDeleteTags() {
+            User author = TestEntityFactory.createPersistedUser(entityManager);
+            List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, tags);
+            List<Long> tagIds = tags.stream().map(Tag::getId).toList();
+            flushAndClear();
 
-		assertNotNull(retrievedTrace.getTags());
-		assertFalse(retrievedTrace.getTags().isEmpty());
-		assertEquals(savedTrace.getTags(), retrievedTrace.getTags());
-	}
+            traceRepository.deleteById(trace.getId());
+            flushAndClear();
 
-	@Test
-	@Rollback
-	public void savedTraceWithTags_whenDeleted_shouldNotDeleteTags() {
-		User savedUser = userRepository.save(TestDataFactory.createValidUser());
-		Trace validTrace = TestDataFactory.createTraceWithAuthor(savedUser);
-		List<Tag> savedTags = (List<Tag>) tagRepository.saveAll(TestDataFactory.createTags());
-		validTrace.setTags(savedTags);
-		Trace savedTrace = traceRepository.save(validTrace);
+            assertThat(traceRepository.findById(trace.getId())).isEmpty();
+            assertThat(tagRepository.findAllById(tagIds))
+                    .hasSize(tags.size())
+                    .containsExactlyInAnyOrderElementsOf(tags);
+        }
 
-		traceRepository.deleteById(savedTrace.getId());
-		traceRepository.flush();
+        @Test
+        void deleteTags_shouldThrowException_whenTagsAreReferencedByTrace() {
+            User author = TestEntityFactory.createPersistedUser(entityManager);
+            List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
+            TestEntityFactory.createPersistedTrace(entityManager, author, tags);
+            flushAndClear();
 
-		assertFalse(traceRepository.findById(savedTrace.getId()).isPresent());
-		for (Tag tag : savedTags) {
-			assertTrue(tagRepository.findById(tag.getId()).isPresent());
-		}
-	}
+            tags.forEach(tag -> tagRepository.delete(tag));
+            assertThrows(ConstraintViolationException.class, () -> entityManager.flush());
+        }
+
+        @Test
+        void clearAssociatedTags_shouldAllowTagDeletion() {
+            User author = TestEntityFactory.createPersistedUser(entityManager);
+            List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, tags);
+            flushAndClear();
+
+            Trace persistedTrace = traceRepository.findById(trace.getId()).orElseThrow();
+            persistedTrace.setTags(new ArrayList<>());
+            traceRepository.save(persistedTrace);
+            flushAndClear();
+
+            tags.forEach(tag -> tagRepository.delete(tag));
+            flushAndClear();
+
+            assertThat(persistedTrace.getTags()).isEmpty();
+            assertThat(tagRepository.findAll()).isEmpty();
+            assertThat(traceRepository.findById(trace.getId())).isPresent();
+        }
+    }
+
+    @Nested
+    class LocationBasedTests {
+
+        static final double TEST_LONGITUDE_1 = 51.11526452614028; // Wrocław, Benedyktyńska 3
+        static final double TEST_LATITUDE_1 = 17.05178471002032;
+
+        static final double TEST_LONGITUDE_2 = 51.11002925078812; // Wrocław, PWr D-2
+        static final double TEST_LATITUDE_2 = 17.05735341428798;
+
+        static final double TEST_LONGITUDE_3 = 51.112068609615704; // Wrocław, Pasaż Grunwaldzki
+        static final double TEST_LATITUDE_3 = 17.058937191520055;
+
+        @Test
+        void findTracesNearby_shouldReturnTrace_whenLocationMatches() {
+            User author = TestEntityFactory.createPersistedUser(entityManager);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            double traceLong = trace.getLongitude();
+            double traceLat = trace.getLatitude();
+            int searchDistanceMeters = 1;
+            flushAndClear();
+
+            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(traceLong, traceLat,
+                    searchDistanceMeters);
+
+            assertThat(nearbyTraces).isNotEmpty().hasSize(1);
+            assertThat(nearbyTraces.get(0)[0]).isEqualTo(trace.getId());
+        }
+
+        @Test
+        void findTracesNearby_shouldReturnEmpty_whenTraceSlighlyOutsideRange() {
+            double traceLongitude = TEST_LONGITUDE_1;
+            double traceLatitude = TEST_LATITUDE_1;
+
+            User author = TestEntityFactory.createPersistedUser(entityManager);
+            TestEntityFactory.createPersistedTrace(entityManager, author, null, traceLongitude, traceLatitude);
+            double searchLongitude = TEST_LONGITUDE_3;
+            double searchLatitude = TEST_LATITUDE_3; // slightly outside of range
+            int searchDistanceMeters = 500;
+            flushAndClear();
+
+            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(searchLongitude, searchLatitude,
+                    searchDistanceMeters);
+
+            assertThat(nearbyTraces).isEmpty();
+        }
+
+        @Test
+        void findTracesNearby_shouldReturnTrace_whenTraceInsideRange() {
+            double traceLongitude = TEST_LONGITUDE_1;
+            double traceLatitude = TEST_LATITUDE_1;
+
+            User author = TestEntityFactory.createPersistedUser(entityManager);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null, traceLongitude,
+                    traceLatitude);
+
+            double searchLongitude = TEST_LONGITUDE_3;
+            double searchLatitude = TEST_LATITUDE_3; // barely inside range
+            int searchDistanceMeters = 1000;
+            flushAndClear();
+
+            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(searchLongitude, searchLatitude,
+                    searchDistanceMeters);
+
+            assertThat(nearbyTraces).isNotEmpty().hasSize(1);
+        }
+
+        @Test
+        void findTracesNearby_shouldReturnMultipleTraces_whenMultipleTracesInRange() {
+            double traceLongitude = TEST_LONGITUDE_1;
+            double traceLatitude = TEST_LATITUDE_1;
+            User author = TestEntityFactory.createPersistedUser(entityManager);
+            Trace trace1 = TestEntityFactory.createPersistedTrace(entityManager, author, null, traceLongitude,
+                    traceLatitude);
+
+            traceLatitude = TEST_LATITUDE_2;
+            traceLongitude = TEST_LONGITUDE_2;
+            Trace trace2 = TestEntityFactory.createPersistedTrace(entityManager, author, null, traceLongitude,
+                    traceLatitude);
+            flushAndClear();
+
+            double searchLongitude = TEST_LONGITUDE_3;
+            double searchLatitude = TEST_LATITUDE_3; // should cover both traces
+            int searchDistanceMeters = 1000;
+
+            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(searchLongitude, searchLatitude,
+                    searchDistanceMeters);
+
+            assertThat(nearbyTraces).isNotEmpty().hasSize(2);
+            assertThat(nearbyTraces.stream().map(o -> (Long) o[0])).containsExactlyInAnyOrder(trace1.getId(),
+                    trace2.getId());
+        }
+    }
 }

@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.time.Duration;
 
 @Service
-@Profile({ "remote", "test" })
+@Profile("remote")
 public class S3Service implements StorageService {
 
     @Value("${aws.s3.bucket-name}")
@@ -42,6 +42,16 @@ public class S3Service implements StorageService {
     @Override
     public void storeFile(MultipartFile file, String key) {
         putObject(file, key);
+    }
+
+    /**
+     * This method will just throw an UnsupportedOperationException.
+     * Deleting all files from S3 is not a good idea. This method
+     * is here just to satisfy the interface.
+     */
+    @Override
+    public void cleanUp() {
+        throw new UnsupportedOperationException("Unimplemented method 'cleanUp'");
     }
 
     @Override
