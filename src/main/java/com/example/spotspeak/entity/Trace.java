@@ -62,7 +62,7 @@ public class Trace {
     private Resource resource;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "trace", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
