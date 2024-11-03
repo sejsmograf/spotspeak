@@ -1,7 +1,6 @@
 package com.example.spotspeak.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.dto.TraceUploadDTO;
@@ -10,7 +9,6 @@ import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.repository.TestEntityFactory;
-import com.example.spotspeak.repository.TraceRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -26,18 +24,16 @@ public class TraceCreationServiceIntegrationTest
     @Autowired
     TraceCreationService traceCreationService;
 
-    @Autowired
-    TraceRepository repository;
-
     @Test
     @Transactional
-    public void givenValidTraceWithoutFile_shouldCreateAndPersist() {
+    public void createAndPersistTrace_shouldPersist_whenNoFileProvided() {
         User author = TestEntityFactory.createPersistedUser(entityManager);
         TraceUploadDTO dto = TestEntityFactory.createTraceUploadDTO(null);
 
         Trace trace = traceCreationService.createAndPersistTrace(author, null, dto);
 
         Trace retrieved = entityManager.find(Trace.class, trace.getId());
+
         assertThat(retrieved).isNotNull();
         assertThat(retrieved.getAuthor()).isEqualTo(author);
         assertThat(retrieved.getResource()).isNull();
@@ -46,7 +42,7 @@ public class TraceCreationServiceIntegrationTest
 
     @Test
     @Transactional
-    public void givenValidTraceWithTags_shouldCreateAndPersist() {
+    public void createAndPersistTrace_shouldPersist_whenTagsProvided() {
         List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
         List<Long> tagIds = tags.stream().map(Tag::getId).toList();
         User author = TestEntityFactory.createPersistedUser(entityManager);
@@ -65,7 +61,7 @@ public class TraceCreationServiceIntegrationTest
 
     @Test
     @Transactional
-    public void givenValidTraceWithFile_shouldCreateAndPersist() {
+    public void createAndPersistTrace_shouldPersistAndUploadFile_whenFileProvided() {
         User author = TestEntityFactory.createPersistedUser(entityManager);
         TraceUploadDTO dto = TestEntityFactory.createTraceUploadDTO(null);
         MultipartFile file = TestEntityFactory.createMockMultipartFile("image/jpg", 1000);
@@ -75,7 +71,6 @@ public class TraceCreationServiceIntegrationTest
         Long uploadedResourceId = retrieved.getResource().getId();
         Resource uploadedResource = entityManager.find(Resource.class, uploadedResourceId);
 
-        assertThat(retrieved).isNotNull();
         assertThat(retrieved.getAuthor()).isEqualTo(author);
         assertThat(retrieved.getResource()).isNotNull();
         assertThat(uploadedResource).isNotNull();

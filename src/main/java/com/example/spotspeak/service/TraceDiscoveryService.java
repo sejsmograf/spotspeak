@@ -27,7 +27,7 @@ public class TraceDiscoveryService {
         return discoveredTraces;
     }
 
-    public Trace discoverTrace(User author,
+    public Trace discoverTrace(User user,
             Long traceId,
             double userLongitude,
             double userLatitude) {
@@ -36,15 +36,15 @@ public class TraceDiscoveryService {
                 userLatitude,
                 TraceConstants.TRACE_DISCOVERY_DISTANCE);
 
-        if (!withinDiscoveryDistance) {
-            throw new TraceNotWithinDistanceException("Trace is not within discovery distance");
-        }
-
         Trace discoveredTrace = traceRepository.findById(traceId).orElseGet(() -> {
             throw new TraceNotFoundException("Trace not found");
         });
 
-        markTraceAsDiscovered(discoveredTrace, author);
+        if (!withinDiscoveryDistance) {
+            throw new TraceNotWithinDistanceException("Trace is not within discovery distance");
+        }
+
+        markTraceAsDiscovered(discoveredTrace, user);
         return traceRepository.save(discoveredTrace);
     }
 
@@ -52,9 +52,9 @@ public class TraceDiscoveryService {
         return user.getDiscoveredTraces().contains(trace);
     }
 
-    private void markTraceAsDiscovered(Trace discoveredTrace, User author) {
-        discoveredTrace.getDiscoverers().add(author);
-        author.getDiscoveredTraces().add(discoveredTrace);
+    private void markTraceAsDiscovered(Trace discoveredTrace, User user) {
+        discoveredTrace.getDiscoverers().add(user);
+        user.getDiscoveredTraces().add(discoveredTrace);
     }
 
 }

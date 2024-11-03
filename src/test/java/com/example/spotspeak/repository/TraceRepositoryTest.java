@@ -28,7 +28,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
     @Nested
     class BasicTraceOperationsTests {
         @Test
-        void givenTraceWithoutAuthor_shouldThrowDataIntegrityViolation() {
+        void saveTrace_shouldThrowException_whenAuthorIsNull() {
             Trace withoutAuthor = Trace.builder().description("description").build();
 
             assertThrows(
@@ -36,7 +36,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void givenTraceWithAuthor_shouldPersist() {
+        void saveTrace_shouldPersist_whenAuthorProvided() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
 
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
@@ -46,18 +46,18 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void givenSavedTrace_shouldContainCorrectAuthor() {
+        void findTraceById_shouldReturnCorrectActor() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
             flushAndClear();
 
             Trace found = traceRepository.findById(trace.getId()).orElseThrow();
 
-            assertThat(found).extracting(Trace::getAuthor).isEqualTo(author);
+            assertThat(found.getAuthor()).isEqualTo(author);
         }
 
         @Test
-        void whenTraceDeleted_shouldNotDeleteAuthor() {
+        void deleteTrace_shouldNotDeleteAuthor() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
             flushAndClear();
@@ -73,7 +73,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
     @Nested
     class TraceWithTagsTests {
         @Test
-        void whenRetrieved_shouldContainCorrectTags() {
+        void findTraceById_shouldReturnCorrectTags() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, tags);
@@ -85,7 +85,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void whenTraceDeleted_shouldNotDeleteTags() {
+        void deleteTrace_shouldNotDeleteTags() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, tags);
@@ -102,7 +102,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void whenTagsDeleted_shouldThrowConstraintViolation() {
+        void deleteTags_shouldThrowException_whenTagsAreReferencedByTrace() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
             TestEntityFactory.createPersistedTrace(entityManager, author, tags);
@@ -113,7 +113,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void whenTagsCleared_shouldAllowTagDeletion() {
+        void clearAssociatedTags_shouldAllowTagDeletion() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, tags);
@@ -146,7 +146,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         static final double TEST_LATITUDE_3 = 17.058937191520055;
 
         @Test
-        void whenSearchingNearby_shouldFindTraceInTheSameLocation() {
+        void findTracesNearby_shouldReturnTrace_whenLocationMatches() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
             double traceLong = trace.getLongitude();
@@ -162,7 +162,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void whenSearchingNearby_shouldNotFindTraceOutsideOfRange() {
+        void findTracesNearby_shouldReturnEmpty_whenTraceSlighlyOutsideRange() {
             double traceLongitude = TEST_LONGITUDE_1;
             double traceLatitude = TEST_LATITUDE_1;
 
@@ -180,7 +180,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void whenSearchingNearby_shouldFindTraceInRange() {
+        void findTracesNearby_shouldReturnTrace_whenTraceInsideRange() {
             double traceLongitude = TEST_LONGITUDE_1;
             double traceLatitude = TEST_LATITUDE_1;
 
@@ -200,7 +200,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void whenSearchingNearby_shouldFindMultipleTracesInRange() {
+        void findTracesNearby_shouldReturnMultipleTraces_whenMultipleTracesInRange() {
             double traceLongitude = TEST_LONGITUDE_1;
             double traceLatitude = TEST_LATITUDE_1;
             User author = TestEntityFactory.createPersistedUser(entityManager);

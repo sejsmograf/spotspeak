@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.example.spotspeak.entity.Resource;
@@ -32,14 +31,14 @@ public class UserRepositoryTest extends BaseRepositoryTest {
     @Nested
     class BasicUserOperationsTests {
         @Test
-        void givenValidUser_shouldPersist() {
+        void saveUser_shouldPersist_whenNoProfilePicture() {
             User user = TestEntityFactory.createPersistedUser(entityManager);
 
             assertThat(user.getId()).isNotNull();
         }
 
         @Test
-        void givenSavedUser_whenRetrieved_shouldEqual() {
+        void findUserById_shouldReturnCorrectUser() {
             User user = TestEntityFactory.createPersistedUser(entityManager);
             flushAndClear();
 
@@ -52,7 +51,7 @@ public class UserRepositoryTest extends BaseRepositoryTest {
     @Nested
     class UserProfilePicutreTests {
         @Test
-        void givenUserWithProfilePicture_shouldPersist() {
+        void saveUser_shouldPersist_whenProfilePictureProvided() {
             User user = TestEntityFactory.createPersistedUser(entityManager);
             Resource profilePicture = TestEntityFactory.createPersistedResource(entityManager);
             user.setProfilePicture(profilePicture);
@@ -64,7 +63,7 @@ public class UserRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void givenUserWithProfilePicture_whenDeleted_shouldDeleteProfilePicture() {
+        void deleteUser_shouldNotDeleteProfilePicture() {
             User user = TestEntityFactory.createPersistedUser(entityManager);
             Resource profilePicture = TestEntityFactory.createPersistedResource(entityManager);
             user.setProfilePicture(profilePicture);
@@ -82,7 +81,7 @@ public class UserRepositoryTest extends BaseRepositoryTest {
     @Nested
     class UserSearchTest {
         @Test
-        void givenUserWithUsername_whenFindByUsername_shouldContainUser() {
+        void findByUsername_shouldContainUser_whenUsernameTheSame() {
             User user = TestEntityFactory.createPersistedUser(entityManager);
             String username = "findme123";
             user.setUsername(username);
@@ -94,7 +93,7 @@ public class UserRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void givenUserWithUsername_whenFindByOtherUsername_shouldNotReturnUser() {
+        void findByUsername_shouldReturnEmpty_whenUsernameDiffers() {
             User user = TestEntityFactory.createPersistedUser(entityManager);
             String username = "findme123";
             String searchUsername = "dontfindme";
@@ -107,7 +106,7 @@ public class UserRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void givenUserWithUsername_whenFindByPartialUsername_shouldContainUser() {
+        void findByUsername_shouldContainUser_whenSearchedByUsernameBeginning() {
             User user = TestEntityFactory.createPersistedUser(entityManager);
             String username = "findme123";
             user.setUsername(username);
@@ -119,7 +118,7 @@ public class UserRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void givenMultipleUsersWithUsername_whenFindByUsername_shouldContainMatching() {
+        void findByUsername_shouldContainAllMatching_whenMultipleUsersMatch() {
             String baseUsername = "findme";
             for (int i = 0; i < 5; i++) {
                 User user = TestEntityFactory.createPersistedUser(entityManager);
