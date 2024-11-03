@@ -1,6 +1,8 @@
 package com.example.spotspeak.repository;
 
 import com.example.spotspeak.dto.TraceUploadDTO;
+import com.example.spotspeak.dto.UserUpdateDTO;
+import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
@@ -103,4 +105,9 @@ public class TestEntityFactory {
         RANDOM.nextBytes(bytes);
         return new MockMultipartFile("file", "file", contentType, bytes);
     }
+
+    public static PasswordUpdateDTO createPasswordUpdateDTO(String oldPassword, String newPassword) {
+        return new PasswordUpdateDTO(oldPassword, newPassword);
+    }
+
 }

@@ -149,12 +149,12 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         void findTracesNearby_shouldReturnTrace_whenLocationMatches() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
-            double traceLong = trace.getLongitude();
+            double tracaLon = trace.getLongitude();
             double traceLat = trace.getLatitude();
             int searchDistanceMeters = 1;
             flushAndClear();
 
-            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(traceLong, traceLat,
+            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(tracaLon, traceLat,
                     searchDistanceMeters);
 
             assertThat(nearbyTraces).isNotEmpty().hasSize(1);
@@ -163,11 +163,11 @@ class TraceRepositoryTest extends BaseRepositoryTest {
 
         @Test
         void findTracesNearby_shouldReturnEmpty_whenTraceSlighlyOutsideRange() {
-            double traceLongitude = TEST_LONGITUDE_1;
+            double tracaLonitude = TEST_LONGITUDE_1;
             double traceLatitude = TEST_LATITUDE_1;
 
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            TestEntityFactory.createPersistedTrace(entityManager, author, null, traceLongitude, traceLatitude);
+            TestEntityFactory.createPersistedTrace(entityManager, author, null, tracaLonitude, traceLatitude);
             double searchLongitude = TEST_LONGITUDE_3;
             double searchLatitude = TEST_LATITUDE_3; // slightly outside of range
             int searchDistanceMeters = 500;
@@ -181,11 +181,11 @@ class TraceRepositoryTest extends BaseRepositoryTest {
 
         @Test
         void findTracesNearby_shouldReturnTrace_whenTraceInsideRange() {
-            double traceLongitude = TEST_LONGITUDE_1;
+            double tracaLonitude = TEST_LONGITUDE_1;
             double traceLatitude = TEST_LATITUDE_1;
 
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null, traceLongitude,
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null, tracaLonitude,
                     traceLatitude);
 
             double searchLongitude = TEST_LONGITUDE_3;
@@ -201,15 +201,15 @@ class TraceRepositoryTest extends BaseRepositoryTest {
 
         @Test
         void findTracesNearby_shouldReturnMultipleTraces_whenMultipleTracesInRange() {
-            double traceLongitude = TEST_LONGITUDE_1;
+            double tracaLonitude = TEST_LONGITUDE_1;
             double traceLatitude = TEST_LATITUDE_1;
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace1 = TestEntityFactory.createPersistedTrace(entityManager, author, null, traceLongitude,
+            Trace trace1 = TestEntityFactory.createPersistedTrace(entityManager, author, null, tracaLonitude,
                     traceLatitude);
 
             traceLatitude = TEST_LATITUDE_2;
-            traceLongitude = TEST_LONGITUDE_2;
-            Trace trace2 = TestEntityFactory.createPersistedTrace(entityManager, author, null, traceLongitude,
+            tracaLonitude = TEST_LONGITUDE_2;
+            Trace trace2 = TestEntityFactory.createPersistedTrace(entityManager, author, null, tracaLonitude,
                     traceLatitude);
             flushAndClear();
 

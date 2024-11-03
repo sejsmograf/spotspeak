@@ -96,6 +96,13 @@ public class Trace {
         return location.getY();
     }
 
+    public void clearDiscoverers() {
+        for (User user : getDiscoverers()) {
+            user.removeDiscoveredTrace(this);
+        }
+        discoverers.clear();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

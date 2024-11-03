@@ -1,5 +1,6 @@
 package com.example.spotspeak.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -78,10 +79,7 @@ public class TraceService {
         }
 
         trace.setResource(null);
-
-        for (User user : trace.getDiscoverers()) {
-            user.removeDiscoveredTrace(trace);
-        }
+        trace.clearDiscoverers();
 
         traceRepository.deleteById(traceId);
     }
@@ -101,8 +99,6 @@ public class TraceService {
 
         boolean discovered = traceDiscoveryService.hasUserDiscoveredTrace(user, trace);
         boolean isAuthor = trace.getAuthor().getId().equals(user.getId());
-        System.out.println("AUTHOR" + trace.getAuthor().getId());
-        System.out.println("CLAIMER" + user.getId());
 
         boolean canGetTraceInfo = discovered || isAuthor;
 

@@ -20,106 +20,106 @@ import com.example.spotspeak.repository.UserRepository;
 
 @Service
 public class UserService {
-	private UserRepository userRepostitory;
-	private ResourceService resourceService;
-	private KeycloakClientService keycloakService;
-	private UserMapper userMapper;
+    private UserRepository userRepostitory;
+    private ResourceService resourceService;
+    private KeycloakClientService keycloakService;
+    private UserMapper userMapper;
 
-	public UserService(
-			UserRepository repository,
-			ResourceService resourceService,
-			KeycloakClientService keycloakClientService,
-			UserMapper userMapper) {
+    public UserService(
+            UserRepository repository,
+            ResourceService resourceService,
+            KeycloakClientService keycloakClientService,
+            UserMapper userMapper) {
 
-		this.userRepostitory = repository;
-		this.resourceService = resourceService;
-		this.keycloakService = keycloakClientService;
-		this.userMapper = userMapper;
-	}
+        this.userRepostitory = repository;
+        this.resourceService = resourceService;
+        this.keycloakService = keycloakClientService;
+        this.userMapper = userMapper;
+    }
 
-	public List<PublicUserProfileDTO> searchUsersByUsername(String username) {
-		List<User> matchingUsers = userRepostitory.findAllByUsernameIgnoreCase(username);
-		return matchingUsers.stream()
-				.map(user -> userMapper.createPublicUserProfileDTO(user))
-				.toList();
-	}
+    public List<PublicUserProfileDTO> searchUsersByUsername(String username) {
+        List<User> matchingUsers = userRepostitory.findAllByUsernameIgnoreCase(username);
+        return matchingUsers.stream()
+                .map(user -> userMapper.createPublicUserProfileDTO(user))
+                .toList();
+    }
 
-	public AuthenticatedUserProfileDTO getUserInfo(String userId) {
-		User user = findByIdOrThrow(userId);
-		return userMapper.createAuthenticatedUserProfileDTO(user);
-	}
+    public AuthenticatedUserProfileDTO getUserInfo(String userId) {
+        User user = findByIdOrThrow(userId);
+        return userMapper.createAuthenticatedUserProfileDTO(user);
+    }
 
-	public void updateUserPassword(String userId, PasswordUpdateDTO dto) {
-		keycloakService.updatePassword(userId, dto);
-	}
+    public void updateUserPassword(String userId, PasswordUpdateDTO dto) {
+        keycloakService.updatePassword(userId, dto);
+    }
 
-	@Transactional
-	public void deleteById(String userIdString) {
-		User user = findByIdOrThrow(userIdString);
+    @Transactional
+    public void deleteById(String userIdString) {
+        User user = findByIdOrThrow(userIdString);
 
-		try {
-			userRepostitory.deleteById(user.getId());
-			userRepostitory.flush();
-		} catch (DataIntegrityViolationException e) {
-			throw new RuntimeException("User deletion failed due to foreign key constraint.", e);
-		}
+        try {
+            userRepostitory.deleteById(user.getId());
+            userRepostitory.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("User deletion failed due to foreign key constraint.", e);
+        }
 
-		keycloakService.deleteUser(userIdString);
+        keycloakService.deleteUser(userIdString);
 
-	}
+    }
 
-	@Transactional
-	public User updateUser(String userIdString, UserUpdateDTO updateDTO) {
-		User user = findByIdOrThrow(userIdString);
-		userMapper.updateUserFromDTO(user, updateDTO);
+    @Transactional
+    public User updateUser(String userIdString, UserUpdateDTO updateDTO) {
+        User user = findByIdOrThrow(userIdString);
+        userMapper.updateUserFromDTO(user, updateDTO);
 
-		userRepostitory.save(user);
-		keycloakService.updateUser(userIdString, updateDTO);
-		return user;
-	}
+        userRepostitory.save(user);
+        keycloakService.updateUser(userIdString, updateDTO);
+        return user;
+    }
 
-	public Resource updateUserProfilePicture(String userIdString, MultipartFile file) {
-		User user = findByIdOrThrow(userIdString);
-		deleteUserProfilePicture(userIdString);
+    public Resource updateUserProfilePicture(String userIdString, MultipartFile file) {
+        User user = findByIdOrThrow(userIdString);
+        deleteUserProfilePicture(userIdString);
 
-		Resource resource = resourceService.uploadUserProfilePicture(userIdString, file);
-		user.setProfilePicture(resource);
-		userRepostitory.save(user);
-		return resource;
-	}
+        Resource resource = resourceService.uploadUserProfilePicture(userIdString, file);
+        user.setProfilePicture(resource);
+        userRepostitory.save(user);
+        return resource;
+    }
 
-	public void deleteUserProfilePicture(String userId) {
-		User user = findByIdOrThrow(userId);
-		Resource profilePicture = user.getProfilePicture();
+    public void deleteUserProfilePicture(String userId) {
+        User user = findByIdOrThrow(userId);
+        Resource profilePicture = user.getProfilePicture();
 
-		if (profilePicture != null) {
-			user.setProfilePicture(null);
-			resourceService.deleteResource(profilePicture.getId());
-		}
-	}
+        if (profilePicture != null) {
+            user.setProfilePicture(null);
+            resourceService.deleteResource(profilePicture.getId());
+        }
+    }
 
-	public void saveUser(User user) {
-		userRepostitory.save(user);
-	}
+    public void saveUser(User user) {
+        userRepostitory.save(user);
+    }
 
-	private User findByIdOrThrow(UUID userId) {
-		return userRepostitory.findById(userId).orElseThrow(
-				() -> {
-					throw new UserNotFoundException("Could not find the user");
-				});
-	}
+    private User findByIdOrThrow(UUID userId) {
+        return userRepostitory.findById(userId).orElseThrow(
+                () -> {
+                    throw new UserNotFoundException("Could not find the user");
+                });
+    }
 
-	private UUID userIdToUUID(String userId) {
-		try {
-			UUID convertedId = UUID.fromString(userId);
-			return convertedId;
-		} catch (IllegalArgumentException e) {
-			throw new UserNotFoundException("Invalid userId format");
-		}
-	}
+    private UUID userIdToUUID(String userId) {
+        try {
+            UUID convertedId = UUID.fromString(userId);
+            return convertedId;
+        } catch (IllegalArgumentException e) {
+            throw new UserNotFoundException("Invalid userId format");
+        }
+    }
 
-	public User findByIdOrThrow(String userIdString) {
-		UUID convertedId = userIdToUUID(userIdString);
-		return findByIdOrThrow(convertedId);
-	}
+    public User findByIdOrThrow(String userIdString) {
+        UUID convertedId = userIdToUUID(userIdString);
+        return findByIdOrThrow(convertedId);
+    }
 }
