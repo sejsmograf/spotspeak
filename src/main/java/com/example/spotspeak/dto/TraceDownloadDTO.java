@@ -5,11 +5,10 @@ import com.example.spotspeak.entity.Tag;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public record TraceDownloadDTO(
         Long id,
-        UUID authorId,
+        PublicUserProfileDTO author,
         String resourceAccessUrl,
         String description,
         List<Comment> comments,
