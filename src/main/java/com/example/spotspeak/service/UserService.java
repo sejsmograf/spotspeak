@@ -3,6 +3,7 @@ package com.example.spotspeak.service;
 import java.util.UUID;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +21,13 @@ import com.example.spotspeak.repository.UserRepository;
 
 @Service
 public class UserService {
+
     private UserRepository userRepostitory;
     private ResourceService resourceService;
     private KeycloakClientService keycloakService;
     private UserMapper userMapper;
+    @Autowired
+    private StorageService storageService;
 
     public UserService(
             UserRepository repository,
@@ -93,13 +97,12 @@ public class UserService {
         Resource profilePicture = user.getProfilePicture();
 
         if (profilePicture != null) {
+            System.out.println("CHECKING IF EXISTS");
+            boolean exists = storageService.fileExists(profilePicture.getResourceKey());
+            System.out.println("EXISTS: " + exists);
             user.setProfilePicture(null);
             resourceService.deleteResource(profilePicture.getId());
         }
-    }
-
-    public void saveUser(User user) {
-        userRepostitory.save(user);
     }
 
     private User findByIdOrThrow(UUID userId) {

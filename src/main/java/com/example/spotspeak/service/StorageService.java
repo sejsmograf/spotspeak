@@ -11,4 +11,6 @@ public interface StorageService {
     void cleanUp();
 
     String getResourceAccessUrl(String key);
+
+    boolean fileExists(String key);
 }

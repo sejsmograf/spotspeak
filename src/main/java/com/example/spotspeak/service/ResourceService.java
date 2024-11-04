@@ -57,6 +57,8 @@ public class ResourceService {
     public void deleteResource(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId).get();
         resourceRepository.deleteById(resource.getId());
-        storageService.deleteFile(resource.getResourceKey());
+
+        // unnecessary, should be handled by @PreRemove
+        // storageService.deleteFile(resource.getResourceKey());
     }
 }

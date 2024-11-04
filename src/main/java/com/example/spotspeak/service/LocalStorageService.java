@@ -22,15 +22,17 @@ public class LocalStorageService implements StorageService {
 
     org.slf4j.Logger logger = LoggerFactory.getLogger(LocalStorageService.class);
 
-    @Value("${storage.local.root-location}")
-    private String rootLocationString;
+    private final String STATIC_FILES_PREFIX = "src/main/resources/static/";
+
+    @Value("${storage.local.directory}")
+    private String directory;
 
     private Path rootLocation;
 
     @PostConstruct
     public void init() {
         try {
-            rootLocation = Paths.get(rootLocationString);
+            rootLocation = Paths.get(STATIC_FILES_PREFIX + directory);
             if (!Files.exists(rootLocation)) {
                 logger.info("Creating upload directory.");
                 Files.createDirectories(rootLocation);
@@ -65,8 +67,7 @@ public class LocalStorageService implements StorageService {
     @Override
     public void deleteFile(String key) {
         try {
-            Path file = this.rootLocation.resolve(
-                    Paths.get(key).normalize().toAbsolutePath());
+            Path file = this.rootLocation.resolve(key).toAbsolutePath();
             Files.delete(file);
             logger.info("File deleted: " + key);
         } catch (IOException e) {
@@ -85,7 +86,15 @@ public class LocalStorageService implements StorageService {
 
     @Override
     public String getResourceAccessUrl(String key) {
-        return "http://localhost:8080/" + key;
+        String baseUrl = "http://localhost:8080/";
+        Path relativePath = Path.of(directory, key);
+        return baseUrl + relativePath.toString();
+    }
+
+    @Override
+    public boolean fileExists(String key) {
+        Path file = this.rootLocation.resolve(key).toAbsolutePath();
+        return Files.exists(file);
     }
 
 }

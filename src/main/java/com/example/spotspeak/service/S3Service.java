@@ -13,6 +13,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
@@ -66,6 +68,21 @@ public class S3Service implements StorageService {
 
     private String generateCloudFrontUrl(String key) {
         return cloudfrontUrl + "/" + key;
+    }
+
+    @Override
+    public boolean fileExists(String key) {
+        HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+
+        try {
+            HeadObjectResponse response = s3Client.headObject(headObjectRequest);
+            return response != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private String generatePresignedDownloadUrl(String key) {

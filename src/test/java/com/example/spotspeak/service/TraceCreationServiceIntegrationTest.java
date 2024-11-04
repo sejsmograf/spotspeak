@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 public class TraceCreationServiceIntegrationTest
@@ -23,6 +24,14 @@ public class TraceCreationServiceIntegrationTest
 
     @Autowired
     TraceCreationService traceCreationService;
+
+    @Autowired
+    private StorageService storageService;
+
+    @AfterEach
+    public void cleanStorage() {
+        storageService.cleanUp();
+    }
 
     @Test
     @Transactional

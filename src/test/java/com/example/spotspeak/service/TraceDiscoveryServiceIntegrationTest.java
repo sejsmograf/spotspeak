@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThrows;
 
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class TraceDiscoveryServiceIntegrationTest
     @Autowired
     private TraceDiscoveryService traceDiscoveryService;
 
+    @Autowired
+    private StorageService storageService;
+
     private User testUser;
     private Trace testTrace;
 
@@ -30,6 +34,11 @@ public class TraceDiscoveryServiceIntegrationTest
     public void setUp() {
         testUser = TestEntityFactory.createPersistedUser(entityManager);
         testTrace = TestEntityFactory.createPersistedTrace(entityManager, testUser, null);
+    }
+
+    @AfterEach
+    public void cleanStorage() {
+        storageService.cleanUp();
     }
 
     @Test

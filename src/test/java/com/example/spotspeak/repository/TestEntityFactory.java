@@ -1,7 +1,6 @@
 package com.example.spotspeak.repository;
 
 import com.example.spotspeak.dto.TraceUploadDTO;
-import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Tag;

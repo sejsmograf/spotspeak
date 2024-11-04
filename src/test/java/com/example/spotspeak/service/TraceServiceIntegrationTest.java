@@ -8,7 +8,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.ArrayList;
 
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -27,7 +27,6 @@ import com.example.spotspeak.repository.TestEntityFactory;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ForbiddenException;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TraceServiceIntegrationTest
         extends BaseServiceIntegrationTest {
 
@@ -36,11 +35,6 @@ public class TraceServiceIntegrationTest
 
     @Autowired
     private LocalStorageService localStorageService;
-
-    @AfterAll
-    public void cleanUp() {
-        localStorageService.cleanUp();
-    }
 
     private User userWithTraces;
     private final int USER_TRACES_COUNT = 3;
@@ -59,6 +53,11 @@ public class TraceServiceIntegrationTest
                     TestEntityFactory.createPersistedTrace(
                             entityManager, userWithTraces, null));
         }
+    }
+
+    @AfterEach
+    public void cleanStorage() {
+        localStorageService.cleanUp();
     }
 
     @Test
