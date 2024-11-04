@@ -1,5 +1,7 @@
 package com.example.spotspeak.mapper;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 
 import com.example.spotspeak.dto.TraceDownloadDTO;
@@ -17,17 +19,21 @@ public class TraceMapper {
 
     public TraceDownloadDTO createTraceDownloadDTO(Trace trace) {
         Resource resource = trace.getResource();
+        UUID authorId = trace.getAuthor().getId();
         String resourceUrl = resource != null
                 ? resourceService.getResourceAccessUrl(resource.getId())
                 : null;
 
         return new TraceDownloadDTO(
                 trace.getId(),
+                authorId,
                 resourceUrl,
                 trace.getDescription(),
                 trace.getComments(),
                 trace.getTags(),
                 trace.getLatitude(),
-                trace.getLongitude());
+                trace.getLongitude(),
+                trace.getCreatedAt());
+
     }
 }
