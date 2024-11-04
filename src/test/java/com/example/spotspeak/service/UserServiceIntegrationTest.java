@@ -23,7 +23,7 @@ import com.example.spotspeak.dto.PublicUserProfileDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.Resource;
-import com.example.spotspeak.repository.TestEntityFactory;
+import com.example.spotspeak.TestEntityFactory;
 
 import jakarta.transaction.Transactional;
 
@@ -67,6 +67,19 @@ public class UserServiceIntegrationTest
         List<PublicUserProfileDTO> foundUsers = userService.searchUsersByUsername("find");
 
         assertThat(foundUsers).isNotEmpty().hasSizeGreaterThan(1);
+    }
+
+    @Test
+    @Transactional
+    void searchByUsername_shouldReturnUsersMatchingPartially_whenUserHasProfilePicture() {
+        testUsers.get(0).setUsername("findme");
+        testUsers.get(1).setUsername("findmetoo");
+        MultipartFile mockFile = TestEntityFactory.createMockMultipartFile("image/png", 100);
+
+        userService.updateUserProfilePicture(testUsers.get(0).getId().toString(), mockFile);
+        List<PublicUserProfileDTO> foundUsers = userService.searchUsersByUsername("find");
+
+        assertThat(foundUsers).isNotEmpty().hasSizeGreaterThan(1);
 
     }
 
@@ -75,6 +88,7 @@ public class UserServiceIntegrationTest
     void updatePassword_shouldPass() {
         String userId = testUsers.get(0).getId().toString();
         PasswordUpdateDTO dto = new PasswordUpdateDTO("current", "new");
+
         userService.updateUserPassword(userId, dto);
     }
 
@@ -83,6 +97,20 @@ public class UserServiceIntegrationTest
     void getUserInfo_shouldReturnCorrectDto() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
+
+        AuthenticatedUserProfileDTO dto = userService.getUserInfo(userId);
+
+        assertThat(dto).isNotNull();
+        assertThat(dto.id()).isEqualTo(user.getId());
+    }
+
+    @Test
+    @Transactional
+    void getUserInfo_shouldReturnCorrectDto_whenUserHasProfilePicture() {
+        User user = testUsers.get(0);
+        String userId = user.getId().toString();
+        MultipartFile mockFile = TestEntityFactory.createMockMultipartFile("image/png", 100);
+        userService.updateUserProfilePicture(userId, mockFile);
 
         AuthenticatedUserProfileDTO dto = userService.getUserInfo(userId);
 
@@ -116,11 +144,10 @@ public class UserServiceIntegrationTest
         MultipartFile mockFile = TestEntityFactory.createMockMultipartFile("image/png", 100);
 
         userService.updateUserProfilePicture(userId, mockFile);
-
         Resource userProfilePicture = user.getProfilePicture();
+
         Resource retrievedResource = entityManager.find(Resource.class, userProfilePicture.getId());
         boolean resourceExists = storageService.fileExists(userProfilePicture.getResourceKey());
-
         assertThat(userProfilePicture).isNotNull();
         assertThat(userProfilePicture.getFileType()).isEqualTo("image/png");
         assertThat(retrievedResource).isNotNull();
@@ -134,22 +161,15 @@ public class UserServiceIntegrationTest
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         MultipartFile mockFile = TestEntityFactory.createMockMultipartFile("image/png", 100);
-
         userService.updateUserProfilePicture(userId, mockFile);
         Resource firstProfilePicture = user.getProfilePicture();
-        boolean firstResourceExists = storageService.fileExists(firstProfilePicture.getResourceKey());
-
-        assertThat(firstProfilePicture).isNotNull();
-        assertThat(firstProfilePicture.getFileType()).isEqualTo("image/png");
-        assertThat(firstResourceExists).isTrue();
 
         MultipartFile mockFile2 = TestEntityFactory.createMockMultipartFile("image/jpg", 1000);
         userService.updateUserProfilePicture(userId, mockFile2);
-        Resource secondProfilePicture = user.getProfilePicture();
-        boolean secondResourceExists = storageService.fileExists(secondProfilePicture.getResourceKey());
 
         Resource retrievedFirstResource = entityManager.find(Resource.class, firstProfilePicture.getId());
-
+        Resource secondProfilePicture = user.getProfilePicture();
+        boolean secondResourceExists = storageService.fileExists(secondProfilePicture.getResourceKey());
         assertThat(retrievedFirstResource).isNull();
         assertThat(secondProfilePicture).isNotNull();
         assertThat(secondProfilePicture.getFileType()).isEqualTo("image/jpg");
@@ -161,7 +181,7 @@ public class UserServiceIntegrationTest
     public void updateUser_shouldUpdateUser_whenUserExists() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
-        UserUpdateDTO updateDTO = new UserUpdateDTO("Firstname", null, null, "username");
+        UserUpdateDTO updateDTO = new UserUpdateDTO("Firstname", "Lastname", "ornnit@olog.com", "username");
 
         User updatedUser = userService.updateUser(userId, updateDTO);
 
@@ -177,7 +197,6 @@ public class UserServiceIntegrationTest
         String lastName = user.getLastName();
         String email = user.getEmail();
         String username = user.getUsername();
-
         String userId = user.getId().toString();
         UserUpdateDTO updateDTO = new UserUpdateDTO(null, null, null, null);
 
@@ -191,7 +210,7 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    public void deledeById_shouldDeleteUser_withoutProfilePicture() {
+    public void deleteById_shouldDeleteUser_withoutProfilePicture() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
 
@@ -203,22 +222,18 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    public void deledeById_shouldDeleteUserAndProfilePicture_whenUserHasProfilePicture() {
+    public void deleteById_shouldDeleteUserAndProfilePicture_whenUserHasProfilePicture() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         MultipartFile mockFile = TestEntityFactory.createMockMultipartFile("image/png", 100);
-
         userService.updateUserProfilePicture(userId, mockFile);
         Resource userProfilePicture = user.getProfilePicture();
-        boolean resourceExists = storageService.fileExists(userProfilePicture.getResourceKey());
-        assertThat(resourceExists).isTrue();
 
         userService.deleteById(userId);
 
         User deletedUser = entityManager.find(User.class, user.getId());
         Resource deletedResource = entityManager.find(Resource.class, userProfilePicture.getId());
         boolean deletedResourceExists = storageService.fileExists(userProfilePicture.getResourceKey());
-
         assertThat(deletedUser).isNull();
         assertThat(deletedResource).isNull();
         assertThat(deletedResourceExists).isFalse();

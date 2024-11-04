@@ -8,7 +8,7 @@ import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
-import com.example.spotspeak.repository.TestEntityFactory;
+import com.example.spotspeak.TestEntityFactory;
 
 import jakarta.transaction.Transactional;
 

@@ -28,57 +28,57 @@ import jakarta.validation.Valid;
 @Validated
 public class UserProfileController {
 
-	private UserService userService;
+    private UserService userService;
 
-	public UserProfileController(UserService userService) {
-		this.userService = userService;
-	}
+    public UserProfileController(UserService userService) {
+        this.userService = userService;
+    }
 
-	@PutMapping
-	ResponseEntity<AuthenticatedUserProfileDTO> updateProfile(@AuthenticationPrincipal Jwt jwt,
-			@RequestBody UserUpdateDTO userUpdateDTO) {
-		String userId = jwt.getSubject();
-		userService.updateUser(userId, userUpdateDTO);
-		AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(userId);
-		return ResponseEntity.ok(userInfo);
-	}
+    @PutMapping
+    ResponseEntity<AuthenticatedUserProfileDTO> updateProfile(@AuthenticationPrincipal Jwt jwt,
+            @RequestBody UserUpdateDTO userUpdateDTO) {
+        String userId = jwt.getSubject();
+        userService.updateUser(userId, userUpdateDTO);
+        AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(userId);
+        return ResponseEntity.ok(userInfo);
+    }
 
-	@GetMapping
-	ResponseEntity<AuthenticatedUserProfileDTO> getProfile(@AuthenticationPrincipal Jwt jwt) {
-		String userId = jwt.getSubject();
-		AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(userId);
-		return ResponseEntity.ok(userInfo);
-	}
+    @GetMapping
+    ResponseEntity<AuthenticatedUserProfileDTO> getProfile(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(userId);
+        return ResponseEntity.ok(userInfo);
+    }
 
-	@DeleteMapping
-	ResponseEntity<Void> deleteProfile(@AuthenticationPrincipal Jwt jwt) {
-		String userId = jwt.getSubject();
-		userService.deleteById(userId);
-		return ResponseEntity.noContent().build();
-	}
+    @DeleteMapping
+    ResponseEntity<Void> deleteProfile(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        userService.deleteById(userId);
+        return ResponseEntity.noContent().build();
+    }
 
-	@PutMapping("/update-password")
-	ResponseEntity<Void> updatePassword(@AuthenticationPrincipal Jwt jwt,
-			@Valid @RequestBody PasswordUpdateDTO passwordUpdateDTO) {
-		String userId = jwt.getSubject();
-		userService.updateUserPassword(userId, passwordUpdateDTO);
-		return ResponseEntity.noContent().build();
-	}
+    @PutMapping("/update-password")
+    ResponseEntity<Void> updatePassword(@AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody PasswordUpdateDTO passwordUpdateDTO) {
+        String userId = jwt.getSubject();
+        userService.updateUserPassword(userId, passwordUpdateDTO);
+        return ResponseEntity.noContent().build();
+    }
 
-	@PostMapping("/picture")
-	ResponseEntity<Resource> updateProfilePicture(@AuthenticationPrincipal Jwt jwt,
-			@Valid @ValidFile(maxSize = 1024 * 1024 * 2, allowedTypes = {
-					"image/jpeg", "image/jpg", "image/png"
-			}) @RequestPart MultipartFile file) {
-		String userId = jwt.getSubject();
-		Resource resource = userService.updateUserProfilePicture(userId, file);
-		return ResponseEntity.ok(resource);
-	}
+    @PostMapping("/picture")
+    ResponseEntity<Resource> updateProfilePicture(@AuthenticationPrincipal Jwt jwt,
+            @Valid @ValidFile(maxSize = 1024 * 1024 * 2, allowedTypes = {
+                    "image/jpeg", "image/jpg", "image/png"
+            }) @RequestPart MultipartFile file) {
+        String userId = jwt.getSubject();
+        Resource resource = userService.updateUserProfilePicture(userId, file);
+        return ResponseEntity.ok(resource);
+    }
 
-	@DeleteMapping("/picture")
-	ResponseEntity<Void> deleteProfilePicture(@AuthenticationPrincipal Jwt jwt) {
-		String userId = jwt.getSubject();
-		userService.deleteUserProfilePicture(userId);
-		return ResponseEntity.noContent().build();
-	}
+    @DeleteMapping("/picture")
+    ResponseEntity<Void> deleteProfilePicture(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        userService.deleteUserProfilePicture(userId);
+        return ResponseEntity.noContent().build();
+    }
 }

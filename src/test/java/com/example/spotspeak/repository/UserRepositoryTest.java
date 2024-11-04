@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import com.example.spotspeak.TestEntityFactory;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.ResourceListener;
 import com.example.spotspeak.entity.User;

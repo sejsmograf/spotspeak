@@ -1,4 +1,4 @@
-package com.example.spotspeak.repository;
+package com.example.spotspeak;
 
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
