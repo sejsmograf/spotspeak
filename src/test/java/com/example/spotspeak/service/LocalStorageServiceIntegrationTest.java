@@ -5,12 +5,14 @@ import static org.mockito.Mockito.mockStatic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -87,16 +89,84 @@ public class LocalStorageServiceIntegrationTest
 
         assertThat(Files.exists(expectedPath)).isTrue();
         storageService.deleteFile(key);
-
         assertThat(Files.exists(expectedPath)).isFalse();
     }
 
     @Test
-    void deleteFile_shouldThrowwhenFailedToDeleteFile() {
+    void deleteFile_shouldNotThrowWhenFailedToDeleteFile() {
         MockedStatic<Files> mockFiles = mockStatic(Files.class);
         mockFiles.when(() -> Files.delete(any())).thenThrow(new IOException());
+        storageService.init();
 
-        assertThrows(RuntimeException.class, () -> storageService.deleteFile("mock"));
+        storageService.deleteFile("doesntexist");
+
+        assertThat(true).isTrue();
         mockFiles.close();
+    }
+
+    @Test
+    void cleanUp_shouldCleanAllFiles() {
+        Path rootLocation = Paths.get("src/main/resources/static/test");
+        MultipartFile file = TestEntityFactory.createMockMultipartFile("mock", 10);
+        MultipartFile otherFile = TestEntityFactory.createMockMultipartFile("other", 10);
+
+        storageService.init();
+        storageService.storeFile(file, "mock");
+        storageService.storeFile(otherFile, "other");
+        storageService.cleanUp();
+
+        assertThat(Files.exists(rootLocation)).isFalse();
+    }
+
+    @Test
+    void cleanUp_shouldNotThrowWhenFailed() {
+        MockedStatic<FileUtils> mockFiles = mockStatic(FileUtils.class);
+        mockFiles.when(() -> FileUtils.deleteDirectory(any())).thenThrow(new IOException());
+        storageService.init();
+
+        storageService.cleanUp();
+        mockFiles.close();
+    }
+
+    @Test
+    void storeFile_shouldWorkWhenCalledMultipleTimes() {
+        Path rootLocation = Paths.get("src/main/resources/static/test");
+        MultipartFile mock = TestEntityFactory.createMockMultipartFile("mock", 10);
+        MultipartFile mock2 = TestEntityFactory.createMockMultipartFile("mock", 10);
+
+        storageService.init();
+        storageService.storeFile(mock, "mock");
+        storageService.storeFile(mock2, "mock2");
+
+        assertThat(Files.exists(rootLocation.resolve("mock"))).isTrue();
+        assertThat(Files.exists(rootLocation.resolve("mock2"))).isTrue();
+
+        storageService.cleanUp();
+    }
+
+    @Test
+    void storeFile_shouldCreateParentDirWhenFileHasParent() {
+        Path rootLocation = Paths.get("src/main/resources/static/test");
+        MultipartFile mock = TestEntityFactory.createMockMultipartFile("mock", 10);
+
+        storageService.init();
+        storageService.storeFile(mock, "parent/mock");
+
+        assertThat(Files.exists(rootLocation.resolve("parent/mock"))).isTrue();
+
+        storageService.cleanUp();
+    }
+
+    @Test
+    void storeFile_shouldCreateParentDirWhenFileHasTwoLevelParents() {
+        Path rootLocation = Paths.get("src/main/resources/static/test");
+        MultipartFile mock = TestEntityFactory.createMockMultipartFile("mock", 10);
+
+        storageService.init();
+        storageService.storeFile(mock, "parent1/parent2/mock");
+
+        assertThat(Files.exists(rootLocation.resolve("parent1/parent2/mock"))).isTrue();
+
+        storageService.cleanUp();
     }
 }
