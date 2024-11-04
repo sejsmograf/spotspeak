@@ -181,7 +181,9 @@ public class UserServiceIntegrationTest
     public void updateUser_shouldUpdateUser_whenUserExists() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
-        UserUpdateDTO updateDTO = new UserUpdateDTO("Firstname", "Lastname", "ornnit@olog.com", "username");
+        String challengeToken = userService.generatePasswordChallenge(userId, "password").token();
+        UserUpdateDTO updateDTO = new UserUpdateDTO(challengeToken, "Firstname", "Lastname", "ornnit@olog.com",
+                "username");
 
         User updatedUser = userService.updateUser(userId, updateDTO);
 
@@ -193,12 +195,13 @@ public class UserServiceIntegrationTest
     @Transactional
     public void updateUser_shouldNotUpdateProperties_whenNull() {
         User user = testUsers.get(0);
+        String userId = user.getId().toString();
+        String challengeToken = userService.generatePasswordChallenge(userId, "password").token();
         String firstName = user.getFirstName();
         String lastName = user.getLastName();
         String email = user.getEmail();
         String username = user.getUsername();
-        String userId = user.getId().toString();
-        UserUpdateDTO updateDTO = new UserUpdateDTO(null, null, null, null);
+        UserUpdateDTO updateDTO = new UserUpdateDTO(challengeToken, null, null, null, null);
 
         User updatedUser = userService.updateUser(userId, updateDTO);
 

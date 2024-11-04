@@ -2,6 +2,7 @@ package com.example.spotspeak.service;
 
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import com.example.spotspeak.config.KeycloakClientConfiguration;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.exception.KeycloakClientException;
+import com.example.spotspeak.exception.PasswordChallengeFailedException;
 import com.example.spotspeak.util.KeycloakClientBuilder;
 
 import jakarta.ws.rs.ClientErrorException;
@@ -31,13 +33,13 @@ public class KeycloakClientService {
 
     public void updatePassword(String userId, PasswordUpdateDTO dto) {
         try {
-            var user = getRealm().users().get(userId);
+            UserResource user = getRealm().users().get(userId);
             if (user == null) {
                 throw new KeycloakClientException("Keycloak user not found");
             }
             String username = user.toRepresentation().getUsername();
 
-            if (!validateCurrentPassword(username, dto.currentPassword())) {
+            if (!verifyPassword(username, dto.currentPassword())) {
                 throw new KeycloakClientException("Invalid current password");
             }
 
@@ -50,6 +52,17 @@ public class KeycloakClientService {
             handleClientError(e);
         } catch (Exception e) {
             throw new KeycloakClientException("Keycloak client exception", e.getMessage());
+        }
+    }
+
+    public void validatePasswordOrThrow(String userId, String password) {
+        UserResource user = getRealm().users().get(userId);
+        if (user == null) {
+            throw new KeycloakClientException("Keycloak user not found");
+        }
+        String username = user.toRepresentation().getUsername();
+        if (!verifyPassword(username, password)) {
+            throw new PasswordChallengeFailedException("Failed to validate password");
         }
     }
 
@@ -123,7 +136,7 @@ public class KeycloakClientService {
         throw new KeycloakClientException(message, statusCode + e.getMessage());
     }
 
-    private boolean validateCurrentPassword(String username, String currentPassword) {
+    private boolean verifyPassword(String username, String currentPassword) {
         try {
             Keycloak keycloakPasswordClient = clientBuilder.buildPasswordClient(username, currentPassword);
             keycloakPasswordClient.tokenManager().getAccessToken();

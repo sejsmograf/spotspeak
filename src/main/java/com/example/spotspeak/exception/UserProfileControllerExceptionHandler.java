@@ -27,4 +27,12 @@ public class UserProfileControllerExceptionHandler {
         response.addMessage(ex.getDetails());
         return response;
     }
+
+    @ExceptionHandler(PasswordChallengeFailedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handlePasswordChallengeFailedException(PasswordChallengeFailedException ex) {
+        ErrorResponse response = ErrorResponse.createInstance();
+        response.addMessage(ex.getMessage());
+        return response;
+    }
 }

@@ -1,15 +1,16 @@
 package com.example.spotspeak.service;
 
-import java.util.UUID;
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
+import com.example.spotspeak.dto.ChallengeResponseDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.PublicUserProfileDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
@@ -19,27 +20,17 @@ import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.mapper.UserMapper;
 import com.example.spotspeak.repository.UserRepository;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class UserService {
 
     private UserRepository userRepostitory;
     private ResourceService resourceService;
     private KeycloakClientService keycloakService;
+    private PasswordChallengeService passwordChallengeService;
     private UserMapper userMapper;
-    @Autowired
-    private StorageService storageService;
-
-    public UserService(
-            UserRepository repository,
-            ResourceService resourceService,
-            KeycloakClientService keycloakClientService,
-            UserMapper userMapper) {
-
-        this.userRepostitory = repository;
-        this.resourceService = resourceService;
-        this.keycloakService = keycloakClientService;
-        this.userMapper = userMapper;
-    }
 
     public List<PublicUserProfileDTO> searchUsersByUsername(String username) {
         List<User> matchingUsers = userRepostitory.findAllByUsernameIgnoreCase(username);
@@ -51,6 +42,13 @@ public class UserService {
     public AuthenticatedUserProfileDTO getUserInfo(String userId) {
         User user = findByIdOrThrow(userId);
         return userMapper.createAuthenticatedUserProfileDTO(user);
+    }
+
+    public ChallengeResponseDTO generatePasswordChallenge(String userId, String password) {
+        User user = findByIdOrThrow(userId);
+        keycloakService.validatePasswordOrThrow(userId, password);
+        String token = passwordChallengeService.createAndStoreChallenge(user.getId());
+        return new ChallengeResponseDTO(Instant.now(), user.getId(), token);
     }
 
     public void updateUserPassword(String userId, PasswordUpdateDTO dto) {
@@ -75,6 +73,9 @@ public class UserService {
     @Transactional
     public User updateUser(String userIdString, UserUpdateDTO updateDTO) {
         User user = findByIdOrThrow(userIdString);
+        String challengeToken = updateDTO.passwordChallengeToken();
+        passwordChallengeService.verifyChallengeOrThrow(challengeToken, user.getId());
+
         userMapper.updateUserFromDTO(user, updateDTO);
 
         userRepostitory.save(user);
@@ -97,9 +98,6 @@ public class UserService {
         Resource profilePicture = user.getProfilePicture();
 
         if (profilePicture != null) {
-            System.out.println("CHECKING IF EXISTS");
-            boolean exists = storageService.fileExists(profilePicture.getResourceKey());
-            System.out.println("EXISTS: " + exists);
             user.setProfilePicture(null);
             resourceService.deleteResource(profilePicture.getId());
         }

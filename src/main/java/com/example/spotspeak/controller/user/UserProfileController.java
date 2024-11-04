@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
+import com.example.spotspeak.dto.ChallengeRequestDTO;
+import com.example.spotspeak.dto.ChallengeResponseDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
@@ -36,7 +38,7 @@ public class UserProfileController {
 
     @PutMapping
     ResponseEntity<AuthenticatedUserProfileDTO> updateProfile(@AuthenticationPrincipal Jwt jwt,
-            @RequestBody UserUpdateDTO userUpdateDTO) {
+            @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
         String userId = jwt.getSubject();
         userService.updateUser(userId, userUpdateDTO);
         AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(userId);
@@ -55,6 +57,16 @@ public class UserProfileController {
         String userId = jwt.getSubject();
         userService.deleteById(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/generate-challenge")
+    ResponseEntity<ChallengeResponseDTO> generateChallenge(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody ChallengeRequestDTO challengeRequestDTO) {
+        String userId = jwt.getSubject();
+        ChallengeResponseDTO response = userService.generatePasswordChallenge(userId,
+                challengeRequestDTO.password());
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/update-password")
