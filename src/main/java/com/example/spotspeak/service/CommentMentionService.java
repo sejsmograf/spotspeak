@@ -43,13 +43,9 @@ public class CommentMentionService {
     }
 
     private List<String> extractMentions(String content) {
-        if (content == null || content.isEmpty()) {
-            return List.of();
-        }
-
         Matcher matcher = CommentMentionConstants.MENTION_PATTERN.matcher(content);
         return matcher.results()
                 .map(match -> match.group(1))
-                .collect(Collectors.toList());
+                .toList();
     }
 }

@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 public class CommentMapper {
@@ -17,9 +16,11 @@ public class CommentMapper {
     }
 
     public CommentResponseDTO toCommentResponseDTO(Comment comment) {
-        List<UUID> mentionIds = comment.getMentions().stream()
-                .map(mention -> mention.getMentionedUser().getId())
-                .collect(Collectors.toList());
+        List<UUID> mentionedUserIds = comment.getMentions() != null
+            ? comment.getMentions().stream()
+            .map(mention -> mention.getMentionedUser().getId())
+            .toList()
+            : List.of();
 
         return new CommentResponseDTO(
                 comment.getId(),
@@ -27,7 +28,7 @@ public class CommentMapper {
                 userMapper.createPublicUserProfileDTO(comment.getAuthor()),
                 comment.getContent(),
                 comment.getCreatedAt(),
-                mentionIds
+                mentionedUserIds
         );
     }
 }

@@ -1,5 +1,6 @@
 package com.example.spotspeak.repository;
 
+import com.example.spotspeak.dto.CommentRequestDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.*;
 import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
@@ -144,4 +145,7 @@ public class TestEntityFactory {
         return mention;
     }
 
+    public static CommentRequestDTO createCommentRequestDTO(String content) {
+        return new CommentRequestDTO(content);
+    }
 }
