@@ -21,7 +21,7 @@ public class TraceDiscoveryService {
         this.traceRepository = traceRepository;
     }
 
-    public List<Trace> findUserDisoveredTraces(String userId) {
+    public List<Trace> findUserDiscoveredTraces(String userId) {
         UUID convertedId = UUID.fromString(userId);
         List<Trace> discoveredTraces = traceRepository.findDiscoveredTracesByUserId(convertedId);
         return discoveredTraces;

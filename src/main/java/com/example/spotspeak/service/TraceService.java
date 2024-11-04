@@ -48,7 +48,7 @@ public class TraceService {
     }
 
     public List<TraceDownloadDTO> getDiscoveredTraces(String userId) {
-        return traceDiscoveryService.findUserDisoveredTraces(userId).stream()
+        return traceDiscoveryService.findUserDiscoveredTraces(userId).stream()
                 .map(traceMapper::createTraceDownloadDTO)
                 .toList();
     }

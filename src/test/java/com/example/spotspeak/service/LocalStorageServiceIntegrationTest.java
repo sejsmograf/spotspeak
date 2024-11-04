@@ -90,4 +90,13 @@ public class LocalStorageServiceIntegrationTest
 
         assertThat(Files.exists(expectedPath)).isFalse();
     }
+
+    @Test
+    void deleteFile_shouldThrowwhenFailedToDeleteFile() {
+        MockedStatic<Files> mockFiles = mockStatic(Files.class);
+        mockFiles.when(() -> Files.delete(any())).thenThrow(new IOException());
+
+        assertThrows(RuntimeException.class, () -> storageService.deleteFile("mock"));
+        mockFiles.close();
+    }
 }

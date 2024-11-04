@@ -73,7 +73,7 @@ public class TraceDiscoveryServiceIntegrationTest
         double traceLat = testTrace.getLatitude();
 
         traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLon, traceLat);
-        List<Trace> userDiscoveredTraces = traceDiscoveryService.findUserDisoveredTraces(
+        List<Trace> userDiscoveredTraces = traceDiscoveryService.findUserDiscoveredTraces(
                 testUser.getId().toString());
 
         assertThat(userDiscoveredTraces).isNotEmpty();
@@ -88,11 +88,11 @@ public class TraceDiscoveryServiceIntegrationTest
         double traceLat = testTrace.getLatitude();
 
         traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLon, traceLat);
-        List<Trace> tracesAfterOneCall = traceDiscoveryService.findUserDisoveredTraces(
+        List<Trace> tracesAfterOneCall = traceDiscoveryService.findUserDiscoveredTraces(
                 testUser.getId().toString());
 
         traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLon, traceLat);
-        List<Trace> tracesAfterTwoCalls = traceDiscoveryService.findUserDisoveredTraces(
+        List<Trace> tracesAfterTwoCalls = traceDiscoveryService.findUserDiscoveredTraces(
                 testUser.getId().toString());
 
         assertThat(tracesAfterOneCall).isNotEmpty();
