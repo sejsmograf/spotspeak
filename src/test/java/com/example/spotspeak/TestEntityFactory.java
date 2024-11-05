@@ -91,9 +91,15 @@ public class TestEntityFactory {
     }
 
     public static List<Tag> createPersistedTags(EntityManager em, int count) {
+        String[] tagNames = { "ornitology", "botany", "geology", "history", "archeology", "zoology", "entomology",
+                "ecology", "geography", "anthropology" };
+        if (count > tagNames.length) {
+            throw new IllegalArgumentException("Too many tags requested");
+        }
+
         List<Tag> tags = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            Tag tag = Tag.builder().name("tag" + RANDOM.nextInt(10000)).build();
+            Tag tag = Tag.builder().name(tagNames[i]).build();
             em.persist(tag);
             tags.add(tag);
         }
