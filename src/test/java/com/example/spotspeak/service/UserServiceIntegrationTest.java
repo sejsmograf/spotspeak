@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.exception.AttributeAlreadyExistsException;
-import com.example.spotspeak.exception.KeycloakClientException;
 import com.example.spotspeak.exception.PasswordChallengeFailedException;
 import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
@@ -78,7 +77,8 @@ public class UserServiceIntegrationTest
         String userId = testUsers.get(0).getId().toString();
         PasswordUpdateDTO dto = new PasswordUpdateDTO("wrong", "new");
 
-        assertThrows(KeycloakClientException.class, () -> userService.updateUserPassword(userId, dto));
+        assertThrows(PasswordChallengeFailedException.class,
+                () -> userService.updateUserPassword(userId, dto));
     }
 
     @Test
@@ -103,7 +103,7 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    void generatePasswordChallange_shouldReturnToken_whenPasswordMatches() {
+    void generatePasswordChallenge_shouldReturnToken_whenPasswordMatches() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         String password = user.getUsername(); // testusers have the same username and password
@@ -114,7 +114,7 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    void generatePasswordChallange_shouldThrowWhenPasswordDoesntMatch() {
+    void generatePasswordChallenge_shouldThrowWhenPasswordDoesntMatch() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         String password = user.getUsername() + "notcorrect";
@@ -209,7 +209,7 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    void updateUser_shouldThrow_whenInvalidPasswordChallangeToken() {
+    void updateUser_shouldThrow_whenInvalidPasswordChallengeToken() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
 
@@ -221,7 +221,7 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    void updateUser_shouldWork_whenValidPasswordChallangeToken() {
+    void updateUser_shouldWork_whenValidPasswordChallengeToken() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         String username = user.getUsername();

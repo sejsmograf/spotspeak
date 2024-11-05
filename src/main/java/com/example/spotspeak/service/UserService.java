@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,15 +58,10 @@ public class UserService {
     public void deleteById(String userIdString) {
         User user = findByIdOrThrow(userIdString);
 
-        try {
-            userRepostitory.deleteById(user.getId());
-            userRepostitory.flush();
-        } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("User deletion failed due to foreign key constraint.", e);
-        }
+        userRepostitory.deleteById(user.getId());
+        userRepostitory.flush();
 
         keycloakService.deleteUser(userIdString);
-
     }
 
     @Transactional

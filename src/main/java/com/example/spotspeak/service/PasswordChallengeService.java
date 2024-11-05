@@ -19,10 +19,11 @@ public class PasswordChallengeService {
     private final SecureRandom random = new SecureRandom();
     private final Base64.Encoder encoder = Base64.getUrlEncoder();
     private final int TOKEN_LENGTH = 64;
-    private final int CLEANUP_INTERVAL_MS = 60 * 1000; // 1 minute
-    private final static int CHALLENGE_EXPIRATION_MS = 60 * 5 * 1000; // 5 minutes
 
-    private record ChallengeEntry(UUID userId, Instant issuedAt) {
+    private final int CLEANUP_INTERVAL_MS = 60 * 1000; // 1 minute
+    private final int CHALLENGE_EXPIRATION_MS = 60 * 5 * 1000; // 5 minutes
+
+    record ChallengeEntry(UUID userId, Instant issuedAt) {
     }
 
     ConcurrentMap<String, ChallengeEntry> challenges = new ConcurrentHashMap<>();
@@ -55,7 +56,7 @@ public class PasswordChallengeService {
         Instant challengeExpiresAt = entry.issuedAt().plusMillis(CHALLENGE_EXPIRATION_MS);
 
         if (challengeExpiresAt.isBefore(Instant.now())) {
-            throw new PasswordChallengeFailedException("Challange token has expired");
+            throw new PasswordChallengeFailedException("Challenge token has expired");
         }
     }
 

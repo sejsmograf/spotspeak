@@ -35,9 +35,6 @@ public class KeycloakClientService {
     public void updatePassword(String userId, PasswordUpdateDTO dto) {
         try {
             UserResource user = getRealm().users().get(userId);
-            if (user == null) {
-                throw new KeycloakClientException("Keycloak user not found");
-            }
             String username = user.toRepresentation().getUsername();
 
             if (!verifyPassword(username, dto.currentPassword())) {
@@ -51,6 +48,8 @@ public class KeycloakClientService {
             user.resetPassword(newCredentials);
         } catch (ServerErrorException | ClientErrorException e) {
             handleClientError(e);
+        } catch (PasswordChallengeFailedException e) {
+            throw e;
         } catch (Exception e) {
             throw new KeycloakClientException("Keycloak client exception", e.getMessage());
         }
@@ -58,9 +57,6 @@ public class KeycloakClientService {
 
     public void validatePasswordOrThrow(String userId, String password) {
         UserResource user = getRealm().users().get(userId);
-        if (user == null) {
-            throw new KeycloakClientException("Keycloak user not found");
-        }
         String username = user.toRepresentation().getUsername();
         if (!verifyPassword(username, password)) {
             throw new PasswordChallengeFailedException("Failed to validate password");
@@ -70,9 +66,6 @@ public class KeycloakClientService {
     public void updateUser(String userId, UserUpdateDTO updatedUserModel) {
         try {
             UserRepresentation userRepresentation = getRealm().users().get(userId).toRepresentation();
-            if (userRepresentation == null) {
-                throw new KeycloakClientException("Keycloak user not found");
-            }
 
             validateUpdatePossible(userRepresentation, updatedUserModel);
             updateUserFields(userRepresentation, updatedUserModel);
@@ -80,7 +73,7 @@ public class KeycloakClientService {
             getRealm().users().get(userId).update(userRepresentation);
         } catch (ServerErrorException | ClientErrorException e) {
             handleClientError(e);
-        } catch (AttributeAlreadyExistsException e) {
+        } catch (AttributeAlreadyExistsException | PasswordChallengeFailedException e) {
             throw e;
         } catch (Exception e) {
             throw new KeycloakClientException("Keycloak client exception", e.getMessage());
