@@ -29,8 +29,10 @@ public class TraceController {
     private TraceMapper mapper;
 
     public TraceController(TraceService traceService,
+            TagService tagService,
             TraceMapper mapper) {
         this.traceService = traceService;
+        this.tagService = tagService;
         this.mapper = mapper;
     }
 
