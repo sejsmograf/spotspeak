@@ -4,18 +4,20 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.spotspeak.exception.AttributeAlreadyExistsException;
+import com.example.spotspeak.exception.KeycloakClientException;
+import com.example.spotspeak.exception.PasswordChallengeFailedException;
 import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
@@ -23,33 +25,33 @@ import com.example.spotspeak.dto.PublicUserProfileDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.Resource;
+import com.example.spotspeak.BaseTestWithKeycloak;
 import com.example.spotspeak.TestEntityFactory;
 
 import jakarta.transaction.Transactional;
 
 public class UserServiceIntegrationTest
-        extends BaseServiceIntegrationTest {
-
-    @MockBean
-    private KeycloakClientService keycloakClientService;
+        extends BaseTestWithKeycloak {
 
     @Autowired
     private StorageService storageService;
 
     @Autowired
-    @InjectMocks
     private UserService userService;
 
+    @Autowired
+    private KeycloakClientService keycloakClientService;
+
     private List<User> testUsers;
-    private final int USER_COUNT = 5;
 
     @BeforeEach
     void setUp() {
-        testUsers = new ArrayList<>();
+        List<UserRepresentation> keycloakUsers = getKeycloakUsers();
 
-        for (int i = 0; i < USER_COUNT; i++) {
-            User createdUser = TestEntityFactory.createPersistedUser(entityManager);
-            testUsers.add(createdUser);
+        testUsers = new ArrayList<>();
+        for (UserRepresentation keycloakUser : keycloakUsers) {
+            User persistedUser = TestEntityFactory.createdPersistedUser(entityManager, keycloakUser);
+            testUsers.add(persistedUser);
         }
     }
 
@@ -61,35 +63,64 @@ public class UserServiceIntegrationTest
     @Test
     @Transactional
     void searchByUsername_shouldReturnUsersMatchingPartially() {
-        testUsers.get(0).setUsername("findme");
-        testUsers.get(1).setUsername("findmetoo");
+        String usernameToSearch = testUsers.get(0).getUsername().substring(0, 2);
+        int expectedSize = testUsers.stream()
+                .filter(user -> user.getUsername().startsWith(usernameToSearch))
+                .toList().size();
 
-        List<PublicUserProfileDTO> foundUsers = userService.searchUsersByUsername("find");
-
-        assertThat(foundUsers).isNotEmpty().hasSizeGreaterThan(1);
+        List<PublicUserProfileDTO> foundUsers = userService.searchUsersByUsername(usernameToSearch);
+        assertThat(foundUsers).isNotEmpty().hasSize(expectedSize);
     }
 
     @Test
     @Transactional
-    void searchByUsername_shouldReturnUsersMatchingPartially_whenUserHasProfilePicture() {
-        testUsers.get(0).setUsername("findme");
-        testUsers.get(1).setUsername("findmetoo");
-        MultipartFile mockFile = TestEntityFactory.createMockMultipartFile("image/png", 100);
-
-        userService.updateUserProfilePicture(testUsers.get(0).getId().toString(), mockFile);
-        List<PublicUserProfileDTO> foundUsers = userService.searchUsersByUsername("find");
-
-        assertThat(foundUsers).isNotEmpty().hasSizeGreaterThan(1);
-
-    }
-
-    @Test
-    @Transactional
-    void updatePassword_shouldPass() {
+    void updatePassword_shouldThrow_whenCurrentPasswordDoesntMatch() {
         String userId = testUsers.get(0).getId().toString();
-        PasswordUpdateDTO dto = new PasswordUpdateDTO("current", "new");
+        PasswordUpdateDTO dto = new PasswordUpdateDTO("wrong", "new");
+
+        assertThrows(KeycloakClientException.class, () -> userService.updateUserPassword(userId, dto));
+    }
+
+    @Test
+    @Transactional
+    void updatePassword_shouldWork_whenCurrentPasswordMatches() {
+        User user = testUsers.get(0);
+        String username = user.getUsername();
+        String oldPassword = username; // testusers have the same username and password
+        String userId = user.getId().toString();
+        String newPassword = "newpassword1";
+        PasswordUpdateDTO dto = new PasswordUpdateDTO(oldPassword, newPassword);
 
         userService.updateUserPassword(userId, dto);
+
+        keycloakClientService.validatePasswordOrThrow(userId, newPassword);
+
+        // cleanup - reset password to original one
+        PasswordUpdateDTO resetDto = new PasswordUpdateDTO(newPassword, oldPassword);
+        userService.updateUserPassword(userId, resetDto);
+        keycloakClientService.validatePasswordOrThrow(userId, oldPassword);
+    }
+
+    @Test
+    @Transactional
+    void generatePasswordChallange_shouldReturnToken_whenPasswordMatches() {
+        User user = testUsers.get(0);
+        String userId = user.getId().toString();
+        String password = user.getUsername(); // testusers have the same username and password
+
+        String token = userService.generatePasswordChallenge(userId, password).token();
+        assertThat(token).isNotBlank();
+    }
+
+    @Test
+    @Transactional
+    void generatePasswordChallange_shouldThrowWhenPasswordDoesntMatch() {
+        User user = testUsers.get(0);
+        String userId = user.getId().toString();
+        String password = user.getUsername() + "notcorrect";
+
+        assertThrows(PasswordChallengeFailedException.class,
+                () -> userService.generatePasswordChallenge(userId, password).token());
     }
 
     @Test
@@ -178,30 +209,92 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    public void updateUser_shouldUpdateUser_whenUserExists() {
+    void updateUser_shouldThrow_whenInvalidPasswordChallangeToken() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
-        String challengeToken = userService.generatePasswordChallenge(userId, "password").token();
-        UserUpdateDTO updateDTO = new UserUpdateDTO(challengeToken, "Firstname", "Lastname", "ornnit@olog.com",
-                "username");
 
-        User updatedUser = userService.updateUser(userId, updateDTO);
+        UserUpdateDTO updateDTO = new UserUpdateDTO("notvalidtoken", "Firstname", "Lastname",
+                "ornnit@olog.com", "username");
 
-        assertThat(updatedUser.getUsername()).isEqualTo(updateDTO.username());
-        assertThat(updatedUser.getFirstName()).isEqualTo(updateDTO.firstName());
+        assertThrows(PasswordChallengeFailedException.class, () -> userService.updateUser(userId, updateDTO));
     }
 
     @Test
     @Transactional
-    public void updateUser_shouldNotUpdateProperties_whenNull() {
+    void updateUser_shouldWork_whenValidPasswordChallangeToken() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
-        String challengeToken = userService.generatePasswordChallenge(userId, "password").token();
+        String username = user.getUsername();
+        String password = username;
+        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        String newFirstName = "newname";
+        String newLastName = "newlastname";
+        UserUpdateDTO updateDTO = UserUpdateDTO.builder()
+                .firstName(newFirstName)
+                .lastName(newLastName)
+                .passwordChallengeToken(challengeToken)
+                .build();
+
+        userService.updateUser(userId, updateDTO);
+        User retrievedUser = entityManager.find(User.class, user.getId());
+
+        assertThat(retrievedUser.getFirstName()).isEqualTo(newFirstName);
+        assertThat(retrievedUser.getLastName()).isEqualTo(newLastName);
+    }
+
+    @Test
+    @Transactional
+    void updateUser_shouldThrow_whenUsernameNotUnique() {
+        User user = testUsers.get(0);
+        String userId = user.getId().toString();
+        String username = user.getUsername();
+        String password = username;
+        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        User otherUser = testUsers.get(1);
+        String otherUsername = otherUser.getUsername();
+
+        UserUpdateDTO updateDTO = UserUpdateDTO.builder()
+                .username(otherUsername)
+                .passwordChallengeToken(challengeToken)
+                .build();
+
+        assertThrows(AttributeAlreadyExistsException.class,
+                () -> userService.updateUser(userId, updateDTO));
+    }
+
+    @Test
+    @Transactional
+    void updateUser_shouldThrow_whenEmailNotUnique() {
+        User user = testUsers.get(0);
+        String userId = user.getId().toString();
+        String username = user.getUsername();
+        String password = username; // testusers have the same username and password
+        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        User otherUser = testUsers.get(1);
+        String otherEmail = otherUser.getEmail();
+
+        UserUpdateDTO updateDTO = UserUpdateDTO.builder()
+                .passwordChallengeToken(challengeToken)
+                .email(otherEmail)
+                .build();
+
+        assertThrows(AttributeAlreadyExistsException.class,
+                () -> userService.updateUser(userId, updateDTO));
+    }
+
+    @Test
+    @Transactional
+    void updateUser_shouldNotUpdateProperties_whenNull() {
+        User user = testUsers.get(0);
+        String userId = user.getId().toString();
+        String password = user.getUsername();
+        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
         String firstName = user.getFirstName();
         String lastName = user.getLastName();
         String email = user.getEmail();
         String username = user.getUsername();
-        UserUpdateDTO updateDTO = new UserUpdateDTO(challengeToken, null, null, null, null);
+        UserUpdateDTO updateDTO = new UserUpdateDTO(challengeToken, null, null, null,
+                null);
 
         User updatedUser = userService.updateUser(userId, updateDTO);
 
@@ -213,7 +306,7 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    public void deleteById_shouldDeleteUser_withoutProfilePicture() {
+    void deleteById_shouldDeleteUser_withoutProfilePicture() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
 
@@ -225,7 +318,7 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    public void deleteById_shouldDeleteUserAndProfilePicture_whenUserHasProfilePicture() {
+    void deleteById_shouldDeleteUserAndProfilePicture_whenUserHasProfilePicture() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         MultipartFile mockFile = TestEntityFactory.createMockMultipartFile("image/png", 100);
@@ -235,7 +328,8 @@ public class UserServiceIntegrationTest
         userService.deleteById(userId);
 
         User deletedUser = entityManager.find(User.class, user.getId());
-        Resource deletedResource = entityManager.find(Resource.class, userProfilePicture.getId());
+        Resource deletedResource = entityManager.find(Resource.class,
+                userProfilePicture.getId());
         boolean deletedResourceExists = storageService.fileExists(userProfilePicture.getResourceKey());
         assertThat(deletedUser).isNull();
         assertThat(deletedResource).isNull();

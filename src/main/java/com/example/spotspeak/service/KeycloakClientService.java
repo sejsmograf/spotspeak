@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.example.spotspeak.config.KeycloakClientConfiguration;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
+import com.example.spotspeak.exception.AttributeAlreadyExistsException;
 import com.example.spotspeak.exception.KeycloakClientException;
 import com.example.spotspeak.exception.PasswordChallengeFailedException;
 import com.example.spotspeak.util.KeycloakClientBuilder;
@@ -40,7 +41,7 @@ public class KeycloakClientService {
             String username = user.toRepresentation().getUsername();
 
             if (!verifyPassword(username, dto.currentPassword())) {
-                throw new KeycloakClientException("Invalid current password");
+                throw new PasswordChallengeFailedException("Invalid current password");
             }
 
             CredentialRepresentation newCredentials = new CredentialRepresentation();
@@ -79,6 +80,8 @@ public class KeycloakClientService {
             getRealm().users().get(userId).update(userRepresentation);
         } catch (ServerErrorException | ClientErrorException e) {
             handleClientError(e);
+        } catch (AttributeAlreadyExistsException e) {
+            throw e;
         } catch (Exception e) {
             throw new KeycloakClientException("Keycloak client exception", e.getMessage());
         }
@@ -94,22 +97,28 @@ public class KeycloakClientService {
 
     private void validateUpdatePossible(UserRepresentation user, UserUpdateDTO dto) {
         if (dto.email() != null && !user.getEmail().equals(dto.email())) {
-            validateEmailUnique(dto.email());
+            validateEmailUniqueOrThrow(dto.email());
         }
         if (dto.username() != null && !user.getUsername().equals(dto.username())) {
-            validateUsernameUnique(dto.username());
+            validateUsernameUniqueOrThrow(dto.username());
         }
     }
 
-    private void validateEmailUnique(String email) {
+    private void validateEmailUniqueOrThrow(String email) {
         if (checkEmailExists(email)) {
-            throw new KeycloakClientException("Email already exists");
+            throw new AttributeAlreadyExistsException("Email already exists");
+        }
+        if (checkUsernameExists(email)) {
+            throw new AttributeAlreadyExistsException("Email already exists as username");
         }
     }
 
-    private void validateUsernameUnique(String username) {
+    private void validateUsernameUniqueOrThrow(String username) {
         if (checkUsernameExists(username)) {
-            throw new KeycloakClientException("Username already exists");
+            throw new AttributeAlreadyExistsException("Username already exists");
+        }
+        if (checkEmailExists(username)) {
+            throw new AttributeAlreadyExistsException("Username already exists as email");
         }
     }
 

@@ -57,8 +57,6 @@ public class PasswordChallengeService {
         if (challengeExpiresAt.isBefore(Instant.now())) {
             throw new PasswordChallengeFailedException("Challange token has expired");
         }
-
-        challenges.remove(token);
     }
 
     public String createAndStoreChallenge(UUID userId) {

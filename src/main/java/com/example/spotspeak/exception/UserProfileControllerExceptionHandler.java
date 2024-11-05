@@ -35,4 +35,12 @@ public class UserProfileControllerExceptionHandler {
         response.addMessage(ex.getMessage());
         return response;
     }
+
+    @ExceptionHandler(AttributeAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleAttributeAlreadyExistsException(AttributeAlreadyExistsException ex) {
+        ErrorResponse response = ErrorResponse.createInstance();
+        response.addMessage(ex.getMessage());
+        return response;
+    }
 }

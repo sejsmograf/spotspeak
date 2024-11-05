@@ -1,12 +1,12 @@
 package com.example.spotspeak.repository;
 
-import com.example.spotspeak.BaseTest;
+import com.example.spotspeak.BaseTestWithPostgres;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 @DataJpaTest
-public class BaseRepositoryTest extends BaseTest {
+public class BaseRepositoryTest extends BaseTestWithPostgres {
     @Autowired
     protected EntityManager entityManager;
 

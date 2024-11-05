@@ -78,7 +78,6 @@ public class UserService {
 
         userMapper.updateUserFromDTO(user, updateDTO);
 
-        userRepostitory.save(user);
         keycloakService.updateUser(userIdString, updateDTO);
         return user;
     }

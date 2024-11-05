@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+
+import org.keycloak.representations.idm.UserRepresentation;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -36,6 +38,20 @@ public class TestEntityFactory {
                 .email("user" + RANDOM.nextInt(10000) + "@example.com")
                 .firstName("test")
                 .lastName("user")
+                .registeredAt(LocalDateTime.now())
+                .build();
+
+        em.persist(user);
+        return user;
+    }
+
+    public static User createdPersistedUser(EntityManager em, UserRepresentation keycloakUser) {
+        User user = User.builder()
+                .id(UUID.fromString(keycloakUser.getId()))
+                .username(keycloakUser.getUsername())
+                .email(keycloakUser.getEmail())
+                .firstName(keycloakUser.getFirstName())
+                .lastName(keycloakUser.getLastName())
                 .registeredAt(LocalDateTime.now())
                 .build();
 
