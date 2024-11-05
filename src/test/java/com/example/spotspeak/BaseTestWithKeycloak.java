@@ -37,6 +37,8 @@ public abstract class BaseTestWithKeycloak extends BaseServiceIntegrationTest {
      * Currently there are 5 users in the test realm.
      * Each user is called testuserX where X is a number from 1 to 5.
      * The password for each user is equal to their username.
+     * Important thing to notice is that keycloak operations
+     * are not rolled back after each test method.
      */
     protected List<UserRepresentation> getKeycloakUsers() {
         return keycloak.getKeycloakAdminClient()
