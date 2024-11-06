@@ -29,6 +29,7 @@ public class UserService {
     private ResourceService resourceService;
     private KeycloakClientService keycloakService;
     private PasswordChallengeService passwordChallengeService;
+    private KeyGenerationService keyGenerationService;
     private UserMapper userMapper;
 
     public List<PublicUserProfileDTO> searchUsersByUsername(String username) {
@@ -80,7 +81,9 @@ public class UserService {
         User user = findByIdOrThrow(userIdString);
         deleteUserProfilePicture(userIdString);
 
-        Resource resource = resourceService.uploadUserProfilePicture(userIdString, file);
+        String resourceKey = keyGenerationService.generateUserProfilePictureKey(userIdString,
+                file.getOriginalFilename());
+        Resource resource = resourceService.uploadFileAndSaveResource(file, resourceKey);
         user.setProfilePicture(resource);
         userRepostitory.save(user);
         return resource;

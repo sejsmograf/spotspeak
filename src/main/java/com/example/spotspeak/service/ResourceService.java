@@ -13,35 +13,21 @@ public class ResourceService {
 
     private ResourceRepository resourceRepository;
     private StorageService storageService;
-    private KeyGenerationService keyGenerationService;
 
     public ResourceService(ResourceRepository resourceRepository,
             StorageService storageService,
             KeyGenerationService keyGenerationService) {
         this.resourceRepository = resourceRepository;
         this.storageService = storageService;
-        this.keyGenerationService = keyGenerationService;
     }
 
-    public Resource uploadTraceResource(String userId, MultipartFile file) {
-        String key = keyGenerationService.generateUniqueTraceResourceKey(userId, file.getName());
-
+    public Resource uploadFileAndSaveResource(MultipartFile file, String key) {
         storageService.storeFile(file, key);
 
         Resource resource = Resource.builder()
                 .resourceKey(key)
                 .fileType(file.getContentType())
-                .build();
-
-        return resourceRepository.save(resource);
-    }
-
-    public Resource uploadUserProfilePicture(String userId, MultipartFile file) {
-        String key = keyGenerationService.generateUserProfilePictureKey(userId);
-        storageService.storeFile(file, key);
-        Resource resource = Resource.builder()
-                .resourceKey(key)
-                .fileType(file.getContentType())
+                .fileSize(file.getSize())
                 .build();
 
         return resourceRepository.save(resource);

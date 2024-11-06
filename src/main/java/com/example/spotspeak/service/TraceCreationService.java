@@ -23,14 +23,20 @@ public class TraceCreationService {
     private TraceRepository traceRepository;
     private ResourceService resourceService;
     private TagService tagService;
+    private KeyGenerationService keyGenerationService;
     private GeometryFactory geometryFactory;
 
-    public TraceCreationService(TraceRepository traceRepository, ResourceService resourceService,
-            UserService userService, TagService tagService) {
+    public TraceCreationService(
+            TraceRepository traceRepository,
+            ResourceService resourceService,
+            TagService tagService,
+            KeyGenerationService keyGenerationService) {
         this.traceRepository = traceRepository;
         this.resourceService = resourceService;
         this.tagService = tagService;
-        this.geometryFactory = new GeometryFactory();
+        this.keyGenerationService = keyGenerationService;
+
+        geometryFactory = new GeometryFactory();
     }
 
     @Transactional
@@ -38,7 +44,7 @@ public class TraceCreationService {
             MultipartFile file,
             TraceUploadDTO dto) {
         TraceCreationComponents components = prepareTraceCreationComponents(dto);
-        Resource resource = processTraceResource(author, file);
+        Resource resource = processAndStoreTraceResource(author, file);
         return buildAndSaveTrace(components, author, resource);
     }
 
@@ -54,12 +60,15 @@ public class TraceCreationService {
         return traceRepository.save(trace);
     }
 
-    private Resource processTraceResource(User author, MultipartFile file) {
-        Resource resource = file == null
-                ? null
-                : resourceService.uploadTraceResource(author.getId().toString(), file);
+    private Resource processAndStoreTraceResource(User author, MultipartFile file) {
+        if (file != null) {
+            String authorId = author.getId().toString();
+            String origialFilename = file.getOriginalFilename();
+            String resourceKey = keyGenerationService.generateUniqueTraceResourceKey(authorId, origialFilename);
+            return resourceService.uploadFileAndSaveResource(file, resourceKey);
+        }
 
-        return resource;
+        return null;
     }
 
     private TraceCreationComponents prepareTraceCreationComponents(TraceUploadDTO dto) {

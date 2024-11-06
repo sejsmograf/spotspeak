@@ -115,6 +115,7 @@ public class TestEntityFactory {
         Resource resource = Resource.builder()
                 .resourceKey("resource" + RANDOM.nextInt(10000))
                 .fileType("fileType")
+                .fileSize(1000L)
                 .build();
 
         em.persist(resource);

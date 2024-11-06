@@ -1,26 +1,28 @@
 package com.example.spotspeak.service;
 
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
 
 @Service
 public class S3KeyGenerationService implements KeyGenerationService {
-	private final String USER_UPLOADS_KEY = "user-uploads";
-	private final String PROFILE_PICTURES_KEY = "profile-picture";
-	private final String TRACE_FILES_KEY = "trace-files";
+    private final String USER_UPLOADS_KEY = "user-uploads";
+    private final String PROFILE_PICTURES_KEY = "profile-picture";
+    private final String TRACE_FILES_KEY = "trace-files";
 
-	@Override
-	public String generateUserProfilePictureKey(String userId) {
-		return String.format("%s/%s/%s", USER_UPLOADS_KEY, userId, PROFILE_PICTURES_KEY);
-	}
+    @Override
+    public String generateUserProfilePictureKey(String userId, String originalFilename) {
+        String extension = FilenameUtils.getExtension(originalFilename);
+        return String.format("%s/%s/%s.%s", USER_UPLOADS_KEY, userId, PROFILE_PICTURES_KEY, extension);
+    }
 
-	@Override
-	public String generateUniqueTraceResourceKey(String authorId, String fileName) {
-		long timestamp = System.currentTimeMillis();
-		return String.format("%s/%s/%s/%d_%s",
-				USER_UPLOADS_KEY,
-				authorId,
-				TRACE_FILES_KEY,
-				timestamp,
-				fileName);
-	}
+    @Override
+    public String generateUniqueTraceResourceKey(String authorId, String originalFilename) {
+        long timestamp = System.currentTimeMillis();
+        return String.format("%s/%s/%s/%d_%s",
+                USER_UPLOADS_KEY,
+                authorId,
+                TRACE_FILES_KEY,
+                timestamp,
+                originalFilename);
+    }
 }
