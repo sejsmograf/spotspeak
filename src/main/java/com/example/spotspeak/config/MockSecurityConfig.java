@@ -36,6 +36,9 @@ public class MockSecurityConfig {
                         authorize -> authorize.anyRequest().permitAll())
                 .addFilterBefore(mockJwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
+        http.addFilterAfter(new RequestOutcomeLoggingFilter(),
+                UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 

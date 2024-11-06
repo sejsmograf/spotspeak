@@ -2,12 +2,12 @@ package com.example.spotspeak.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -37,6 +37,9 @@ public class SecurityConfig {
         // Enable OAuth2 resource server
         http.oauth2ResourceServer(
                 oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+
+        http.addFilterAfter(new RequestOutcomeLoggingFilter(),
+                UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
