@@ -17,6 +17,7 @@ public class S3KeyGenerationService implements KeyGenerationService {
 
     @Override
     public String generateUniqueTraceResourceKey(String authorId, String originalFilename) {
+        originalFilename = FilenameUtils.getName(originalFilename);
         long timestamp = System.currentTimeMillis();
         return String.format("%s/%s/%s/%d_%s",
                 USER_UPLOADS_KEY,
