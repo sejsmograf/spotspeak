@@ -8,21 +8,21 @@ import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
 import com.example.spotspeak.exception.*;
 import com.example.spotspeak.mapper.FriendRequestMapper;
 import com.example.spotspeak.repository.FriendRequestRepository;
+import jakarta.ws.rs.ForbiddenException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class FriendRequestService {
 
-    FriendRequestRepository friendRequestRepository;
-    FriendshipService friendshipService;
-    UserService userService;
-    FriendRequestMapper friendRequestMapper;
+    private FriendRequestRepository friendRequestRepository;
+    private FriendshipService friendshipService;
+    private UserService userService;
+    private FriendRequestMapper friendRequestMapper;
 
     public FriendRequestService(FriendRequestRepository friendRequestRepository, FriendshipService friendshipService,
             UserService userService, FriendRequestMapper friendRequestMapper) {
@@ -93,7 +93,7 @@ public class FriendRequestService {
         FriendRequest friendRequest = findById(requestId);
 
         if (!friendRequest.getSender().equals(currentUser)) {
-            throw new UnauthorizedFriendRequestAccessException("User is not the sender of the friend request");
+            throw new ForbiddenException("User is not the sender of the friend request");
         }
 
         if (friendRequest.getStatus() != EFriendRequestStatus.PENDING) {
@@ -118,7 +118,7 @@ public class FriendRequestService {
                 EFriendRequestStatus.PENDING);
         return receivedRequests.stream()
                 .map(request -> friendRequestMapper.toUserInfoFriendRequestDTO(request, request.getSender()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private FriendRequest findById(Long requestId) {
@@ -137,7 +137,7 @@ public class FriendRequestService {
         }
 
         if (!friendRequest.getReceiver().equals(currentUser)) {
-            throw new UnauthorizedFriendRequestAccessException("User is not the receiver of the friend request.");
+            throw new ForbiddenException("User is not the receiver of the friend request.");
         }
 
         return friendRequest;

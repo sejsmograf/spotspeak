@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class FriendshipService {
-    FriendshipRepository friendshipRepository;
-    UserService userService;
-    FriendshipMapper friendshipMapper;
+    private FriendshipRepository friendshipRepository;
+    private UserService userService;
+    private FriendshipMapper friendshipMapper;
 
     public FriendshipService(FriendshipRepository friendshipRepository, UserService userService,
             FriendshipMapper friendshipMapper) {
@@ -27,7 +27,7 @@ public class FriendshipService {
     }
 
     @Transactional
-    public void createFriendship(User userInitiating, User userReceiving) {
+    public Friendship createFriendship(User userInitiating, User userReceiving) {
         if (checkFriendshipExists(userInitiating, userReceiving)) {
             throw new FriendshipNotFoundException("Friendship between users already exists");
         }
@@ -36,7 +36,8 @@ public class FriendshipService {
                 .userInitiating(userInitiating)
                 .userReceiving(userReceiving)
                 .build();
-        friendshipRepository.save(friendship);
+
+        return friendshipRepository.save(friendship);
     }
 
     public List<FriendshipUserInfoDTO> getFriendsList(String userId) {
@@ -52,7 +53,7 @@ public class FriendshipService {
 
                     return friendshipMapper.toFriendshipUserInfoDTO(friendship, friend);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional

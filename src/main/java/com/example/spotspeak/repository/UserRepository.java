@@ -14,4 +14,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             "FROM User u " +
             "WHERE u.username LIKE  %:username%")
     List<User> findAllByUsernameIgnoreCase(String username);
+
+    List<User> findByUsernameIn(List<String> usernames);
 }

@@ -1,11 +1,8 @@
 package com.example.spotspeak.entity;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.UUID;
+import java.util.*;
+
 import com.example.spotspeak.entity.achievements.UserAchievement;
 
 import jakarta.persistence.Column;
@@ -61,13 +58,19 @@ public class User {
     private Set<Trace> discoveredTraces = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<UserAchievement> userAchievements;
+    private List<UserAchievement> userAchievements = new ArrayList<>();
 
-    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
-    private List<FriendRequest> sentRequests;
+    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<FriendRequest> sentRequests = new ArrayList<>();
 
-    @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY)
-    private List<FriendRequest> receivedRequests;
+    @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<FriendRequest> receivedRequests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "userInitiating", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Friendship> initiatedFriendships = new ArrayList<>();
+
+    @OneToMany(mappedBy = "userReceiving", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Friendship> receivedFriendships = new ArrayList<>();
 
     @Column(nullable = false)
     private LocalDateTime registeredAt;
