@@ -5,6 +5,7 @@ import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.entity.*;
 import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
+import com.example.spotspeak.entity.enumeration.ETraceType;
 
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
@@ -66,6 +67,7 @@ public class TestEntityFactory {
 
         Trace trace = Trace.builder()
                 .author(author)
+                .traceType(ETraceType.TEXTONLY)
                 .location(location)
                 .description("description")
                 .isActive(true)
@@ -114,7 +116,7 @@ public class TestEntityFactory {
     public static Resource createPersistedResource(EntityManager em) {
         Resource resource = Resource.builder()
                 .resourceKey("resource" + RANDOM.nextInt(10000))
-                .fileType("fileType")
+                .fileType("image/jpg")
                 .fileSize(1000L)
                 .build();
 

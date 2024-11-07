@@ -12,7 +12,8 @@ public class S3KeyGenerationService implements KeyGenerationService {
     @Override
     public String generateUserProfilePictureKey(String userId, String originalFilename) {
         String extension = FilenameUtils.getExtension(originalFilename);
-        return String.format("%s/%s/%s.%s", USER_UPLOADS_KEY, userId, PROFILE_PICTURES_KEY, extension);
+        String filename = PROFILE_PICTURES_KEY + "_" + System.currentTimeMillis() + "." + extension;
+        return String.format("%s/%s/%s", USER_UPLOADS_KEY, userId, filename);
     }
 
     @Override

@@ -9,6 +9,7 @@ import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
 import org.locationtech.jts.geom.Point;
 
+import com.example.spotspeak.entity.enumeration.ETraceType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -84,6 +85,9 @@ public class Trace {
     @Column(nullable = false)
     @Builder.Default
     private Boolean isActive = true;
+
+    @Column(nullable = false)
+    private ETraceType traceType;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

@@ -1,23 +1,24 @@
 package com.example.spotspeak.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.example.spotspeak.dto.TraceUploadDTO;
-import com.example.spotspeak.entity.Resource;
-import com.example.spotspeak.entity.Tag;
-import com.example.spotspeak.entity.Trace;
-import com.example.spotspeak.entity.User;
-import com.example.spotspeak.TestEntityFactory;
-
-import jakarta.transaction.Transactional;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.example.spotspeak.TestEntityFactory;
+import com.example.spotspeak.dto.TraceUploadDTO;
+import com.example.spotspeak.entity.Resource;
+import com.example.spotspeak.entity.Tag;
+import com.example.spotspeak.entity.Trace;
+import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.enumeration.ETraceType;
+
+import jakarta.transaction.Transactional;
 
 public class TraceCreationServiceIntegrationTest
         extends BaseServiceIntegrationTest {
@@ -85,4 +86,57 @@ public class TraceCreationServiceIntegrationTest
         assertThat(uploadedResource).isNotNull();
         assertThat(uploadedResource.getResourceKey()).isEqualTo(retrieved.getResource().getResourceKey());
     }
+
+    @Test
+    @Transactional
+    public void createAndPersistTrace_shouldInferTraceType_whenFileTypeStartsWithImage() {
+        User author = TestEntityFactory.createPersistedUser(entityManager);
+        TraceUploadDTO dto = TestEntityFactory.createTraceUploadDTO(null);
+        MultipartFile mockFile = TestEntityFactory.createMockMultipartFile("image/jpg", 1000);
+
+        Trace trace = traceCreationService.createAndPersistTrace(author, mockFile, dto);
+        Trace retrieved = entityManager.find(Trace.class, trace.getId());
+
+        assertThat(retrieved).isNotNull();
+        assertThat(retrieved.getTraceType()).isEqualTo(ETraceType.PHOTO);
+    }
+
+    @Test
+    @Transactional
+    public void createAndPersistTrace_shouldInferTraceType_whenFileTypeStartsWithVideo() {
+        User author = TestEntityFactory.createPersistedUser(entityManager);
+        TraceUploadDTO dto = TestEntityFactory.createTraceUploadDTO(null);
+        MultipartFile mockFile = TestEntityFactory.createMockMultipartFile("video/mp4", 1000);
+
+        Trace trace = traceCreationService.createAndPersistTrace(author, mockFile, dto);
+        Trace retrieved = entityManager.find(Trace.class, trace.getId());
+
+        assertThat(retrieved).isNotNull();
+        assertThat(retrieved.getTraceType()).isEqualTo(ETraceType.VIDEO);
+    }
+
+    @Test
+    @Transactional
+    public void createAndPersistTrace_shouldInferTraceType_whenNoFileProvided() {
+        User author = TestEntityFactory.createPersistedUser(entityManager);
+        TraceUploadDTO dto = TestEntityFactory.createTraceUploadDTO(null);
+
+        Trace trace = traceCreationService.createAndPersistTrace(author, null, dto);
+        Trace retrieved = entityManager.find(Trace.class, trace.getId());
+
+        assertThat(retrieved).isNotNull();
+        assertThat(retrieved.getTraceType()).isEqualTo(ETraceType.TEXTONLY);
+    }
+
+    @Test
+    @Transactional
+    public void createAndPersistTrace_shouldInferTraceType_whenInvalidFileType() {
+        User author = TestEntityFactory.createPersistedUser(entityManager);
+        TraceUploadDTO dto = TestEntityFactory.createTraceUploadDTO(null);
+        MultipartFile mockFile = TestEntityFactory.createMockMultipartFile("application/pdf", 1000);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> traceCreationService.createAndPersistTrace(author, mockFile, dto));
+    }
+
 }

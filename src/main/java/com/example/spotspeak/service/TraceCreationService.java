@@ -13,9 +13,11 @@ import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.enumeration.ETraceType;
 import com.example.spotspeak.repository.TraceRepository;
 
 import jakarta.transaction.Transactional;
+import software.amazon.awssdk.services.cloudfront.model.InvalidArgumentException;
 
 @Service
 public class TraceCreationService {
@@ -44,12 +46,15 @@ public class TraceCreationService {
             MultipartFile file,
             TraceUploadDTO dto) {
         TraceCreationComponents components = prepareTraceCreationComponents(dto);
-        Resource resource = processAndStoreTraceResource(author, file);
+        Resource resource = file == null ? null : processAndStoreTraceResource(author, file);
         return buildAndSaveTrace(components, author, resource);
     }
 
     private Trace buildAndSaveTrace(TraceCreationComponents components, User author, Resource resource) {
+        ETraceType type = determineTraceType(resource);
+
         Trace trace = Trace.builder()
+                .traceType(type)
                 .location(components.location())
                 .author(author)
                 .description(components.description())
@@ -61,14 +66,26 @@ public class TraceCreationService {
     }
 
     private Resource processAndStoreTraceResource(User author, MultipartFile file) {
-        if (file != null) {
-            String authorId = author.getId().toString();
-            String origialFilename = file.getOriginalFilename();
-            String resourceKey = keyGenerationService.generateUniqueTraceResourceKey(authorId, origialFilename);
-            return resourceService.uploadFileAndSaveResource(file, resourceKey);
+        String authorId = author.getId().toString();
+        String origialFilename = file.getOriginalFilename();
+        String resourceKey = keyGenerationService.generateUniqueTraceResourceKey(authorId, origialFilename);
+        return resourceService.uploadFileAndSaveResource(file, resourceKey);
+    }
+
+    private ETraceType determineTraceType(Resource resource) {
+        return resource == null
+                ? ETraceType.TEXTONLY
+                : determineTraceResourceType(resource.getFileType());
+    }
+
+    private ETraceType determineTraceResourceType(String mimeType) {
+        if (mimeType.startsWith("image")) {
+            return ETraceType.PHOTO;
+        } else if (mimeType.startsWith("video")) {
+            return ETraceType.VIDEO;
         }
 
-        return null;
+        throw new IllegalArgumentException("Invalid mime type: " + mimeType + " for trace resource");
     }
 
     private TraceCreationComponents prepareTraceCreationComponents(TraceUploadDTO dto) {
