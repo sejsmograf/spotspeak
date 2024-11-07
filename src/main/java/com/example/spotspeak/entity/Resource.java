@@ -11,24 +11,29 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "resources")
 @Builder
+@Entity
+@EntityListeners(ResourceListener.class)
 public class Resource {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
-	@Column(nullable = false, unique = true)
-	private String resourceKey;
+    @Column(nullable = false, unique = true)
+    private String resourceKey;
 
-	@Column(nullable = true)
-	private String fileType;
+    @Column(nullable = false)
+    private String fileType;
 
-	@CreationTimestamp
-	private LocalDateTime createdAt;
+    @Column(nullable = false)
+    private Long fileSize;
 
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    // @PreRemove is handled by ResourceListener
 }

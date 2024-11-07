@@ -16,7 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Data
 @Entity
@@ -42,10 +42,13 @@ public class FriendRequest {
     @Column(nullable = false)
     private EFriendRequestStatus status = EFriendRequestStatus.PENDING;
 
-    @CreatedDate
+    @CreationTimestamp
     private LocalDateTime sentAt;
 
     @Column(nullable = true)
     private LocalDateTime acceptedAt;
+
+    @Column(nullable = true)
+    private LocalDateTime rejectedAt;
 }
 

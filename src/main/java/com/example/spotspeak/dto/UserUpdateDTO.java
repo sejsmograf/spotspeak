@@ -1,9 +1,13 @@
 package com.example.spotspeak.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 
-@Schema(description = "DTO for updating user information. Not used for profile picture")
+@Builder
 public record UserUpdateDTO(
-                String firstName,
-                String lastName) {
+        @NotBlank String passwordChallengeToken,
+        String firstName,
+        String lastName,
+        String email,
+        String username) {
 }

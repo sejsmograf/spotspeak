@@ -33,3 +33,5 @@ build/
 .vscode/
 
 secret.properties
+user-uploads/
+static/

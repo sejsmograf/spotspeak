@@ -2,6 +2,9 @@ package com.example.spotspeak.exception;
 
 import com.example.spotspeak.controller.trace.TraceController;
 import com.example.spotspeak.dto.ErrorResponse;
+
+import jakarta.ws.rs.ForbiddenException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -14,16 +17,26 @@ public class TraceControllerExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleTraceNotFoundException(TraceNotFoundException ex) {
         ErrorResponse response = ErrorResponse.createInstance();
-
         response.addMessage(ex.getMessage());
+
         return response;
     }
 
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleGeneralException(Exception ex) {
+    @ExceptionHandler(TraceNotWithinDistanceException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleTraceNotWithinDistanceException(TraceNotWithinDistanceException ex) {
         ErrorResponse response = ErrorResponse.createInstance();
         response.addMessage(ex.getMessage());
+
+        return response;
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleTraceNotWithinDistanceException(ForbiddenException ex) {
+        ErrorResponse response = ErrorResponse.createInstance();
+        response.addMessage(ex.getMessage());
+
         return response;
     }
 }

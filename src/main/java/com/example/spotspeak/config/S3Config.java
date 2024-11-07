@@ -12,17 +12,37 @@ public class S3Config {
 
     @Bean
     public S3Client s3Client() {
-        return S3Client.builder()
-                .credentialsProvider(ProfileCredentialsProvider.create()) // uses .aws/credentials and .aws/config
-                .region(Region.EU_CENTRAL_1)
-                .build();
+        String isEc2Env = System.getenv("EC2_ENV");
+
+        if ("true".equalsIgnoreCase(isEc2Env)) {
+            // Running on EC2
+            return S3Client.builder()
+                    .region(Region.EU_CENTRAL_1)
+                    .build();
+        } else {
+            // Running locally
+            return S3Client.builder()
+                    .credentialsProvider(ProfileCredentialsProvider.create())
+                    .region(Region.EU_CENTRAL_1)
+                    .build();
+        }
     }
 
     @Bean
     public S3Presigner s3Presigner() {
-        return S3Presigner.builder()
-                .credentialsProvider(ProfileCredentialsProvider.create()) // DefaultCredentialsProvider.create() for
-                .region(Region.EU_CENTRAL_1)
-                .build();
+        String isEc2Env = System.getenv("EC2_ENV");
+
+        if ("true".equalsIgnoreCase(isEc2Env)) {
+            // Running on EC2
+            return S3Presigner.builder()
+                    .region(Region.EU_CENTRAL_1)
+                    .build();
+        } else {
+            // Running locally
+            return S3Presigner.builder()
+                    .credentialsProvider(ProfileCredentialsProvider.create())
+                    .region(Region.EU_CENTRAL_1)
+                    .build();
+        }
     }
 }

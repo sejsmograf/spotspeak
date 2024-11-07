@@ -1,6 +1,7 @@
 package com.example.spotspeak.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,6 +13,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
@@ -19,10 +22,15 @@ import java.io.IOException;
 import java.time.Duration;
 
 @Service
+@Profile("remote")
 public class S3Service implements StorageService {
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
+
+    @Value("${aws.cloudfront.url}")
+    private String cloudfrontUrl;
+
     private final Duration PRESIGNED_URL_EXPIRATION_DURATION = Duration.ofMinutes(10);
 
     private final S3Client s3Client;
@@ -38,6 +46,16 @@ public class S3Service implements StorageService {
         putObject(file, key);
     }
 
+    /**
+     * This method will just throw an UnsupportedOperationException.
+     * Deleting all files from S3 is not a good idea. This method
+     * is here just to satisfy the interface.
+     */
+    @Override
+    public void cleanUp() {
+        throw new UnsupportedOperationException("Unimplemented method 'cleanUp'");
+    }
+
     @Override
     public void deleteFile(String key) {
         deleteObject(key);
@@ -45,7 +63,26 @@ public class S3Service implements StorageService {
 
     @Override
     public String getResourceAccessUrl(String key) {
-        return generatePresignedDownloadUrl(key);
+        return generateCloudFrontUrl(key);
+    }
+
+    private String generateCloudFrontUrl(String key) {
+        return cloudfrontUrl + "/" + key;
+    }
+
+    @Override
+    public boolean fileExists(String key) {
+        HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+
+        try {
+            HeadObjectResponse response = s3Client.headObject(headObjectRequest);
+            return response != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private String generatePresignedDownloadUrl(String key) {

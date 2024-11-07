@@ -1,96 +1,115 @@
 package com.example.spotspeak.service;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.example.spotspeak.dto.TraceDownloadDTO;
+import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.*;
 import com.example.spotspeak.exception.TraceNotFoundException;
+import com.example.spotspeak.mapper.TraceMapper;
+
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.ForbiddenException;
+
 import org.springframework.stereotype.Service;
 import com.example.spotspeak.repository.TraceRepository;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Coordinate;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class TraceService {
 
-	private TraceRepository traceRepository;
-	private GeometryFactory geometryFactory;
-	private ResourceService resourceService;
-	private TraceTagService traceTagService;
-	private UserProfileService userProfileService;
+    private TraceRepository traceRepository;
+    private UserService userService;
+    private TraceMapper traceMapper;
+    private TraceCreationService traceCreationService;
+    private TraceDiscoveryService traceDiscoveryService;
 
-	public TraceService(TraceRepository traceRepository, ResourceService resourceService,
-			TraceTagService traceTagService, UserProfileService userProfileService) {
-		this.traceRepository = traceRepository;
-		this.geometryFactory = new GeometryFactory();
-		this.resourceService = resourceService;
-		this.traceTagService = traceTagService;
-		this.userProfileService = userProfileService;
-	}
+    public TraceService(TraceRepository traceRepository,
+            ResourceService resourceService,
+            UserService userService,
+            TraceMapper traceMapper,
+            TraceCreationService traceCreationService,
+            TraceDiscoveryService traceDiscoveryService) {
+        this.traceRepository = traceRepository;
+        this.userService = userService;
+        this.traceMapper = traceMapper;
+        this.traceCreationService = traceCreationService;
+        this.traceDiscoveryService = traceDiscoveryService;
+    }
 
-	public List<Trace> getAllTraces() {
-		return (List<Trace>) traceRepository.findAll();
-	}
+    public List<TraceDownloadDTO> getTracesForAuthor(String userId) {
+        List<Trace> userTraces = traceRepository.findAllByAuthor(UUID.fromString(userId));
+        return userTraces.stream()
+                .map(traceMapper::createTraceDownloadDTO)
+                .toList();
+    }
 
-	@Transactional
-	public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {
-		Point point = geometryFactory
-				.createPoint(new Coordinate(traceUploadDTO.longitude(), traceUploadDTO.latitude()));
+    public List<TraceDownloadDTO> getDiscoveredTraces(String userId) {
+        return traceDiscoveryService.findUserDiscoveredTraces(userId).stream()
+                .map(traceMapper::createTraceDownloadDTO)
+                .toList();
+    }
 
-		User user = userProfileService.findByIdOrThrow(userId);
-		Resource resource = resourceService.uploadTraceResource(userId, file);
+    public List<TraceLocationDTO> getNearbyTracesForUser(String userId, double longitude, double latitude,
+            double distance) {
+        List<Object[]> results = traceRepository.findNearbyTracesLocationsForUser(UUID.fromString(userId),
+                longitude, latitude, distance);
 
-		Trace trace = Trace.builder()
-				.location(point)
-				.description(traceUploadDTO.description())
-				.author(user)
-				.resource(resource)
-				.isActive(true)
-				.build();
+        return (List<TraceLocationDTO>) results.stream()
+                .map(result -> new TraceLocationDTO((Long) result[0], (Double) result[1], (Double) result[2],
+                        (boolean) result[3]))
+                .toList();
+    }
 
-		return traceRepository.save(trace);
-	}
+    public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {
+        User author = userService.findByIdOrThrow(userId);
+        return traceCreationService.createAndPersistTrace(author, file, traceUploadDTO);
+    }
 
-	@Transactional
-	public TraceDownloadDTO getTraceInfo(String userId, String traceId) {
-		Trace trace = findByIdOrThrow(traceId);
-		userProfileService.findByIdOrThrow(userId); // maybe not necessary
+    @Transactional
+    public void deleteTrace(Long traceId, String userId) {
+        Trace trace = findByIdOrThrow(traceId);
+        boolean isAuthor = trace.getAuthor().getId().toString().equals(userId);
 
-		Long resourceId = trace.getResource().getId();
+        if (!isAuthor) {
+            throw new ForbiddenException("Only author can delete trace");
+        }
 
-		String presignedUrl = resourceService.getResourceAccessUrl(resourceId);
+        trace.setResource(null);
+        trace.clearDiscoverers();
 
-		return new TraceDownloadDTO(
-				trace.getId(),
-				presignedUrl,
-				trace.getDescription(),
-				trace.getComments(),
-				traceTagService.getTagsForTrace(trace.getId()),
-				trace.getLocation().getX(),
-				trace.getLocation().getY()
-		// trace.getAuthor()
-		);
-	}
+        traceRepository.deleteById(traceId);
+    }
 
-	private Trace findByIdOrThrow(Long traceId) {
-		return traceRepository.findById(traceId).orElseThrow(
-				() -> new TraceNotFoundException("Could not find trace with id: " + traceId));
-	}
+    public TraceDownloadDTO discoverTrace(String userId,
+            Long traceId,
+            double longitude,
+            double latitude) {
+        User discoverer = userService.findByIdOrThrow(userId);
+        Trace discovered = traceDiscoveryService.discoverTrace(discoverer, traceId, longitude, latitude);
+        return traceMapper.createTraceDownloadDTO(discovered);
+    }
 
-	private Long traceIdToLong(String traceIdString) {
-		try {
-			return Long.valueOf(traceIdString);
-		} catch (NumberFormatException e) {
-			throw new TraceNotFoundException("Invalid traceId format: " + traceIdString);
-		}
-	}
+    public TraceDownloadDTO getTraceInfoForUser(String userId, Long traceId) {
+        Trace trace = findByIdOrThrow(traceId);
+        User user = userService.findByIdOrThrow(userId);
 
-	public Trace findByIdOrThrow(String traceIdString) {
-		Long traceId = traceIdToLong(traceIdString);
-		return findByIdOrThrow(traceId);
-	}
+        boolean discovered = traceDiscoveryService.hasUserDiscoveredTrace(user, trace);
+        boolean isAuthor = trace.getAuthor().getId().equals(user.getId());
+
+        boolean canGetTraceInfo = discovered || isAuthor;
+
+        if (!canGetTraceInfo) {
+            throw new ForbiddenException("User is not allowed to get trace info");
+        }
+
+        return traceMapper.createTraceDownloadDTO(trace);
+    }
+
+    public Trace findByIdOrThrow(Long traceId) {
+        return traceRepository.findById(traceId).orElseThrow(
+                () -> new TraceNotFoundException("Could not find trace with id: " + traceId));
+    }
 }

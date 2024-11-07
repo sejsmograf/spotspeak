@@ -5,26 +5,43 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-        @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-                http.csrf(csrf -> csrf.disable());
+        // Stateless API doesn't need CSRF
+        http.csrf(
+                csrf -> csrf.disable());
 
-                http.authorizeHttpRequests(
-                                authorize -> authorize
-                                                .requestMatchers("/api/docs/**", "/swagger-ui/**").permitAll()
-                                                .anyRequest().authenticated());
+        // JWT based authentication doesnt need sessions
+        http.sessionManagement(
+                session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-                http.oauth2ResourceServer(
-                                oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+        // Permit access to Swagger UI and API documentation
+        http.authorizeHttpRequests(
+                authorize -> authorize
+                        .requestMatchers("/api/docs/**", "/swagger-ui/**").permitAll()
+                        .anyRequest().authenticated());
 
-                return http.build();
-        }
+        // Disable form login
+        http.formLogin(
+                formLogin -> formLogin.disable());
+
+        // Enable OAuth2 resource server
+        http.oauth2ResourceServer(
+                oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+
+        http.addFilterAfter(new RequestOutcomeLoggingFilter(),
+                UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
 
 }

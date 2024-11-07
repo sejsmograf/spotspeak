@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Data
 @Entity
@@ -22,18 +22,18 @@ import org.springframework.data.annotation.CreatedDate;
 @Table(name = "friendships")
 public class Friendship {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_initiating_id", referencedColumnName = "id", nullable = false)
-    private User userInitiating;
+	@ManyToOne
+	@JoinColumn(name = "user_initiating_id", referencedColumnName = "id", nullable = false)
+	private User userInitiating;
 
-    @ManyToOne
-    @JoinColumn(name = "user_reveiving_id", referencedColumnName = "id", nullable = false)
-    private User userReceiving;
+	@ManyToOne
+	@JoinColumn(name = "user_reveiving_id", referencedColumnName = "id", nullable = false)
+	private User userReceiving;
 
-    @CreatedDate
-    private LocalDateTime createdAt;
+	@CreationTimestamp
+	private LocalDateTime createdAt;
 }

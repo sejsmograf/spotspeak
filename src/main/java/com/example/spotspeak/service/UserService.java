@@ -1,64 +1,129 @@
 package com.example.spotspeak.service;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
+import com.example.spotspeak.dto.ChallengeResponseDTO;
+import com.example.spotspeak.dto.PasswordUpdateDTO;
+import com.example.spotspeak.dto.PublicUserProfileDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
+import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.UserNotFoundException;
+import com.example.spotspeak.mapper.UserMapper;
 import com.example.spotspeak.repository.UserRepository;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class UserService {
-	private UserRepository repository;
 
-	public UserService(UserRepository repository) {
-		this.repository = repository;
-	}
+    private UserRepository userRepostitory;
+    private ResourceService resourceService;
+    private KeycloakClientService keycloakService;
+    private PasswordChallengeService passwordChallengeService;
+    private KeyGenerationService keyGenerationService;
+    private UserMapper userMapper;
 
-	public User findById(UUID userId) {
-		return repository.findById(userId).orElseThrow(
-				() -> {
-					throw new UserNotFoundException("Could not find the user");
-				});
-	}
+    public List<PublicUserProfileDTO> searchUsersByUsername(String username) {
+        List<User> matchingUsers = userRepostitory.findAllByUsernameIgnoreCase(username);
+        return matchingUsers.stream()
+                .map(user -> userMapper.createPublicUserProfileDTO(user))
+                .toList();
+    }
 
-	public User findById(String userIdString) {
-		UUID convertedId = UUID.fromString(userIdString);
-		return findById(convertedId);
-	}
+    public AuthenticatedUserProfileDTO getUserInfo(String userId) {
+        User user = findByIdOrThrow(userId);
+        return userMapper.createAuthenticatedUserProfileDTO(user);
+    }
 
-	public void deleteById(String userIdString) {
-		try {
-			UUID convertedId = UUID.fromString(userIdString);
-			repository.deleteById(convertedId);
-		} catch (IllegalArgumentException e) {
-			throw new UserNotFoundException("Invalid or non-existent userId");
-		}
-	}
+    public ChallengeResponseDTO generatePasswordChallenge(String userId, String password) {
+        User user = findByIdOrThrow(userId);
+        keycloakService.validatePasswordOrThrow(userId, password);
+        String token = passwordChallengeService.createAndStoreChallenge(user.getId());
+        return new ChallengeResponseDTO(Instant.now(), user.getId(), token);
+    }
 
-	public User updateUser(String userIdString, UserUpdateDTO updateDTO) {
-		UUID userId = userIdToUUID(userIdString);
-		User user = findById(userId);
+    public void updateUserPassword(String userId, PasswordUpdateDTO dto) {
+        keycloakService.updatePassword(userId, dto);
+    }
 
-		if (updateDTO.firstName() != null) {
-			user.setFirstName(updateDTO.firstName());
-		}
-		if (updateDTO.lastName() != null) {
-			user.setLastName(updateDTO.lastName());
-		}
+    @Transactional
+    public void deleteById(String userIdString) {
+        User user = findByIdOrThrow(userIdString);
 
-		repository.save(user);
-		return user;
-	}
+        userRepostitory.deleteById(user.getId());
+        userRepostitory.flush();
 
-	private UUID userIdToUUID(String userId) {
-		try {
-			UUID convertedId = UUID.fromString(userId);
-			return convertedId;
-		} catch (IllegalArgumentException e) {
-			throw new UserNotFoundException("Invalid userId format");
-		}
-	}
+        keycloakService.deleteUser(userIdString);
+    }
+
+    @Transactional
+    public User updateUser(String userIdString, UserUpdateDTO updateDTO) {
+        User user = findByIdOrThrow(userIdString);
+        String challengeToken = updateDTO.passwordChallengeToken();
+        passwordChallengeService.verifyChallengeOrThrow(challengeToken, user.getId());
+
+        userMapper.updateUserFromDTO(user, updateDTO);
+
+        keycloakService.updateUser(userIdString, updateDTO);
+        return user;
+    }
+
+    public Resource updateUserProfilePicture(String userIdString, MultipartFile file) {
+        User user = findByIdOrThrow(userIdString);
+        deleteUserProfilePicture(userIdString);
+
+        String resourceKey = keyGenerationService.generateUserProfilePictureKey(userIdString,
+                file.getOriginalFilename());
+        Resource resource = resourceService.uploadFileAndSaveResource(file, resourceKey);
+        user.setProfilePicture(resource);
+        userRepostitory.save(user);
+        return resource;
+    }
+
+    public void deleteUserProfilePicture(String userId) {
+        User user = findByIdOrThrow(userId);
+        Resource profilePicture = user.getProfilePicture();
+
+        if (profilePicture != null) {
+            user.setProfilePicture(null);
+            resourceService.deleteResource(profilePicture.getId());
+        }
+    }
+
+    private User findByIdOrThrow(UUID userId) {
+        return userRepostitory.findById(userId).orElseThrow(
+                () -> {
+                    throw new UserNotFoundException("Could not find the user");
+                });
+    }
+
+    private UUID userIdToUUID(String userId) {
+        try {
+            UUID convertedId = UUID.fromString(userId);
+            return convertedId;
+        } catch (IllegalArgumentException e) {
+            throw new UserNotFoundException("Invalid userId format");
+        }
+    }
+
+    public User findByIdOrThrow(String userIdString) {
+        UUID convertedId = userIdToUUID(userIdString);
+        return findByIdOrThrow(convertedId);
+    }
+
+    public List<User> findUsersByUsernames(List<String> usernames) {
+        if (usernames == null || usernames.isEmpty()) {
+            return List.of();
+        }
+        return userRepostitory.findByUsernameIn(usernames);
+    }
 }
