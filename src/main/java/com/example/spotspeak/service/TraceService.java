@@ -57,10 +57,7 @@ public class TraceService {
         List<Object[]> results = traceRepository.findNearbyTracesLocationsForUser(UUID.fromString(userId),
                 longitude, latitude, distance);
 
-        return (List<TraceLocationDTO>) results.stream()
-                .map(result -> new TraceLocationDTO((Long) result[0], (Double) result[1], (Double) result[2],
-                        (boolean) result[3]))
-                .toList();
+        return results.stream().map(traceMapper::createTraceLocationDtoFromNativeQueryResult).toList();
     }
 
     public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {

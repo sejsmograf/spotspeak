@@ -15,7 +15,7 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
     List<Object[]> findNearbyTracesLocations(double longitude, double latitude, double distance);
 
     @Query(value = "SELECT t.id, ST_X(t.location::geometry) AS longitude, ST_Y(t.location::geometry) AS latitude, "
-            + "dt.user_id IS NOT NULL AS has_discovered "
+            + "t.trace_type AS trace_type, dt.user_id IS NOT NULL AS has_discovered "
             + "FROM traces t left join discovered_traces dt "
             + "ON t.id = dt.trace_id AND dt.user_id = :userId "
             + "WHERE ST_DWithin(ST_SetSRID(location::geography, 4326), "
