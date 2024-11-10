@@ -6,7 +6,8 @@ import java.util.UUID;
 import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
-import com.example.spotspeak.entity.*;
+import com.example.spotspeak.entity.Trace;
+import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.TraceNotFoundException;
 import com.example.spotspeak.mapper.TraceMapper;
 
