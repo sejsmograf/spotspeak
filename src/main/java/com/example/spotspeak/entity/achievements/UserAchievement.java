@@ -13,6 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -20,7 +22,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "user_achievement")
+@Table(name = "user_achievements")
 public class UserAchievement {
 
     @Id
@@ -38,6 +40,13 @@ public class UserAchievement {
     @Column(nullable = false)
     private Integer quantityProgress = 0;
 
+    @Column(nullable = false)
+    private Integer currentStreak = 0;
+
+    @Column(nullable = true)
+    private LocalDate lastActionDate;
+
     @Column(nullable = true)
     private LocalDateTime completedAt;
+
 }
