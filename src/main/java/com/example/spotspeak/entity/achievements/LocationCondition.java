@@ -2,6 +2,7 @@ package com.example.spotspeak.entity.achievements;
 
 import com.example.spotspeak.dto.LocationConditionDTO;
 import com.example.spotspeak.service.achievement.UserActionEvent;
+import lombok.EqualsAndHashCode;
 import org.locationtech.jts.geom.Point;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,6 +12,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @AllArgsConstructor

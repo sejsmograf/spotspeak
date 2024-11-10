@@ -57,7 +57,7 @@ public class User {
     @Builder.Default
     private Set<Trace> discoveredTraces = new HashSet<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<UserAchievement> userAchievements = new ArrayList<>();
 
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
