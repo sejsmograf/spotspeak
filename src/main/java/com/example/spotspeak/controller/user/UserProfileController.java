@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.spotspeak.constants.FileUploadConsants;
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.ChallengeRequestDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
@@ -79,7 +80,7 @@ public class UserProfileController {
 
     @PostMapping("/picture")
     ResponseEntity<Resource> updateProfilePicture(@AuthenticationPrincipal Jwt jwt,
-            @Valid @ValidFile(maxSize = 1024 * 1024 * 2, allowedTypes = {
+            @Valid @ValidFile(maxSize = FileUploadConsants.PROFILE_PICTURE_MAX_SIZE, allowedTypes = {
                     "image/jpeg", "image/jpg", "image/png"
             }) @RequestPart MultipartFile file) {
         String userId = jwt.getSubject();
