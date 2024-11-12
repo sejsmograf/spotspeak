@@ -15,13 +15,11 @@ import java.util.List;
 @Service
 public class UserAchievementService {
 
-    private AchievementService achievementService;
     private UserAchievementRepository userAchievementRepository;
     private UserService userService;
     private UserAchievementMapper userAchievementMapper;
 
-    public UserAchievementService(AchievementService achievementService, UserAchievementRepository userAchievementRepository, UserService userService, UserAchievementMapper userAchievementMapper) {
-        this.achievementService = achievementService;
+    public UserAchievementService(UserAchievementRepository userAchievementRepository, UserService userService, UserAchievementMapper userAchievementMapper) {
         this.userAchievementRepository = userAchievementRepository;
         this.userService = userService;
         this.userAchievementMapper = userAchievementMapper;
@@ -35,22 +33,4 @@ public class UserAchievementService {
             .toList();
     }
 
-    @Transactional
-    public void initializeUserAchievements(String userId) {
-        User user = userService.findByIdOrThrow(userId);
-
-        List<Achievement> allAchievements = achievementService.getAllAchievements();
-
-        List<UserAchievement> newUserAchievements = allAchievements.stream()
-            .filter(achievement -> !userAchievementRepository.existsByUserAndAchievement(user, achievement))
-            .map(achievement -> UserAchievement.builder()
-                .user(user)
-                .achievement(achievement)
-                .quantityProgress(0)
-                .currentStreak(0)
-                .build())
-            .toList();
-
-        userAchievementRepository.saveAll(newUserAchievements);
-    }
 }

@@ -52,7 +52,6 @@ public class TraceCreationService {
             .location(trace.getLocation())
             .timestamp(LocalDateTime.now())
             .build();
-
         eventPublisher.publishEvent(traceEvent);
         return trace;
     }

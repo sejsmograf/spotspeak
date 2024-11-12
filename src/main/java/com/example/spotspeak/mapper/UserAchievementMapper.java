@@ -32,6 +32,7 @@ public class UserAchievementMapper {
             : null;
 
         return new UserAchievementDTO(
+            userAchievement.getId(),
             userAchievement.getAchievement().getName(),
             userAchievement.getAchievement().getDescription(),
             resourceUrl,

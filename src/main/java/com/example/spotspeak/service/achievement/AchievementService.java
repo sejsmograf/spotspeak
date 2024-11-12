@@ -1,14 +1,18 @@
 package com.example.spotspeak.service.achievement;
 
+import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.achievements.Achievement;
 import com.example.spotspeak.entity.achievements.Condition;
 import com.example.spotspeak.entity.achievements.ConsecutiveDaysCondition;
 import com.example.spotspeak.entity.achievements.TimeCondition;
 import com.example.spotspeak.entity.achievements.LocationCondition;
+import com.example.spotspeak.entity.achievements.UserAchievement;
 import com.example.spotspeak.entity.enumeration.EDateGranularity;
 import com.example.spotspeak.entity.enumeration.EEventType;
 import com.example.spotspeak.repository.AchievementRepository;
 import com.example.spotspeak.repository.ConditionRepository;
+import com.example.spotspeak.repository.UserAchievementRepository;
+import com.example.spotspeak.service.UserService;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -24,10 +28,14 @@ public class AchievementService {
 
     private AchievementRepository achievementRepository;
     private ConditionRepository conditionRepository;
+    private UserService userService;
+    private UserAchievementRepository userAchievementRepository;
 
-    public AchievementService(AchievementRepository achievementRepository, ConditionRepository conditionRepository) {
+    public AchievementService(AchievementRepository achievementRepository, ConditionRepository conditionRepository, UserService userService, UserAchievementRepository userAchievementRepository) {
         this.achievementRepository = achievementRepository;
         this.conditionRepository = conditionRepository;
+        this.userService = userService;
+        this.userAchievementRepository = userAchievementRepository;
     }
 
     public List<Achievement> getAllAchievements() {
@@ -88,5 +96,24 @@ public class AchievementService {
             .endTime(endTime)
             .build();
         return conditionRepository.save(condition);
+    }
+
+    @Transactional
+    public void initializeUserAchievements(String userId) {
+        User user = userService.findByIdOrThrow(userId);
+
+        List<Achievement> allAchievements = getAllAchievements();
+
+        List<UserAchievement> newUserAchievements = allAchievements.stream()
+            .filter(achievement -> !userAchievementRepository.existsByUserAndAchievement(user, achievement))
+            .map(achievement -> UserAchievement.builder()
+                .user(user)
+                .achievement(achievement)
+                .quantityProgress(0)
+                .currentStreak(0)
+                .build())
+            .toList();
+
+        userAchievementRepository.saveAll(newUserAchievements);
     }
 }

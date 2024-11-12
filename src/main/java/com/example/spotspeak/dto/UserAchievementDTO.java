@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 public record UserAchievementDTO(
+    Long userAchievementId,
     String achievementName,
     String achievementDescription,
     String resourceAccessUrl,

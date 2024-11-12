@@ -26,6 +26,7 @@ public class TraceService {
     private TraceMapper traceMapper;
     private TraceCreationService traceCreationService;
     private TraceDiscoveryService traceDiscoveryService;
+    private ResourceService resourceService;
 
     public TraceService(TraceRepository traceRepository,
             ResourceService resourceService,
@@ -34,6 +35,7 @@ public class TraceService {
             TraceCreationService traceCreationService,
             TraceDiscoveryService traceDiscoveryService) {
         this.traceRepository = traceRepository;
+        this.resourceService = resourceService;
         this.userService = userService;
         this.traceMapper = traceMapper;
         this.traceCreationService = traceCreationService;

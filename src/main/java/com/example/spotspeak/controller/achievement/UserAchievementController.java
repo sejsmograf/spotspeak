@@ -27,18 +27,4 @@ public class UserAchievementController {
         List<UserAchievementDTO> userAchievements = userAchievementService.getUserAchievements(userId);
         return ResponseEntity.ok(userAchievements);
     }
-
-    @GetMapping("/initialize")
-    public ResponseEntity<Void> initializeAchievementsForUser(@AuthenticationPrincipal Jwt jwt) {
-        String userId = jwt.getSubject();
-        userAchievementService.initializeUserAchievements(userId);
-        return ResponseEntity.noContent().build();
-    }
-
-//    @PostMapping("/initialize-achievements")
-//    public ResponseEntity<Void> initializeAchievementsForAllUsers() { //need admin authorization
-//        List<User> allUsers = userService.getAllUsers();
-//        allUsers.forEach(user -> userAchievementService.initializeUserAchievements(String.valueOf(user.getId())));
-//        return ResponseEntity.noContent().build();
-//    }
 }
