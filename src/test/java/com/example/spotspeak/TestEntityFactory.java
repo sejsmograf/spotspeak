@@ -71,6 +71,7 @@ public class TestEntityFactory {
                 .location(location)
                 .description("description")
                 .isActive(true)
+                .expiresAt(LocalDateTime.now().plusDays(1))
                 .build();
 
         if (tags != null) {

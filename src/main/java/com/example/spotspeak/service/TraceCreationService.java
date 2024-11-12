@@ -1,5 +1,6 @@
 package com.example.spotspeak.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.locationtech.jts.geom.Coordinate;
@@ -8,6 +9,7 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.spotspeak.constants.TraceConstants;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Tag;
@@ -60,6 +62,7 @@ public class TraceCreationService {
                 .description(components.description())
                 .tags(components.tags())
                 .resource(resource)
+                .expiresAt(LocalDateTime.now().plusHours(TraceConstants.TRACE_EXPIRATION_HOURS))
                 .build();
 
         return traceRepository.save(trace);

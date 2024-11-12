@@ -95,6 +95,9 @@ public class Trace {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
+
     public double getLongitude() {
         return location.getX();
     }
