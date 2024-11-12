@@ -19,7 +19,6 @@ import com.example.spotspeak.entity.enumeration.ETraceType;
 import com.example.spotspeak.repository.TraceRepository;
 
 import jakarta.transaction.Transactional;
-import software.amazon.awssdk.services.cloudfront.model.InvalidArgumentException;
 
 @Service
 public class TraceCreationService {

@@ -1,5 +1,6 @@
 package com.example.spotspeak;
 
+import com.example.spotspeak.constants.TraceConstants;
 import com.example.spotspeak.dto.CommentRequestDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
@@ -71,7 +72,7 @@ public class TestEntityFactory {
                 .location(location)
                 .description("description")
                 .isActive(true)
-                .expiresAt(LocalDateTime.now().plusDays(1))
+                .expiresAt(LocalDateTime.now().plusHours(TraceConstants.TRACE_EXPIRATION_HOURS))
                 .build();
 
         if (tags != null) {

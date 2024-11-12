@@ -29,7 +29,7 @@ public class PasswordChallengeService {
     ConcurrentMap<String, ChallengeEntry> challenges = new ConcurrentHashMap<>();
 
     @Scheduled(fixedRate = CLEANUP_INTERVAL_MS)
-    private void cleanExpiredChallenges() {
+    public void cleanExpiredChallenges() {
         Iterator<ConcurrentMap.Entry<String, ChallengeEntry>> iterator = challenges.entrySet().iterator();
 
         while (iterator.hasNext()) {
