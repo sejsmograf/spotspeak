@@ -2,6 +2,7 @@ package com.example.spotspeak.service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.PublicUserProfileDTO;
+import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
@@ -83,7 +85,14 @@ public class UserService {
         return user;
     }
 
-    public void initializeKeycloakUser(User user) {
+    public void initializeKeycloakUser(RegisteredUserDTO userDTO) {
+        Optional<User> existing = userRepostitory.findById(userDTO.id());
+
+        if (existing.isPresent()) {
+            throw new IllegalArgumentException("User already exists");
+        }
+
+        userRepostitory.save(userMapper.createUserFromDTO(userDTO));
     }
 
     public Resource updateUserProfilePicture(String userIdString, MultipartFile file) {

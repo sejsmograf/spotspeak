@@ -33,11 +33,12 @@ public class UserMapper {
                 profilePictureUrl);
     }
 
-    public User createUserModelFormDTO(RegisteredUserDTO userDTO) {
+    public User createUserFromDTO(RegisteredUserDTO userDTO) {
         User user = User.builder()
                 .id(userDTO.id())
                 .firstName(userDTO.firstName())
                 .lastName(userDTO.lastName())
+                .username(userDTO.username())
                 .email(userDTO.email())
                 .registeredAt(userDTO.registeredAt())
                 .build();
