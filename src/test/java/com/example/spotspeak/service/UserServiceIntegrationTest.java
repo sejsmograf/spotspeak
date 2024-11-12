@@ -103,24 +103,24 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    void generatePasswordChallenge_shouldReturnToken_whenPasswordMatches() {
+    void generateTemporaryToken_shouldReturnToken_whenPasswordMatches() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         String password = user.getUsername(); // testusers have the same username and password
 
-        String token = userService.generatePasswordChallenge(userId, password).token();
+        String token = userService.generateTemporaryToken(userId, password).token();
         assertThat(token).isNotBlank();
     }
 
     @Test
     @Transactional
-    void generatePasswordChallenge_shouldThrowWhenPasswordDoesntMatch() {
+    void generateTemporaryToken_shouldThrowWhenPasswordDoesntMatch() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         String password = user.getUsername() + "notcorrect";
 
         assertThrows(PasswordChallengeFailedException.class,
-                () -> userService.generatePasswordChallenge(userId, password).token());
+                () -> userService.generateTemporaryToken(userId, password).token());
     }
 
     @Test
@@ -226,7 +226,7 @@ public class UserServiceIntegrationTest
         String userId = user.getId().toString();
         String username = user.getUsername();
         String password = username;
-        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        String challengeToken = userService.generateTemporaryToken(userId, password).token();
         String newFirstName = "newname";
         String newLastName = "newlastname";
         UserUpdateDTO updateDTO = UserUpdateDTO.builder()
@@ -249,7 +249,7 @@ public class UserServiceIntegrationTest
         String userId = user.getId().toString();
         String username = user.getUsername();
         String password = username;
-        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        String challengeToken = userService.generateTemporaryToken(userId, password).token();
         User otherUser = testUsers.get(1);
         String otherUsername = otherUser.getUsername();
 
@@ -269,7 +269,7 @@ public class UserServiceIntegrationTest
         String userId = user.getId().toString();
         String username = user.getUsername();
         String password = username; // testusers have the same username and password
-        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        String challengeToken = userService.generateTemporaryToken(userId, password).token();
         User otherUser = testUsers.get(1);
         String otherEmail = otherUser.getEmail();
 
@@ -288,7 +288,7 @@ public class UserServiceIntegrationTest
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         String password = user.getUsername();
-        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        String challengeToken = userService.generateTemporaryToken(userId, password).token();
         String firstName = user.getFirstName();
         String lastName = user.getLastName();
         String email = user.getEmail();

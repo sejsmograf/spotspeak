@@ -44,9 +44,15 @@ public class UserService {
         return userMapper.createAuthenticatedUserProfileDTO(user);
     }
 
-    public ChallengeResponseDTO generatePasswordChallenge(String userId, String password) {
+    public ChallengeResponseDTO generateTemporaryToken(String userId, String password) {
         User user = findByIdOrThrow(userId);
         keycloakService.validatePasswordOrThrow(userId, password);
+        String token = passwordChallengeService.createAndStoreChallenge(user.getId());
+        return new ChallengeResponseDTO(Instant.now(), user.getId(), token);
+    }
+
+    public ChallengeResponseDTO generateTemporaryTokenForGoogleUser(String userId) {
+        User user = findByIdOrThrow(userId);
         String token = passwordChallengeService.createAndStoreChallenge(user.getId());
         return new ChallengeResponseDTO(Instant.now(), user.getId(), token);
     }

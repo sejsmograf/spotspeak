@@ -65,8 +65,16 @@ public class UserProfileController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody ChallengeRequestDTO challengeRequestDTO) {
         String userId = jwt.getSubject();
-        ChallengeResponseDTO response = userService.generatePasswordChallenge(userId,
-                challengeRequestDTO.password());
+        boolean authenticatedWithGoogle = "google".equals(jwt.getClaim("identity_provider"));
+        ChallengeResponseDTO response;
+
+        if (authenticatedWithGoogle) {
+            response = userService.generateTemporaryTokenForGoogleUser(userId);
+        } else {
+            response = userService.generateTemporaryToken(userId,
+                    challengeRequestDTO.password());
+        }
+
         return ResponseEntity.ok(response);
     }
 
