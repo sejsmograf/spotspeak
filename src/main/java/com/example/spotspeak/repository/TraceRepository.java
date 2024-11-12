@@ -1,9 +1,12 @@
 package com.example.spotspeak.repository;
 
 import com.example.spotspeak.entity.Trace;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface TraceRepository extends JpaRepository<Trace, Long> {
@@ -15,7 +18,7 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
     List<Object[]> findNearbyTracesLocations(double longitude, double latitude, double distance);
 
     @Query(value = "SELECT t.id, ST_X(t.location::geometry) AS longitude, ST_Y(t.location::geometry) AS latitude, "
-            + "dt.user_id IS NOT NULL AS has_discovered "
+            + "t.trace_type AS trace_type, dt.user_id IS NOT NULL AS has_discovered "
             + "FROM traces t left join discovered_traces dt "
             + "ON t.id = dt.trace_id AND dt.user_id = :userId "
             + "WHERE ST_DWithin(ST_SetSRID(location::geography, 4326), "
@@ -25,6 +28,10 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
 
     @Query("SELECT t " + "FROM Trace t join t.discoverers d " + "WHERE d.id = :userId")
     List<Trace> findDiscoveredTracesByUserId(UUID userId);
+
+    @Modifying
+    @Query("UPDATE Trace t SET t.isActive = false WHERE t.isActive = true AND t.expiresAt < :currentTime")
+    int deactivateExpiredTraces(LocalDateTime currentTime);
 
     @Query(value = "SELECT COUNT(*) > 0 FROM traces WHERE id = ?1 AND ST_DWithin(location::geography,"
             + " ST_SetSRID(ST_MakePoint(?2, ?3), 4326)::geography, ?4)", nativeQuery = true)

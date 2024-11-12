@@ -1,10 +1,11 @@
 package com.example.spotspeak.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.TraceNotFoundException;
 import com.example.spotspeak.exception.TraceNotWithinDistanceException;
-import com.example.spotspeak.repository.TestEntityFactory;
+import com.example.spotspeak.TestEntityFactory;
 
 import jakarta.transaction.Transactional;
 
@@ -22,6 +23,9 @@ public class TraceDiscoveryServiceIntegrationTest
 
     @Autowired
     private TraceDiscoveryService traceDiscoveryService;
+
+    @Autowired
+    private StorageService storageService;
 
     private User testUser;
     private Trace testTrace;
@@ -32,14 +36,19 @@ public class TraceDiscoveryServiceIntegrationTest
         testTrace = TestEntityFactory.createPersistedTrace(entityManager, testUser, null);
     }
 
+    @AfterEach
+    public void cleanStorage() {
+        storageService.cleanUp();
+    }
+
     @Test
     @Transactional
     void discoverTrace_shouldAddDiscoverer_whenWithinDisance() {
-        double traceLong = testTrace.getLongitude();
+        double traceLon = testTrace.getLongitude();
         double traceLat = testTrace.getLatitude();
 
         Trace discoveredTrace = traceDiscoveryService
-                .discoverTrace(testUser, testTrace.getId(), traceLong, traceLat);
+                .discoverTrace(testUser, testTrace.getId(), traceLon, traceLat);
 
         assertThat(discoveredTrace).isNotNull();
         assertThat(testUser.getDiscoveredTraces()).contains(testTrace);
@@ -49,22 +58,22 @@ public class TraceDiscoveryServiceIntegrationTest
     @Test
     @Transactional
     void discoverTrace_shouldThrow_whenNotWithinDistance() {
-        double traceLong = testTrace.getLongitude();
+        double traceLon = testTrace.getLongitude();
         double traceLat = testTrace.getLatitude();
-        double offsetLong = traceLong + 0.1;
+        double offsetLon = traceLon + 0.1;
 
         assertThrows(TraceNotWithinDistanceException.class, () -> traceDiscoveryService
-                .discoverTrace(testUser, testTrace.getId(), offsetLong, traceLat));
+                .discoverTrace(testUser, testTrace.getId(), offsetLon, traceLat));
     }
 
     @Test
     @Transactional
     void findUserDiscoverTraces_shouldReturnTrace_whenUserDiscoveredIt() {
-        double traceLong = testTrace.getLongitude();
+        double traceLon = testTrace.getLongitude();
         double traceLat = testTrace.getLatitude();
 
-        traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLong, traceLat);
-        List<Trace> userDiscoveredTraces = traceDiscoveryService.findUserDisoveredTraces(
+        traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLon, traceLat);
+        List<Trace> userDiscoveredTraces = traceDiscoveryService.findUserDiscoveredTraces(
                 testUser.getId().toString());
 
         assertThat(userDiscoveredTraces).isNotEmpty();
@@ -75,15 +84,15 @@ public class TraceDiscoveryServiceIntegrationTest
     @Test
     @Transactional
     void discoverTrace_shouldNotChangeData_whenCalledMultipleTimes() {
-        double traceLong = testTrace.getLongitude();
+        double traceLon = testTrace.getLongitude();
         double traceLat = testTrace.getLatitude();
 
-        traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLong, traceLat);
-        List<Trace> tracesAfterOneCall = traceDiscoveryService.findUserDisoveredTraces(
+        traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLon, traceLat);
+        List<Trace> tracesAfterOneCall = traceDiscoveryService.findUserDiscoveredTraces(
                 testUser.getId().toString());
 
-        traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLong, traceLat);
-        List<Trace> tracesAfterTwoCalls = traceDiscoveryService.findUserDisoveredTraces(
+        traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLon, traceLat);
+        List<Trace> tracesAfterTwoCalls = traceDiscoveryService.findUserDiscoveredTraces(
                 testUser.getId().toString());
 
         assertThat(tracesAfterOneCall).isNotEmpty();
@@ -105,10 +114,10 @@ public class TraceDiscoveryServiceIntegrationTest
     @Test
     @Transactional
     void hasUserDiscoveredTrace_returnTrue_whenDiscovered() {
-        double traceLong = testTrace.getLongitude();
+        double traceLon = testTrace.getLongitude();
         double traceLat = testTrace.getLatitude();
 
-        traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLong, traceLat);
+        traceDiscoveryService.discoverTrace(testUser, testTrace.getId(), traceLon, traceLat);
         boolean discovered = traceDiscoveryService.hasUserDiscoveredTrace(testUser, testTrace);
 
         assertThat(discovered).isTrue();

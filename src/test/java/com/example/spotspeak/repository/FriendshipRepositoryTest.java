@@ -1,15 +1,17 @@
 package com.example.spotspeak.repository;
 
-import com.example.spotspeak.entity.Friendship;
-import com.example.spotspeak.entity.User;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.example.spotspeak.TestEntityFactory;
+import com.example.spotspeak.entity.Friendship;
+import com.example.spotspeak.entity.User;
 
 public class FriendshipRepositoryTest extends BaseRepositoryTest {
 

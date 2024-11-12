@@ -1,22 +1,30 @@
 package com.example.spotspeak.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import java.util.ArrayList;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.dto.TraceDownloadDTO;
+import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
-import com.example.spotspeak.repository.TestEntityFactory;
+import com.example.spotspeak.exception.TraceNotFoundException;
+import com.example.spotspeak.exception.TraceNotWithinDistanceException;
+import com.example.spotspeak.TestEntityFactory;
 
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.ForbiddenException;
 
 public class TraceServiceIntegrationTest
         extends BaseServiceIntegrationTest {
@@ -44,6 +52,11 @@ public class TraceServiceIntegrationTest
                     TestEntityFactory.createPersistedTrace(
                             entityManager, userWithTraces, null));
         }
+    }
+
+    @AfterEach
+    public void cleanStorage() {
+        localStorageService.cleanUp();
     }
 
     @Test
@@ -112,4 +125,137 @@ public class TraceServiceIntegrationTest
         assertThat(userTraces).isNotNull().isNotEmpty().hasSize(1);
         assertThat(userTraces.get(0).id()).isEqualTo(created.getId());
     }
+
+    @Test
+    @Transactional
+    void getDiscoverdedTraces_shouldReturnEmpty_whenNoTracesDiscovered() {
+        String userId = userWithoutTraces.getId().toString();
+
+        List<TraceDownloadDTO> discoveredTraces = traceService.getDiscoveredTraces(userId);
+
+        assertThat(discoveredTraces).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    void discoverTrace_shouldModifyUserAndTraceReferences_whenSuccess() {
+        String userId = userWithoutTraces.getId().toString();
+        Trace trace = testTraces.get(0);
+        double traceLon = trace.getLongitude();
+        double traceLat = trace.getLatitude();
+
+        traceService.discoverTrace(userId, trace.getId(), traceLon, traceLat);
+
+        Set<Trace> userDiscoveredTraces = userWithoutTraces.getDiscoveredTraces();
+        Set<User> traceDiscoverers = trace.getDiscoverers();
+
+        assertThat(userDiscoveredTraces).isNotEmpty().hasSize(1).contains(trace);
+        assertThat(traceDiscoverers).isNotEmpty().hasSize(1).contains(userWithoutTraces);
+    }
+
+    @Test
+    @Transactional
+    void discoverTrace_shouldThrow_whenOutOfRange() {
+        String userId = userWithoutTraces.getId().toString();
+        Trace trace = testTraces.get(0);
+        double traceLon = trace.getLongitude();
+        double traceLat = trace.getLatitude();
+        double offsetLon = traceLon + 0.1;
+
+        assertThrows(TraceNotWithinDistanceException.class,
+                () -> traceService.discoverTrace(userId, trace.getId(), offsetLon, traceLat));
+    }
+
+    @Test
+    @Transactional
+    void getTraceInfoForUser_shouldThrowForbiddenException_whenNotAuhorNorDiscoverer() {
+        String userId = userWithoutTraces.getId().toString();
+        Long traceId = testTraces.get(0).getId();
+
+        assertThrows(ForbiddenException.class, () -> traceService.getTraceInfoForUser(userId, traceId));
+    }
+
+    @Test
+    @Transactional
+    void getTraceInfoForUser_shouldThrow_whenTraceIdNotFound() {
+        String userId = userWithoutTraces.getId().toString();
+        List<Long> traceIds = testTraces.stream().map(t -> t.getId()).toList();
+        Random random = new Random();
+
+        Long randomId = random.nextLong();
+        while (traceIds.contains(randomId)) {
+            randomId = random.nextLong();
+        }
+        Long finalRandomId = randomId;
+        assertThrows(TraceNotFoundException.class, () -> traceService.getTraceInfoForUser(userId, finalRandomId));
+    }
+
+    @Test
+    @Transactional
+    void getTraceInfoForUser_shouldReturnDTO_whenAuthor() {
+        String userId = userWithTraces.getId().toString();
+        Long traceId = testTraces.get(0).getId();
+
+        TraceDownloadDTO dto = traceService.getTraceInfoForUser(userId, traceId);
+
+        assertThat(dto.id()).isEqualTo(traceId);
+    }
+
+    @Test
+    @Transactional
+    void getTraceInfoForUser_shouldReturnDTO_whenUserHasDiscoveredTrace() {
+        String userId = userWithoutTraces.getId().toString();
+        Trace trace = testTraces.get(0);
+        double traceLon = trace.getLongitude();
+        double traceLat = trace.getLatitude();
+        Long traceId = trace.getId();
+
+        traceService.discoverTrace(userId, traceId, traceLon, traceLat);
+        TraceDownloadDTO dto = traceService.getTraceInfoForUser(userId, traceId);
+
+        assertThat(dto.id()).isEqualTo(traceId);
+    }
+
+    @Test
+    @Transactional
+    void getNearbyTraces_shouldReturnTrace_whenSameLocation() {
+        String userId = userWithoutTraces.getId().toString();
+        Trace trace = testTraces.get(0);
+        double traceLon = trace.getLongitude();
+        double traceLat = trace.getLatitude();
+        Long traceId = trace.getId();
+
+        List<TraceLocationDTO> nearby = traceService.getNearbyTracesForUser(userId, traceLon, traceLat, 10);
+        assertThat(nearby).isNotEmpty();
+        assertThat(nearby).anyMatch(dto -> dto.id().equals(traceId));
+    }
+
+    @Test
+    @Transactional
+    void deleteTrace_shouldThrow_whenNonAuthorCall() {
+        String nonCreatorId = userWithoutTraces.getId().toString();
+        Long traceId = testTraces.get(0).getId();
+
+        assertThrows(ForbiddenException.class, () -> traceService.deleteTrace(traceId, nonCreatorId));
+    }
+
+    @Test
+    @Transactional
+    void deleteTrace_shouldWork_whenTraceHasDiscoverers() {
+        String creatorId = userWithTraces.getId().toString();
+        String discovererId = userWithoutTraces.getId().toString();
+        Trace trace = testTraces.get(0);
+        double traceLon = trace.getLongitude();
+        double traceLat = trace.getLatitude();
+        Long traceId = trace.getId();
+
+        traceService.discoverTrace(discovererId, traceId, traceLon, traceLat);
+        traceService.discoverTrace(creatorId, traceId, traceLon, traceLat);
+
+        traceService.deleteTrace(traceId, creatorId);
+
+        Trace retrieved = entityManager.find(Trace.class, traceId);
+        assertThat(retrieved).isNull();
+    }
+
 }

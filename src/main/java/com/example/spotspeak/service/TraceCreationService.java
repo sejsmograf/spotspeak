@@ -12,11 +12,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.spotspeak.constants.TraceConstants;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.enumeration.ETraceType;
 import com.example.spotspeak.repository.TraceRepository;
 
 import jakarta.transaction.Transactional;
@@ -27,16 +29,21 @@ public class TraceCreationService {
     private TraceRepository traceRepository;
     private ResourceService resourceService;
     private TagService tagService;
+    private KeyGenerationService keyGenerationService;
     private GeometryFactory geometryFactory;
     private ApplicationEventPublisher eventPublisher;
 
     public TraceCreationService(TraceRepository traceRepository, ResourceService resourceService,
-            UserService userService, TagService tagService, ApplicationEventPublisher eventPublisher) {
+            KeyGenerationService keyGenerationService,
+            UserService userService,
+            TagService tagService,
+            ApplicationEventPublisher eventPublisher) {
         this.traceRepository = traceRepository;
         this.resourceService = resourceService;
         this.tagService = tagService;
         this.geometryFactory = new GeometryFactory();
         this.eventPublisher = eventPublisher;
+        this.keyGenerationService = keyGenerationService;
     }
 
     @Transactional
@@ -44,36 +51,55 @@ public class TraceCreationService {
             MultipartFile file,
             TraceUploadDTO dto) {
         TraceCreationComponents components = prepareTraceCreationComponents(dto);
-        Resource resource = processTraceResource(author, file);
+        Resource resource = file == null ? null : processAndStoreTraceResource(author, file);
         Trace trace = buildAndSaveTrace(components, author, resource);
         UserActionEvent traceEvent = UserActionEvent.builder()
-            .user(author)
-            .eventType(EEventType.ADD_TRACE)
-            .location(trace.getLocation())
-            .timestamp(LocalDateTime.now())
-            .build();
+                .user(author)
+                .eventType(EEventType.ADD_TRACE)
+                .location(trace.getLocation())
+                .timestamp(LocalDateTime.now())
+                .build();
         eventPublisher.publishEvent(traceEvent);
         return trace;
     }
 
     private Trace buildAndSaveTrace(TraceCreationComponents components, User author, Resource resource) {
+        ETraceType type = determineTraceType(resource);
+
         Trace trace = Trace.builder()
+                .traceType(type)
                 .location(components.location())
                 .author(author)
                 .description(components.description())
                 .tags(components.tags())
                 .resource(resource)
+                .expiresAt(LocalDateTime.now().plusHours(TraceConstants.TRACE_EXPIRATION_HOURS))
                 .build();
 
         return traceRepository.save(trace);
     }
 
-    private Resource processTraceResource(User author, MultipartFile file) {
-        Resource resource = file == null
-                ? null
-                : resourceService.uploadTraceResource(author.getId().toString(), file);
+    private Resource processAndStoreTraceResource(User author, MultipartFile file) {
+        String authorId = author.getId().toString();
+        String origialFilename = file.getOriginalFilename();
+        String resourceKey = keyGenerationService.generateUniqueTraceResourceKey(authorId, origialFilename);
+        return resourceService.uploadFileAndSaveResource(file, resourceKey);
+    }
 
-        return resource;
+    private ETraceType determineTraceType(Resource resource) {
+        return resource == null
+                ? ETraceType.TEXTONLY
+                : determineTraceResourceType(resource.getFileType());
+    }
+
+    private ETraceType determineTraceResourceType(String mimeType) {
+        if (mimeType.startsWith("image")) {
+            return ETraceType.PHOTO;
+        } else if (mimeType.startsWith("video")) {
+            return ETraceType.VIDEO;
+        }
+
+        throw new IllegalArgumentException("Invalid mime type: " + mimeType + " for trace resource");
     }
 
     private TraceCreationComponents prepareTraceCreationComponents(TraceUploadDTO dto) {

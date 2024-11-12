@@ -1,14 +1,16 @@
 package com.example.spotspeak.repository;
 
-import com.example.spotspeak.entity.Comment;
-import com.example.spotspeak.entity.CommentMention;
-import com.example.spotspeak.entity.Trace;
-import com.example.spotspeak.entity.User;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.example.spotspeak.TestEntityFactory;
+import com.example.spotspeak.entity.Comment;
+import com.example.spotspeak.entity.CommentMention;
+import com.example.spotspeak.entity.Trace;
+import com.example.spotspeak.entity.User;
 
 public class CommentMentionRepositoryTest extends BaseRepositoryTest {
 
@@ -30,7 +32,8 @@ public class CommentMentionRepositoryTest extends BaseRepositoryTest {
             User mentionedUser = TestEntityFactory.createPersistedUser(entityManager);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Test comment");
-            CommentMention mention = TestEntityFactory.createPersistedCommentMention(entityManager, comment, mentionedUser);
+            CommentMention mention = TestEntityFactory.createPersistedCommentMention(entityManager, comment,
+                    mentionedUser);
             flushAndClear();
 
             assertThat(mention.getId()).isNotNull();
@@ -42,7 +45,8 @@ public class CommentMentionRepositoryTest extends BaseRepositoryTest {
             User mentionedUser = TestEntityFactory.createPersistedUser(entityManager);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Test comment");
-            CommentMention mention = TestEntityFactory.createPersistedCommentMention(entityManager, comment, mentionedUser);
+            CommentMention mention = TestEntityFactory.createPersistedCommentMention(entityManager, comment,
+                    mentionedUser);
             flushAndClear();
 
             commentMentionRepository.deleteById(mention.getId());
@@ -59,7 +63,8 @@ public class CommentMentionRepositoryTest extends BaseRepositoryTest {
             User mentionedUser = TestEntityFactory.createPersistedUser(entityManager);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Test comment");
-            CommentMention commentMention = TestEntityFactory.createPersistedCommentMention(entityManager, comment, mentionedUser);
+            CommentMention commentMention = TestEntityFactory.createPersistedCommentMention(entityManager, comment,
+                    mentionedUser);
             flushAndClear();
 
             commentRepository.deleteById(comment.getId());

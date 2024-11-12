@@ -1,16 +1,18 @@
 package com.example.spotspeak.repository;
 
-import com.example.spotspeak.entity.FriendRequest;
-import com.example.spotspeak.entity.User;
-import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.example.spotspeak.TestEntityFactory;
+import com.example.spotspeak.entity.FriendRequest;
+import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
 
 public class FriendRequestRepositoryTest extends BaseRepositoryTest {
 
@@ -28,7 +30,8 @@ public class FriendRequestRepositoryTest extends BaseRepositoryTest {
     void setUp() {
         sender = TestEntityFactory.createPersistedUser(entityManager);
         receiver = TestEntityFactory.createPersistedUser(entityManager);
-        friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver, EFriendRequestStatus.PENDING);
+        friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver,
+                EFriendRequestStatus.PENDING);
         flushAndClear();
     }
 
@@ -74,21 +77,24 @@ public class FriendRequestRepositoryTest extends BaseRepositoryTest {
 
         @Test
         void existsBySenderAndReceiverAndStatus_shouldReturnTrue_whenRequestExists() {
-            boolean exists = friendRequestRepository.existsBySenderAndReceiverAndStatus(sender, receiver, EFriendRequestStatus.PENDING);
+            boolean exists = friendRequestRepository.existsBySenderAndReceiverAndStatus(sender, receiver,
+                    EFriendRequestStatus.PENDING);
 
             assertThat(exists).isTrue();
         }
 
         @Test
         void findBySenderAndStatus_shouldReturnFriendRequestsSentByUserWithGivenStatus() {
-            List<FriendRequest> requests = friendRequestRepository.findBySenderAndStatus(sender, EFriendRequestStatus.PENDING);
+            List<FriendRequest> requests = friendRequestRepository.findBySenderAndStatus(sender,
+                    EFriendRequestStatus.PENDING);
 
             assertThat(requests).isNotEmpty().containsExactly(friendRequest);
         }
 
         @Test
         void findByReceiverAndStatus_shouldReturnFriendRequestsReceivedByUserWithGivenStatus() {
-            List<FriendRequest> requests = friendRequestRepository.findByReceiverAndStatus(receiver, EFriendRequestStatus.PENDING);
+            List<FriendRequest> requests = friendRequestRepository.findByReceiverAndStatus(receiver,
+                    EFriendRequestStatus.PENDING);
 
             assertThat(requests).isNotEmpty().containsExactly(friendRequest);
         }

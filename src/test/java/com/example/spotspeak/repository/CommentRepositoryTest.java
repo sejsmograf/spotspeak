@@ -1,13 +1,18 @@
 package com.example.spotspeak.repository;
 
-import com.example.spotspeak.entity.*;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.example.spotspeak.TestEntityFactory;
+import com.example.spotspeak.entity.Comment;
+import com.example.spotspeak.entity.CommentMention;
+import com.example.spotspeak.entity.Trace;
+import com.example.spotspeak.entity.User;
 
 public class CommentRepositoryTest extends BaseRepositoryTest {
 
@@ -83,10 +88,13 @@ public class CommentRepositoryTest extends BaseRepositoryTest {
             User mentionedUser2 = TestEntityFactory.createPersistedUser(entityManager);
             Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
 
-            Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Comment with mentions");
+            Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace,
+                    "Comment with mentions");
 
-            CommentMention mention1 = TestEntityFactory.createPersistedCommentMention(entityManager, comment, mentionedUser1);
-            CommentMention mention2 = TestEntityFactory.createPersistedCommentMention(entityManager, comment, mentionedUser2);
+            CommentMention mention1 = TestEntityFactory.createPersistedCommentMention(entityManager, comment,
+                    mentionedUser1);
+            CommentMention mention2 = TestEntityFactory.createPersistedCommentMention(entityManager, comment,
+                    mentionedUser2);
 
             comment.setMentions(List.of(mention1, mention2));
             entityManager.persist(comment);
@@ -96,8 +104,8 @@ public class CommentRepositoryTest extends BaseRepositoryTest {
             List<CommentMention> mentions = foundComment.getMentions();
 
             assertThat(mentions).isNotEmpty()
-                .hasSize(2)
-                .containsExactlyInAnyOrderElementsOf(List.of(mention1, mention2));
+                    .hasSize(2)
+                    .containsExactlyInAnyOrderElementsOf(List.of(mention1, mention2));
         }
     }
 

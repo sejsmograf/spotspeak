@@ -3,12 +3,12 @@ package com.example.spotspeak.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.spotspeak.BaseTest;
+import com.example.spotspeak.BaseTestWithPostgres;
 
 import jakarta.persistence.EntityManager;
 
 @SpringBootTest
-public class BaseServiceIntegrationTest extends BaseTest {
+public class BaseServiceIntegrationTest extends BaseTestWithPostgres {
 
     @Autowired
     protected EntityManager entityManager;

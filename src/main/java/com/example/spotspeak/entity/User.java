@@ -92,6 +92,5 @@ public class User {
 
     public void removeDiscoveredTrace(Trace trace) {
         discoveredTraces.remove(trace);
-        trace.getDiscoverers().remove(this);
     }
 }

@@ -19,18 +19,21 @@ import lombok.NoArgsConstructor;
 @EntityListeners(ResourceListener.class)
 public class Resource {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
-	@Column(nullable = false, unique = true)
-	private String resourceKey;
+    @Column(nullable = false, unique = true)
+    private String resourceKey;
 
-	@Column(nullable = true)
-	private String fileType;
+    @Column(nullable = false)
+    private String fileType;
 
-	@CreationTimestamp
-	private LocalDateTime createdAt;
+    @Column(nullable = false)
+    private Long fileSize;
 
-	// @PreRemove is handled by ResourceListener
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    // @PreRemove is handled by ResourceListener
 }

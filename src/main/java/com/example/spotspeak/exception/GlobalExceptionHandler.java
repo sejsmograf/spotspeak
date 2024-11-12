@@ -1,26 +1,30 @@
 package com.example.spotspeak.exception;
 
 import jakarta.ws.rs.ForbiddenException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.example.spotspeak.dto.ErrorResponse;
 
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     ErrorResponse handleConstraintViolationException(ConstraintViolationException e) {
+        logger.error("Constraint violation exception", e);
         ErrorResponse response = ErrorResponse.createInstance();
         e.getConstraintViolations()
                 .forEach(constraintViolation -> response.addMessage(
@@ -30,51 +34,13 @@ public class GlobalExceptionHandler {
         return response;
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    ErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        ErrorResponse response = ErrorResponse.createInstance();
-
-        e.getBindingResult().getFieldErrors()
-                .forEach(fieldError -> response
-                        .addMessage(fieldError.getField() + " : "
-                                + fieldError.getDefaultMessage()));
-
-        return response;
-    }
-
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    ErrorResponse handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
-        ErrorResponse response = ErrorResponse.createInstance();
-        response.addMessage(e.getParameterName() + " : " + e.getMessage());
-
-        return response;
-    }
-
-    @ExceptionHandler(BindException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    ErrorResponse handleBindException(BindException e) {
-        ErrorResponse response = ErrorResponse.createInstance();
-
-        e.getBindingResult().getFieldErrors()
-                .forEach(fieldError -> response
-                        .addMessage(fieldError.getField() + " : "
-                                + fieldError.getDefaultMessage()));
-
-        return response;
-    }
-
     @ExceptionHandler(ForbiddenException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody
     ErrorResponse handleForbiddenException(ForbiddenException e) {
+        logger.error("Forbidden exception", e);
         ErrorResponse response = ErrorResponse.createInstance();
         response.addMessage("Access Denied: " + e.getMessage());
         return response;
     }
-
 }

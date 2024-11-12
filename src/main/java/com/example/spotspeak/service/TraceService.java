@@ -50,7 +50,7 @@ public class TraceService {
     }
 
     public List<TraceDownloadDTO> getDiscoveredTraces(String userId) {
-        return traceDiscoveryService.findUserDisoveredTraces(userId).stream()
+        return traceDiscoveryService.findUserDiscoveredTraces(userId).stream()
                 .map(traceMapper::createTraceDownloadDTO)
                 .toList();
     }
@@ -60,10 +60,7 @@ public class TraceService {
         List<Object[]> results = traceRepository.findNearbyTracesLocationsForUser(UUID.fromString(userId),
                 longitude, latitude, distance);
 
-        return (List<TraceLocationDTO>) results.stream()
-                .map(result -> new TraceLocationDTO((Long) result[0], (Double) result[1], (Double) result[2],
-                        (boolean) result[3]))
-                .toList();
+        return results.stream().map(traceMapper::createTraceLocationDtoFromNativeQueryResult).toList();
     }
 
     public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {
@@ -81,10 +78,7 @@ public class TraceService {
         }
 
         trace.setResource(null);
-
-        for (User user : trace.getDiscoverers()) {
-            user.removeDiscoveredTrace(trace);
-        }
+        trace.clearDiscoverers();
 
         traceRepository.deleteById(traceId);
     }
@@ -104,8 +98,6 @@ public class TraceService {
 
         boolean discovered = traceDiscoveryService.hasUserDiscoveredTrace(user, trace);
         boolean isAuthor = trace.getAuthor().getId().equals(user.getId());
-        System.out.println("AUTHOR" + trace.getAuthor().getId());
-        System.out.println("CLAIMER" + user.getId());
 
         boolean canGetTraceInfo = discovered || isAuthor;
 

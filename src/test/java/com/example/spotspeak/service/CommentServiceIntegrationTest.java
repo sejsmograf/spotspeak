@@ -7,7 +7,7 @@ import com.example.spotspeak.entity.CommentMention;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.CommentNotFoundException;
-import com.example.spotspeak.repository.TestEntityFactory;
+import com.example.spotspeak.TestEntityFactory;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ForbiddenException;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
 
@@ -45,7 +45,8 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         void shouldAddCommentToTrace_whenValidRequest() {
             CommentRequestDTO commentRequest = TestEntityFactory.createCommentRequestDTO("Test comment");
 
-            CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(), commentRequest);
+            CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(),
+                    commentRequest);
 
             assertThat(responseDTO).isNotNull();
             assertThat(responseDTO.content()).isEqualTo(commentRequest.content());
@@ -64,14 +65,15 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         void shouldProcessMentions_whenRequestContainsMentions() {
             CommentRequestDTO commentRequest = TestEntityFactory.createCommentRequestDTO("Mentioning someone @user123");
 
-            CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(), commentRequest);
+            CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(),
+                    commentRequest);
 
             Comment savedComment = entityManager.find(Comment.class, responseDTO.id());
             assertThat(savedComment.getMentions()).isNotEmpty();
             assertThat(savedComment.getMentions())
-                .hasSize(1)
-                .extracting(CommentMention::getMentionedUser)
-                .containsExactly(mentionedUser);
+                    .hasSize(1)
+                    .extracting(CommentMention::getMentionedUser)
+                    .containsExactly(mentionedUser);
         }
     }
 
@@ -81,11 +83,14 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldReturnComments_whenCommentsExistForTrace() {
-            Comment comment1 = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace, "First comment");
-            Comment comment2 = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace, "Second comment");
+            Comment comment1 = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace,
+                    "First comment");
+            Comment comment2 = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace,
+                    "Second comment");
             flushAndClear();
 
-            List<CommentResponseDTO> comments = commentService.getTraceComments(testUser.getId().toString(), testTrace.getId());
+            List<CommentResponseDTO> comments = commentService.getTraceComments(testUser.getId().toString(),
+                    testTrace.getId());
 
             assertThat(comments).hasSize(2);
             assertThat(comments).extracting("id").containsExactlyInAnyOrder(comment1.getId(), comment2.getId());
@@ -95,7 +100,8 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldReturnEmptyList_whenNoCommentsExistForTrace() {
-            List<CommentResponseDTO> comments = commentService.getTraceComments(testUser.getId().toString(), testTrace.getId());
+            List<CommentResponseDTO> comments = commentService.getTraceComments(testUser.getId().toString(),
+                    testTrace.getId());
 
             assertThat(comments).isEmpty();
         }
@@ -107,11 +113,13 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldUpdateCommentContent_whenAuthorUpdates() {
-            Comment testComment = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace, "Original content");
+            Comment testComment = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace,
+                    "Original content");
             CommentRequestDTO updateRequest = TestEntityFactory.createCommentRequestDTO("Updated content");
             flushAndClear();
 
-            CommentResponseDTO response = commentService.updateComment(testUser.getId().toString(), testComment.getId(), updateRequest);
+            CommentResponseDTO response = commentService.updateComment(testUser.getId().toString(), testComment.getId(),
+                    updateRequest);
 
             Comment updatedComment = entityManager.find(Comment.class, response.id());
 
@@ -128,24 +136,28 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldUpdateCommentContent_whenAuthorUpdates_whenRequestContainsMentions() {
-            CommentRequestDTO commentRequest = TestEntityFactory.createCommentRequestDTO("Original. Mentioning someone @user123");
-            CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(), commentRequest);
+            CommentRequestDTO commentRequest = TestEntityFactory
+                    .createCommentRequestDTO("Original. Mentioning someone @user123");
+            CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(),
+                    commentRequest);
             Comment comment = entityManager.find(Comment.class, responseDTO.id());
 
             User updateMentionedUser = TestEntityFactory.createPersistedUser(entityManager);
             updateMentionedUser.setUsername("user456");
             entityManager.persist(updateMentionedUser);
 
-            CommentRequestDTO updateRequest = TestEntityFactory.createCommentRequestDTO("Updated. Mentioning someone @user456");
-            CommentResponseDTO response = commentService.updateComment(testUser.getId().toString(), comment.getId(), updateRequest);
+            CommentRequestDTO updateRequest = TestEntityFactory
+                    .createCommentRequestDTO("Updated. Mentioning someone @user456");
+            CommentResponseDTO response = commentService.updateComment(testUser.getId().toString(), comment.getId(),
+                    updateRequest);
 
             Comment updatedComment = entityManager.find(Comment.class, response.id());
             assertThat(updatedComment.getContent()).isEqualTo("Updated. Mentioning someone @user456");
             assertThat(updatedComment.getMentions()).isNotEmpty();
             assertThat(updatedComment.getMentions())
-                .hasSize(1)
-                .extracting(CommentMention::getMentionedUser)
-                .containsExactly(updateMentionedUser);
+                    .hasSize(1)
+                    .extracting(CommentMention::getMentionedUser)
+                    .containsExactly(updateMentionedUser);
 
             assertThat(response).isNotNull();
             assertThat(response.content()).isEqualTo("Updated. Mentioning someone @user456");
@@ -154,12 +166,13 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldThrowException_whenNonAuthorTriesToUpdate() {
-            Comment testComment = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace, "Test comment");
+            Comment testComment = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace,
+                    "Test comment");
             User otherUser = TestEntityFactory.createPersistedUser(entityManager);
             CommentRequestDTO updateRequest = new CommentRequestDTO("Test comment");
 
-            assertThrows(ForbiddenException.class, () ->
-                commentService.updateComment(otherUser.getId().toString(), testComment.getId(), updateRequest));
+            assertThrows(ForbiddenException.class, () -> commentService.updateComment(otherUser.getId().toString(),
+                    testComment.getId(), updateRequest));
         }
 
         @Test
@@ -167,8 +180,8 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         void shouldThrowException_whenCommentNotFound() {
             CommentRequestDTO updateRequest = new CommentRequestDTO("Test comment");
 
-            assertThrows(CommentNotFoundException.class, () ->
-                commentService.updateComment(testUser.getId().toString(), 999L, updateRequest));
+            assertThrows(CommentNotFoundException.class,
+                    () -> commentService.updateComment(testUser.getId().toString(), 999L, updateRequest));
         }
     }
 
@@ -178,7 +191,8 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldDeleteComment_whenAuthorDeletes() {
-            Comment testComment = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace, "Test comment");
+            Comment testComment = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace,
+                    "Test comment");
             commentService.deleteComment(testUser.getId().toString(), testComment.getId());
 
             assertThat(entityManager.find(Comment.class, testComment.getId())).isNull();
@@ -187,18 +201,19 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldThrowException_whenNonAuthorTriesToDelete() {
-            Comment testComment = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace, "Test comment");
+            Comment testComment = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace,
+                    "Test comment");
             User otherUser = TestEntityFactory.createPersistedUser(entityManager);
 
-            assertThrows(ForbiddenException.class, () ->
-                commentService.deleteComment(otherUser.getId().toString(), testComment.getId()));
+            assertThrows(ForbiddenException.class,
+                    () -> commentService.deleteComment(otherUser.getId().toString(), testComment.getId()));
         }
 
         @Test
         @Transactional
         void shouldThrowException_whenCommentNotFound() {
-            assertThrows(CommentNotFoundException.class, () ->
-                commentService.deleteComment(testUser.getId().toString(), 999L));
+            assertThrows(CommentNotFoundException.class,
+                    () -> commentService.deleteComment(testUser.getId().toString(), 999L));
         }
     }
 

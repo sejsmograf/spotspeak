@@ -9,11 +9,14 @@ import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
 import org.locationtech.jts.geom.Point;
 
+import com.example.spotspeak.entity.enumeration.ETraceType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -85,8 +88,15 @@ public class Trace {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ETraceType traceType;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
 
     public double getLongitude() {
         return location.getX();
@@ -94,6 +104,13 @@ public class Trace {
 
     public double getLatitude() {
         return location.getY();
+    }
+
+    public void clearDiscoverers() {
+        for (User user : getDiscoverers()) {
+            user.removeDiscoveredTrace(this);
+        }
+        discoverers.clear();
     }
 
     @Override

@@ -6,7 +6,7 @@ import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.achievements.Achievement;
 import com.example.spotspeak.entity.achievements.UserAchievement;
 import com.example.spotspeak.entity.enumeration.EEventType;
-import com.example.spotspeak.repository.TestEntityFactory;
+import com.example.spotspeak.TestEntityFactory;
 import com.example.spotspeak.service.achievement.AchievementActionListener;
 import com.example.spotspeak.service.achievement.UserAchievementService;
 import com.example.spotspeak.service.achievement.UserActionEvent;
@@ -51,14 +51,13 @@ public class AchievementActionListenerTest extends BaseServiceIntegrationTest {
     public void setup() {
         testUser = TestEntityFactory.createPersistedUser(entityManager);
         Achievement firstTraceAchievement = TestEntityFactory.createPersistedAchievement(
-            entityManager,
-            "Dodaj pierwszy ślad",
-            "Dodaj pierwszy ślad",
-            20,
-            EEventType.ADD_TRACE,
-            1,
-            null
-        );
+                entityManager,
+                "Dodaj pierwszy ślad",
+                "Dodaj pierwszy ślad",
+                20,
+                EEventType.ADD_TRACE,
+                1,
+                null);
         TestEntityFactory.createPersistedUserAchievement(entityManager, testUser, firstTraceAchievement, 0, 0, null);
 
         entityManager.flush();
@@ -69,10 +68,10 @@ public class AchievementActionListenerTest extends BaseServiceIntegrationTest {
     public void testH2andleUserActionEvent() {
         // Create a UserActionEvent with sample data
         UserActionEvent event = UserActionEvent.builder()
-            .user(testUser)
-            .eventType(EEventType.ADD_TRACE)
-            .timestamp(LocalDateTime.now())
-            .build();
+                .user(testUser)
+                .eventType(EEventType.ADD_TRACE)
+                .timestamp(LocalDateTime.now())
+                .build();
 
         // Publish the event
         eventPublisher.publishEvent(event);
@@ -95,13 +94,15 @@ public class AchievementActionListenerTest extends BaseServiceIntegrationTest {
         traceCreationService.createAndPersistTrace(testUser, null, traceUploadDTO);
         entityManager.flush();
 
-        List<UserAchievementDTO> userAchievements = userAchievementService.getUserAchievements(testUser.getId().toString());
+        List<UserAchievementDTO> userAchievements = userAchievementService
+                .getUserAchievements(testUser.getId().toString());
         UserAchievementDTO firstTraceAchievementDTO = userAchievements.stream()
-            .filter(ua -> ua.achievementName().equals("Dodaj pierwszy ślad"))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Osiągnięcie 'Dodaj pierwszy ślad' nie zostało znalezione"));
+                .filter(ua -> ua.achievementName().equals("Dodaj pierwszy ślad"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Osiągnięcie 'Dodaj pierwszy ślad' nie zostało znalezione"));
         entityManager.flush();
-       UserAchievement firstTraceAchievement = entityManager.find(UserAchievement.class, firstTraceAchievementDTO.userAchievementId());
+        UserAchievement firstTraceAchievement = entityManager.find(UserAchievement.class,
+                firstTraceAchievementDTO.userAchievementId());
         entityManager.flush();
         assertThat(firstTraceAchievement.getQuantityProgress()).isEqualTo(1);
         assertThat(firstTraceAchievement.getCompletedAt()).isNotNull();
@@ -119,7 +120,7 @@ public class AchievementActionListenerTest extends BaseServiceIntegrationTest {
         UserActionEvent emittedEvent = eventCaptor.getValue();
         assertThat(emittedEvent.getUser()).isEqualTo(testUser);
         assertThat(emittedEvent.getEventType()).isEqualTo(EEventType.ADD_TRACE);
-        //assertThat(emittedEvent.getLocation()).isEqualTo();
+        // assertThat(emittedEvent.getLocation()).isEqualTo();
         assertThat(emittedEvent.getTimestamp()).isNotNull();
     }
 }

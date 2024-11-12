@@ -20,16 +20,16 @@ import jakarta.validation.constraints.NotBlank;
 @Validated
 public class UserController {
 
-	private UserService userService;
+    private UserService userService;
 
-	public UserController(UserService userService) {
-		this.userService = userService;
-	}
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
-	@GetMapping("/search")
-	public ResponseEntity<List<PublicUserProfileDTO>> searchUsersByUsername(
-			@Valid @NotBlank @RequestParam String username) {
-		List<PublicUserProfileDTO> users = userService.searchUsersByUsername(username);
-		return ResponseEntity.ok(users);
-	}
+    @GetMapping("/search")
+    public ResponseEntity<List<PublicUserProfileDTO>> searchUsersByUsername(
+            @Valid @NotBlank @RequestParam String username) {
+        List<PublicUserProfileDTO> users = userService.searchUsersByUsername(username);
+        return ResponseEntity.ok(users);
+    }
 }

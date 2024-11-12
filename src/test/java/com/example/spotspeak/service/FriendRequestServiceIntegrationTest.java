@@ -9,7 +9,7 @@ import com.example.spotspeak.exception.FriendRequestExistsException;
 import com.example.spotspeak.exception.FriendRequestNotFoundException;
 import com.example.spotspeak.exception.FriendshipExistsException;
 import com.example.spotspeak.exception.InvalidFriendRequestStatusException;
-import com.example.spotspeak.repository.TestEntityFactory;
+import com.example.spotspeak.TestEntityFactory;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ForbiddenException;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationTest {
 
@@ -41,7 +41,8 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         @Test
         @Transactional
         void shouldCreatePendingRequest_whenValid() {
-            FriendRequestDTO response = friendRequestService.sendFriendRequest(sender.getId().toString(), receiver.getId());
+            FriendRequestDTO response = friendRequestService.sendFriendRequest(sender.getId().toString(),
+                    receiver.getId());
 
             assertThat(response).isNotNull();
             assertThat(response.status()).isEqualTo(EFriendRequestStatus.PENDING);
@@ -54,9 +55,8 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         void shouldThrowException_whenRequestAlreadyReceivedFromUser() {
             friendRequestService.sendFriendRequest(receiver.getId().toString(), sender.getId());
 
-            assertThrows(FriendRequestExistsException.class, () ->
-                friendRequestService.sendFriendRequest(sender.getId().toString(), receiver.getId())
-            );
+            assertThrows(FriendRequestExistsException.class,
+                    () -> friendRequestService.sendFriendRequest(sender.getId().toString(), receiver.getId()));
         }
 
         @Test
@@ -64,9 +64,8 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         void shouldThrowException_whenRequestAlreadySentToUser() {
             friendRequestService.sendFriendRequest(sender.getId().toString(), receiver.getId());
 
-            assertThrows(FriendRequestExistsException.class, () ->
-                friendRequestService.sendFriendRequest(sender.getId().toString(), receiver.getId())
-            );
+            assertThrows(FriendRequestExistsException.class,
+                    () -> friendRequestService.sendFriendRequest(sender.getId().toString(), receiver.getId()));
         }
 
         @Test
@@ -74,9 +73,8 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         void shouldThrowException_whenFriendshipAlreadyExists() {
             TestEntityFactory.createPersistedFriendship(entityManager, sender, receiver);
 
-            assertThrows(FriendshipExistsException.class, () ->
-                friendRequestService.sendFriendRequest(sender.getId().toString(), receiver.getId())
-            );
+            assertThrows(FriendshipExistsException.class,
+                    () -> friendRequestService.sendFriendRequest(sender.getId().toString(), receiver.getId()));
         }
     }
 
@@ -86,8 +84,10 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         @Test
         @Transactional
         void shouldAcceptRequest_whenValid() {
-            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver, EFriendRequestStatus.PENDING);
-            FriendRequestDTO response = friendRequestService.acceptFriendRequest(receiver.getId().toString(), friendRequest.getId());
+            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender,
+                    receiver, EFriendRequestStatus.PENDING);
+            FriendRequestDTO response = friendRequestService.acceptFriendRequest(receiver.getId().toString(),
+                    friendRequest.getId());
 
             assertThat(response).isNotNull();
             assertThat(response.status()).isEqualTo(EFriendRequestStatus.ACCEPTED);
@@ -97,29 +97,28 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         @Test
         @Transactional
         void shouldThrowException_whenRequestNotPending() {
-            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver, EFriendRequestStatus.ACCEPTED);
+            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender,
+                    receiver, EFriendRequestStatus.ACCEPTED);
 
-            assertThrows(InvalidFriendRequestStatusException.class, () ->
-                friendRequestService.acceptFriendRequest(receiver.getId().toString(), friendRequest.getId())
-            );
+            assertThrows(InvalidFriendRequestStatusException.class,
+                    () -> friendRequestService.acceptFriendRequest(receiver.getId().toString(), friendRequest.getId()));
         }
 
         @Test
         @Transactional
         void shouldThrowException_whenNotReceiver() {
-            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver, EFriendRequestStatus.PENDING);
+            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender,
+                    receiver, EFriendRequestStatus.PENDING);
 
-            assertThrows(ForbiddenException.class, () ->
-                friendRequestService.acceptFriendRequest(sender.getId().toString(), friendRequest.getId())
-            );
+            assertThrows(ForbiddenException.class,
+                    () -> friendRequestService.acceptFriendRequest(sender.getId().toString(), friendRequest.getId()));
         }
 
         @Test
         @Transactional
         void shouldThrowException_whenRequestNotFound() {
-            assertThrows(FriendRequestNotFoundException.class, () ->
-                friendRequestService.acceptFriendRequest(receiver.getId().toString(), 999L)
-            );
+            assertThrows(FriendRequestNotFoundException.class,
+                    () -> friendRequestService.acceptFriendRequest(receiver.getId().toString(), 999L));
         }
     }
 
@@ -129,9 +128,11 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         @Test
         @Transactional
         void shouldRejectRequest_whenValid() {
-            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver, EFriendRequestStatus.PENDING);
+            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender,
+                    receiver, EFriendRequestStatus.PENDING);
 
-            FriendRequestDTO response = friendRequestService.rejectFriendRequest(receiver.getId().toString(), friendRequest.getId());
+            FriendRequestDTO response = friendRequestService.rejectFriendRequest(receiver.getId().toString(),
+                    friendRequest.getId());
 
             assertThat(response).isNotNull();
             assertThat(response.status()).isEqualTo(EFriendRequestStatus.REJECTED);
@@ -141,29 +142,28 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         @Test
         @Transactional
         void shouldThrowException_whenRequestNotPending() {
-            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver, EFriendRequestStatus.REJECTED);
+            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender,
+                    receiver, EFriendRequestStatus.REJECTED);
 
-            assertThrows(InvalidFriendRequestStatusException.class, () ->
-                friendRequestService.rejectFriendRequest(receiver.getId().toString(), friendRequest.getId())
-            );
+            assertThrows(InvalidFriendRequestStatusException.class,
+                    () -> friendRequestService.rejectFriendRequest(receiver.getId().toString(), friendRequest.getId()));
         }
 
         @Test
         @Transactional
         void shouldThrowException_whenNotReceiver() {
-            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver, EFriendRequestStatus.PENDING);
+            FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(entityManager, sender,
+                    receiver, EFriendRequestStatus.PENDING);
 
-            assertThrows(ForbiddenException.class, () ->
-                friendRequestService.rejectFriendRequest(sender.getId().toString(), friendRequest.getId())
-            );
+            assertThrows(ForbiddenException.class,
+                    () -> friendRequestService.rejectFriendRequest(sender.getId().toString(), friendRequest.getId()));
         }
 
         @Test
         @Transactional
         void shouldThrowException_whenRequestNotFound() {
-            assertThrows(FriendRequestNotFoundException.class, () ->
-                friendRequestService.rejectFriendRequest(receiver.getId().toString(), 999L)
-            );
+            assertThrows(FriendRequestNotFoundException.class,
+                    () -> friendRequestService.rejectFriendRequest(receiver.getId().toString(), 999L));
         }
     }
 
@@ -174,7 +174,7 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         @Transactional
         void shouldCancelRequest_whenUserIsSenderAndStatusIsPending() {
             FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(
-                entityManager, sender, receiver, EFriendRequestStatus.PENDING);
+                    entityManager, sender, receiver, EFriendRequestStatus.PENDING);
 
             friendRequestService.cancelFriendRequest(sender.getId().toString(), friendRequest.getId());
             flushAndClear();
@@ -188,30 +188,27 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         @Transactional
         void shouldThrowException_whenUserIsNotSender() {
             FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(
-                entityManager, sender, receiver, EFriendRequestStatus.PENDING);
+                    entityManager, sender, receiver, EFriendRequestStatus.PENDING);
 
-            assertThrows(ForbiddenException.class, () ->
-                friendRequestService.cancelFriendRequest(receiver.getId().toString(), friendRequest.getId())
-            );
+            assertThrows(ForbiddenException.class,
+                    () -> friendRequestService.cancelFriendRequest(receiver.getId().toString(), friendRequest.getId()));
         }
 
         @Test
         @Transactional
         void shouldThrowException_whenRequestIsNotPending() {
             FriendRequest friendRequest = TestEntityFactory.createPersistedFriendRequest(
-                entityManager, sender, receiver, EFriendRequestStatus.ACCEPTED);
+                    entityManager, sender, receiver, EFriendRequestStatus.ACCEPTED);
 
-            assertThrows(InvalidFriendRequestStatusException.class, () ->
-                friendRequestService.cancelFriendRequest(sender.getId().toString(), friendRequest.getId())
-            );
+            assertThrows(InvalidFriendRequestStatusException.class,
+                    () -> friendRequestService.cancelFriendRequest(sender.getId().toString(), friendRequest.getId()));
         }
 
         @Test
         @Transactional
         void shouldThrowException_whenRequestNotFound() {
-            assertThrows(FriendRequestNotFoundException.class, () ->
-                friendRequestService.cancelFriendRequest(sender.getId().toString(), 999L)
-            );
+            assertThrows(FriendRequestNotFoundException.class,
+                    () -> friendRequestService.cancelFriendRequest(sender.getId().toString(), 999L));
         }
     }
 
@@ -223,21 +220,25 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         void shouldReturnPendingSentRequests_whenExists() {
             User receiver1 = TestEntityFactory.createPersistedUser(entityManager);
             User receiver2 = TestEntityFactory.createPersistedUser(entityManager);
-            TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver1, EFriendRequestStatus.PENDING);
-            TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver2, EFriendRequestStatus.PENDING);
+            TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver1,
+                    EFriendRequestStatus.PENDING);
+            TestEntityFactory.createPersistedFriendRequest(entityManager, sender, receiver2,
+                    EFriendRequestStatus.PENDING);
             flushAndClear();
 
-            List<FriendRequestUserInfoDTO> sentRequests = friendRequestService.getSentFriendRequests(sender.getId().toString());
+            List<FriendRequestUserInfoDTO> sentRequests = friendRequestService
+                    .getSentFriendRequests(sender.getId().toString());
 
             assertThat(sentRequests).hasSize(2);
             assertThat(sentRequests).extracting("userInfo.id")
-                .containsExactlyInAnyOrder(receiver1.getId(), receiver2.getId());
+                    .containsExactlyInAnyOrder(receiver1.getId(), receiver2.getId());
         }
 
         @Test
         @Transactional
         void shouldReturnEmptyList_whenNoPendingRequests() {
-            List<FriendRequestUserInfoDTO> sentRequests = friendRequestService.getSentFriendRequests(sender.getId().toString());
+            List<FriendRequestUserInfoDTO> sentRequests = friendRequestService
+                    .getSentFriendRequests(sender.getId().toString());
 
             assertThat(sentRequests).isEmpty();
         }
@@ -251,22 +252,25 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
         void shouldReturnPendingReceivedRequests_whenExists() {
             User sender1 = TestEntityFactory.createPersistedUser(entityManager);
             User sender2 = TestEntityFactory.createPersistedUser(entityManager);
-            TestEntityFactory.createPersistedFriendRequest(entityManager, sender1, receiver, EFriendRequestStatus.PENDING);
-            TestEntityFactory.createPersistedFriendRequest(entityManager, sender2, receiver, EFriendRequestStatus.PENDING);
+            TestEntityFactory.createPersistedFriendRequest(entityManager, sender1, receiver,
+                    EFriendRequestStatus.PENDING);
+            TestEntityFactory.createPersistedFriendRequest(entityManager, sender2, receiver,
+                    EFriendRequestStatus.PENDING);
             flushAndClear();
 
-            List<FriendRequestUserInfoDTO> receivedRequests = friendRequestService.getReceivedFriendRequests(receiver.getId().toString());
-
+            List<FriendRequestUserInfoDTO> receivedRequests = friendRequestService
+                    .getReceivedFriendRequests(receiver.getId().toString());
 
             assertThat(receivedRequests).hasSize(2);
             assertThat(receivedRequests).extracting("userInfo.id")
-                .containsExactlyInAnyOrder(sender1.getId(), sender2.getId());
+                    .containsExactlyInAnyOrder(sender1.getId(), sender2.getId());
         }
 
         @Test
         @Transactional
         void shouldReturnEmptyList_whenNoPendingRequests() {
-            List<FriendRequestUserInfoDTO> receivedRequests = friendRequestService.getReceivedFriendRequests(receiver.getId().toString());
+            List<FriendRequestUserInfoDTO> receivedRequests = friendRequestService
+                    .getReceivedFriendRequests(receiver.getId().toString());
 
             assertThat(receivedRequests).isEmpty();
         }

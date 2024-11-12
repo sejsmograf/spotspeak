@@ -29,8 +29,10 @@ public class TraceController {
     private TraceMapper mapper;
 
     public TraceController(TraceService traceService,
+            TagService tagService,
             TraceMapper mapper) {
         this.traceService = traceService;
+        this.tagService = tagService;
         this.mapper = mapper;
     }
 
@@ -82,8 +84,8 @@ public class TraceController {
     public ResponseEntity<TraceDownloadDTO> createTrace(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @ValidFile(required = false, maxSize = FileUploadConsants.TRACE_MEDIA_MAX_SIZE, allowedTypes = {
-                    "image/jpeg", "image/png",
-                    "image/jpg" }) @RequestPart(value = "file", required = false) MultipartFile file,
+                    "image/jpeg", "image/png", "image/jpg", "image/gif", "image/heic", "image/heif", "video/mp4",
+                    "video/3pg", "video/quicktime" }) @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestPart @Valid TraceUploadDTO traceUploadDTO) {
         String userId = jwt.getSubject();
         Trace trace = traceService.createTrace(userId, file, traceUploadDTO);
