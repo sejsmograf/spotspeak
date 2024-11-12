@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.PublicUserProfileDTO;
+import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
@@ -30,6 +31,18 @@ public class UserMapper {
                 user.getLastName(),
                 user.getEmail(),
                 profilePictureUrl);
+    }
+
+    public User createUserModelFormDTO(RegisteredUserDTO userDTO) {
+        User user = User.builder()
+                .id(userDTO.id())
+                .firstName(userDTO.firstName())
+                .lastName(userDTO.lastName())
+                .email(userDTO.email())
+                .registeredAt(userDTO.registeredAt())
+                .build();
+
+        return user;
     }
 
     public PublicUserProfileDTO createPublicUserProfileDTO(User user) {

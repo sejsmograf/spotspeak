@@ -83,6 +83,9 @@ public class UserService {
         return user;
     }
 
+    public void initializeKeycloakUser(User user) {
+    }
+
     public Resource updateUserProfilePicture(String userIdString, MultipartFile file) {
         User user = findByIdOrThrow(userIdString);
         deleteUserProfilePicture(userIdString);
