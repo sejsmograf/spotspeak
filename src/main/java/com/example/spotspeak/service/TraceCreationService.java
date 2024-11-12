@@ -3,9 +3,12 @@ package com.example.spotspeak.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.spotspeak.entity.enumeration.EEventType;
+import com.example.spotspeak.service.achievement.UserActionEvent;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,18 +31,19 @@ public class TraceCreationService {
     private TagService tagService;
     private KeyGenerationService keyGenerationService;
     private GeometryFactory geometryFactory;
+    private ApplicationEventPublisher eventPublisher;
 
-    public TraceCreationService(
-            TraceRepository traceRepository,
-            ResourceService resourceService,
+    public TraceCreationService(TraceRepository traceRepository, ResourceService resourceService,
+            KeyGenerationService keyGenerationService,
+            UserService userService,
             TagService tagService,
-            KeyGenerationService keyGenerationService) {
+            ApplicationEventPublisher eventPublisher) {
         this.traceRepository = traceRepository;
         this.resourceService = resourceService;
         this.tagService = tagService;
+        this.geometryFactory = new GeometryFactory();
+        this.eventPublisher = eventPublisher;
         this.keyGenerationService = keyGenerationService;
-
-        geometryFactory = new GeometryFactory();
     }
 
     @Transactional
@@ -48,7 +52,15 @@ public class TraceCreationService {
             TraceUploadDTO dto) {
         TraceCreationComponents components = prepareTraceCreationComponents(dto);
         Resource resource = file == null ? null : processAndStoreTraceResource(author, file);
-        return buildAndSaveTrace(components, author, resource);
+        Trace trace = buildAndSaveTrace(components, author, resource);
+        UserActionEvent traceEvent = UserActionEvent.builder()
+                .user(author)
+                .eventType(EEventType.ADD_TRACE)
+                .location(trace.getLocation())
+                .timestamp(LocalDateTime.now())
+                .build();
+        eventPublisher.publishEvent(traceEvent);
+        return trace;
     }
 
     private Trace buildAndSaveTrace(TraceCreationComponents components, User author, Resource resource) {

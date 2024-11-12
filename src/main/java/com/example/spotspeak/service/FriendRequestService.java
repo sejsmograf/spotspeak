@@ -4,11 +4,14 @@ import com.example.spotspeak.dto.FriendRequestDTO;
 import com.example.spotspeak.dto.FriendRequestUserInfoDTO;
 import com.example.spotspeak.entity.FriendRequest;
 import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.enumeration.EEventType;
 import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
 import com.example.spotspeak.exception.*;
 import com.example.spotspeak.mapper.FriendRequestMapper;
 import com.example.spotspeak.repository.FriendRequestRepository;
+import com.example.spotspeak.service.achievement.UserActionEvent;
 import jakarta.ws.rs.ForbiddenException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,13 +26,15 @@ public class FriendRequestService {
     private FriendshipService friendshipService;
     private UserService userService;
     private FriendRequestMapper friendRequestMapper;
+    private ApplicationEventPublisher eventPublisher;
 
     public FriendRequestService(FriendRequestRepository friendRequestRepository, FriendshipService friendshipService,
-            UserService userService, FriendRequestMapper friendRequestMapper) {
+            UserService userService, FriendRequestMapper friendRequestMapper, ApplicationEventPublisher eventPublisher) {
         this.friendRequestRepository = friendRequestRepository;
         this.friendshipService = friendshipService;
         this.userService = userService;
         this.friendRequestMapper = friendRequestMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -72,6 +77,20 @@ public class FriendRequestService {
 
         friendshipService.createFriendship(friendRequest.getSender(), currentUser);
 
+        UserActionEvent friendshipEventForSender = UserActionEvent.builder()
+            .user(friendRequest.getSender())
+            .eventType(EEventType.ADD_FRIEND)
+            .timestamp(LocalDateTime.now())
+            .build();
+
+        UserActionEvent friendshipEventForReceiver = UserActionEvent.builder()
+            .user(currentUser)
+            .eventType(EEventType.ADD_FRIEND)
+            .timestamp(LocalDateTime.now())
+            .build();
+
+        eventPublisher.publishEvent(friendshipEventForSender);
+        eventPublisher.publishEvent(friendshipEventForReceiver);
         return friendRequestMapper.toFriendRequestDTO(friendRequest);
     }
 

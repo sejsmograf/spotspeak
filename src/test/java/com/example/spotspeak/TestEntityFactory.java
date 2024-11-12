@@ -5,14 +5,26 @@ import com.example.spotspeak.dto.CommentRequestDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.entity.*;
+import com.example.spotspeak.entity.achievements.Achievement;
+import com.example.spotspeak.entity.achievements.Condition;
+import com.example.spotspeak.entity.achievements.ConsecutiveDaysCondition;
+import com.example.spotspeak.entity.achievements.LocationCondition;
+import com.example.spotspeak.entity.achievements.TimeCondition;
+import com.example.spotspeak.entity.achievements.UserAchievement;
+import com.example.spotspeak.entity.enumeration.EDateGranularity;
+import com.example.spotspeak.entity.enumeration.EEventType;
 import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
 import com.example.spotspeak.entity.enumeration.ETraceType;
 
 import jakarta.persistence.EntityManager;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
 import org.keycloak.representations.idm.UserRepresentation;
@@ -181,5 +193,64 @@ public class TestEntityFactory {
 
     public static CommentRequestDTO createCommentRequestDTO(String content) {
         return new CommentRequestDTO(content);
+    }
+
+    public static Achievement createPersistedAchievement(EntityManager em, String name, String description, int points, EEventType eventType, int requiredQuantity, Set<Condition> conditions) {
+        Achievement achievement = Achievement.builder()
+            .name(name)
+            .description(description)
+            .points(points)
+            .eventType(eventType)
+            .requiredQuantity(requiredQuantity)
+            .build();
+
+        if (conditions != null) {
+            conditions.forEach(em::persist);
+            achievement.setConditions(conditions);
+        }
+
+        em.persist(achievement);
+        return achievement;
+    }
+
+    public static ConsecutiveDaysCondition createPersistedConsecutiveDaysCondition(EntityManager em, int requiredDays) {
+        ConsecutiveDaysCondition condition = ConsecutiveDaysCondition.builder()
+            .requiredConsecutiveDays(requiredDays)
+            .build();
+        em.persist(condition);
+        return condition;
+    }
+
+    public static LocationCondition createPersistedLocationCondition(EntityManager em, double latitude, double longitude, double radius) {
+        Point location = new GeometryFactory().createPoint(new Coordinate(longitude, latitude));
+        LocationCondition condition = LocationCondition.builder()
+            .requiredLocation(location)
+            .radiusInMeters(radius)
+            .build();
+        em.persist(condition);
+        return condition;
+    }
+
+    public static TimeCondition createPersistedTimeCondition(EntityManager em, LocalDateTime dateTime, EDateGranularity granularity, LocalTime startTime, LocalTime endTime) {
+        TimeCondition condition = TimeCondition.builder()
+            .requiredDateTime(dateTime)
+            .granularity(granularity)
+            .startTime(startTime)
+            .endTime(endTime)
+            .build();
+        em.persist(condition);
+        return condition;
+    }
+
+    public static UserAchievement createPersistedUserAchievement(EntityManager em, User user, Achievement achievement, int progress, int streak, LocalDate lastActionDate) {
+        UserAchievement userAchievement = UserAchievement.builder()
+            .user(user)
+            .achievement(achievement)
+            .quantityProgress(progress)
+            .currentStreak(streak)
+            .lastActionDate(lastActionDate)
+            .build();
+        em.persist(userAchievement);
+        return userAchievement;
     }
 }

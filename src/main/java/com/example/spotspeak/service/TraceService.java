@@ -6,7 +6,8 @@ import java.util.UUID;
 import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
-import com.example.spotspeak.entity.*;
+import com.example.spotspeak.entity.Trace;
+import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.TraceNotFoundException;
 import com.example.spotspeak.mapper.TraceMapper;
 
@@ -25,6 +26,7 @@ public class TraceService {
     private TraceMapper traceMapper;
     private TraceCreationService traceCreationService;
     private TraceDiscoveryService traceDiscoveryService;
+    private ResourceService resourceService;
 
     public TraceService(TraceRepository traceRepository,
             ResourceService resourceService,
@@ -33,6 +35,7 @@ public class TraceService {
             TraceCreationService traceCreationService,
             TraceDiscoveryService traceDiscoveryService) {
         this.traceRepository = traceRepository;
+        this.resourceService = resourceService;
         this.userService = userService;
         this.traceMapper = traceMapper;
         this.traceCreationService = traceCreationService;
