@@ -12,5 +12,5 @@ public record RegisteredUserDTO(
         @NotBlank String lastName,
         @NotBlank String email,
         @NotBlank String username,
-        @NotBlank LocalDateTime registeredAt) {
+        @NotNull LocalDateTime registeredAt) {
 }
