@@ -4,6 +4,7 @@ import com.example.spotspeak.constants.FileUploadConsants;
 import com.example.spotspeak.dto.achievement.AchievementResponseDTO;
 import com.example.spotspeak.dto.achievement.AchievementUpdateDTO;
 import com.example.spotspeak.dto.achievement.AchievementUploadDTO;
+import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.achievement.Achievement;
 import com.example.spotspeak.mapper.AchievementMapper;
 import com.example.spotspeak.service.UserService;
@@ -45,32 +46,32 @@ public class AdminController {
     public ResponseEntity<List<AchievementResponseDTO>> getAchievements(@AuthenticationPrincipal Jwt jwt) {
         List<Achievement> achievements = achievementService.getAllAchievements();
         List<AchievementResponseDTO> achievementResponseDTOs = achievements.isEmpty()
-            ? List.of()
-            : achievements.stream()
-            .map(mapper::createAchievementResponseDTO)
-            .toList();
+                ? List.of()
+                : achievements.stream()
+                        .map(mapper::createAchievementResponseDTO)
+                        .toList();
         return ResponseEntity.ok(achievementResponseDTOs);
     }
 
     @PostMapping("/create-achievement")
     public ResponseEntity<AchievementResponseDTO> createAchievement(
-        @AuthenticationPrincipal Jwt jwt,
-        @Valid @ValidFile(required = false, maxSize = FileUploadConsants.ACHIEVEMENT_ICON_MAX_SIZE, allowedTypes = {
-            "image/jpeg", "image/png", "image/jpg"}) @RequestPart(value = "file", required = false) MultipartFile file,
-        @RequestPart @Valid AchievementUploadDTO achievementUploadDTO
-    ) {
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @ValidFile(required = false, maxSize = FileUploadConsants.ACHIEVEMENT_ICON_MAX_SIZE, allowedTypes = {
+                    "image/jpeg", "image/png",
+                    "image/jpg" }) @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestPart @Valid AchievementUploadDTO achievementUploadDTO) {
         Achievement achievement = achievementService.createAchievement(file, achievementUploadDTO);
-        achievementService.initializeAchievementsForAllUsers();
+        List<User> users = userService.getAllUsers();
+        achievementService.initializeAchievementsForAllUsers(users);
         AchievementResponseDTO dto = mapper.createAchievementResponseDTO(achievement);
         return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/update-achievement")
     public ResponseEntity<AchievementResponseDTO> updateAchievement(
-        @AuthenticationPrincipal Jwt jwt,
-        @RequestPart(value = "file", required = false) MultipartFile file,
-        @RequestPart @Valid AchievementUpdateDTO achievementUpdateDTO
-    ) {
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestPart @Valid AchievementUpdateDTO achievementUpdateDTO) {
         Achievement updatedAchievement = achievementService.updateAchievement(file, achievementUpdateDTO);
         AchievementResponseDTO dto = mapper.createAchievementResponseDTO(updatedAchievement);
         return ResponseEntity.ok(dto);

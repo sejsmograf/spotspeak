@@ -3,6 +3,9 @@ package com.example.spotspeak.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
@@ -10,13 +13,10 @@ import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.TraceNotFoundException;
 import com.example.spotspeak.mapper.TraceMapper;
+import com.example.spotspeak.repository.TraceRepository;
 
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ForbiddenException;
-
-import org.springframework.stereotype.Service;
-import com.example.spotspeak.repository.TraceRepository;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class TraceService {
@@ -26,7 +26,6 @@ public class TraceService {
     private TraceMapper traceMapper;
     private TraceCreationService traceCreationService;
     private TraceDiscoveryService traceDiscoveryService;
-    private ResourceService resourceService;
 
     public TraceService(TraceRepository traceRepository,
             ResourceService resourceService,
@@ -35,7 +34,6 @@ public class TraceService {
             TraceCreationService traceCreationService,
             TraceDiscoveryService traceDiscoveryService) {
         this.traceRepository = traceRepository;
-        this.resourceService = resourceService;
         this.userService = userService;
         this.traceMapper = traceMapper;
         this.traceCreationService = traceCreationService;
@@ -65,7 +63,9 @@ public class TraceService {
 
     public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {
         User author = userService.findByIdOrThrow(userId);
-        return traceCreationService.createAndPersistTrace(author, file, traceUploadDTO);
+        Trace created = traceCreationService.createAndPersistTrace(author, file, traceUploadDTO);
+        discoverTrace(userId, created.getId(), created.getLongitude(), created.getLatitude());
+        return created;
     }
 
     @Transactional

@@ -2,6 +2,7 @@ package com.example.spotspeak.service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -12,12 +13,14 @@ import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.PublicUserProfileDTO;
+import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.mapper.UserMapper;
 import com.example.spotspeak.repository.UserRepository;
+import com.example.spotspeak.service.achievement.AchievementService;
 
 import lombok.AllArgsConstructor;
 
@@ -28,6 +31,7 @@ public class UserService {
     private UserRepository userRepostitory;
     private ResourceService resourceService;
     private KeycloakClientService keycloakService;
+    private AchievementService achievementService;
     private PasswordChallengeService passwordChallengeService;
     private KeyGenerationService keyGenerationService;
     private UserMapper userMapper;
@@ -81,6 +85,18 @@ public class UserService {
 
         keycloakService.updateUser(userIdString, updateDTO);
         return user;
+    }
+
+    @Transactional
+    public void initializeUser(RegisteredUserDTO userDTO) {
+        Optional<User> existing = userRepostitory.findById(userDTO.id());
+
+        if (existing.isPresent()) {
+            throw new IllegalArgumentException("User already exists");
+        }
+
+        User created = userRepostitory.save(userMapper.createUserFromDTO(userDTO));
+        achievementService.initializeUserAchievements(created);
     }
 
     public Resource updateUserProfilePicture(String userIdString, MultipartFile file) {

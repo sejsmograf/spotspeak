@@ -1,8 +1,9 @@
 package com.example.spotspeak.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -11,7 +12,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private JwtAuthConverter jwtAuthenticationConverter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -36,7 +41,7 @@ public class SecurityConfig {
 
         // Enable OAuth2 resource server
         http.oauth2ResourceServer(
-                oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+                oauth2 -> oauth2.jwt(configurer -> configurer.jwtAuthenticationConverter(jwtAuthenticationConverter)));
 
         http.addFilterAfter(new RequestOutcomeLoggingFilter(),
                 UsernamePasswordAuthenticationFilter.class);

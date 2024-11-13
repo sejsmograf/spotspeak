@@ -15,7 +15,6 @@ import com.example.spotspeak.repository.ConditionRepository;
 import com.example.spotspeak.repository.UserAchievementRepository;
 import com.example.spotspeak.service.KeyGenerationService;
 import com.example.spotspeak.service.ResourceService;
-import com.example.spotspeak.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -31,16 +30,16 @@ public class AchievementService {
 
     private AchievementRepository achievementRepository;
     private ConditionRepository conditionRepository;
-    private UserService userService;
     private UserAchievementRepository userAchievementRepository;
     private KeyGenerationService keyGenerationService;
     private ResourceService resourceService;
     private Logger logger = LoggerFactory.getLogger(AchievementService.class);
 
-    public AchievementService(AchievementRepository achievementRepository, ConditionRepository conditionRepository, UserService userService, UserAchievementRepository userAchievementRepository, KeyGenerationService keyGenerationService, ResourceService resourceService) {
+    public AchievementService(AchievementRepository achievementRepository, ConditionRepository conditionRepository,
+            UserAchievementRepository userAchievementRepository,
+            KeyGenerationService keyGenerationService, ResourceService resourceService) {
         this.achievementRepository = achievementRepository;
         this.conditionRepository = conditionRepository;
-        this.userService = userService;
         this.userAchievementRepository = userAchievementRepository;
         this.keyGenerationService = keyGenerationService;
         this.resourceService = resourceService;
@@ -59,14 +58,14 @@ public class AchievementService {
         }
 
         Achievement achievement = Achievement.builder()
-            .name(achievementUploadDTO.name())
-            .description(achievementUploadDTO.description())
-            .points(achievementUploadDTO.points())
-            .iconUrl(resource)
-            .eventType(EEventType.valueOf(achievementUploadDTO.eventType()))
-            .requiredQuantity(achievementUploadDTO.requiredQuantity())
-            .createdAt(LocalDateTime.now())
-            .build();
+                .name(achievementUploadDTO.name())
+                .description(achievementUploadDTO.description())
+                .points(achievementUploadDTO.points())
+                .iconUrl(resource)
+                .eventType(EEventType.valueOf(achievementUploadDTO.eventType()))
+                .requiredQuantity(achievementUploadDTO.requiredQuantity())
+                .createdAt(LocalDateTime.now())
+                .build();
 
         if (achievementUploadDTO.conditions() != null) {
             achievementUploadDTO.conditions().forEach(conditionDTO -> {
@@ -82,7 +81,7 @@ public class AchievementService {
     @Transactional
     public Achievement updateAchievement(MultipartFile file, AchievementUpdateDTO achievementUpdateDTO) {
         Achievement achievement = achievementRepository.findById(achievementUpdateDTO.id())
-            .orElseThrow(() -> new AchievementNotFoundException("Achievement not found"));
+                .orElseThrow(() -> new AchievementNotFoundException("Achievement not found"));
 
         achievement.setName(achievementUpdateDTO.name());
         achievement.setDescription(achievementUpdateDTO.description());
@@ -110,8 +109,8 @@ public class AchievementService {
 
     @Transactional
     public void deleteAchievement(Long achievementId) {
-       Achievement achievement = achievementRepository.findById(achievementId)
-            .orElseThrow(() -> new AchievementNotFoundException("Achievement not found"));
+        Achievement achievement = achievementRepository.findById(achievementId)
+                .orElseThrow(() -> new AchievementNotFoundException("Achievement not found"));
 
         Resource icon = achievement.getIconUrl();
         if (icon != null) {
@@ -121,7 +120,6 @@ public class AchievementService {
 
         achievementRepository.delete(achievement);
     }
-
 
     private Resource processAndStoreAchievementResource(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
@@ -145,33 +143,30 @@ public class AchievementService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    protected void initializeUserAchievements(String userId) {
-        User user = userService.findByIdOrThrow(userId);
-
+    public void initializeUserAchievements(User user) {
         List<Achievement> allAchievements = getAllAchievements();
 
         List<UserAchievement> newUserAchievements = allAchievements.stream()
-            .filter(achievement -> !userAchievementRepository.existsByUserAndAchievement(user, achievement))
-            .map(achievement -> UserAchievement.builder()
-                .user(user)
-                .achievement(achievement)
-                .quantityProgress(0)
-                .currentStreak(0)
-                .build())
-            .toList();
+                .filter(achievement -> !userAchievementRepository.existsByUserAndAchievement(user, achievement))
+                .map(achievement -> UserAchievement.builder()
+                        .user(user)
+                        .achievement(achievement)
+                        .quantityProgress(0)
+                        .currentStreak(0)
+                        .build())
+                .toList();
 
         userAchievementRepository.saveAll(newUserAchievements);
     }
 
     @Transactional
-    public void initializeAchievementsForAllUsers() {
-        List<User> allUsers = userService.getAllUsers();
+    public void initializeAchievementsForAllUsers(List<User> allUsers) {
         if (allUsers == null) {
             allUsers = List.of();
         }
         allUsers.forEach(user -> {
             try {
-                initializeUserAchievements(String.valueOf(user.getId()));
+                initializeUserAchievements(user);
             } catch (Exception e) {
                 logger.warn("Failed to initialize achievements for user ID: " + user.getId(), e);
             }
