@@ -1,16 +1,16 @@
 package com.example.spotspeak.repository;
 
 import com.example.spotspeak.entity.User;
-import com.example.spotspeak.entity.achievements.Achievement;
-import com.example.spotspeak.entity.achievements.UserAchievement;
+import com.example.spotspeak.entity.achievement.Achievement;
+import com.example.spotspeak.entity.achievement.UserAchievement;
 import com.example.spotspeak.entity.enumeration.EEventType;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface UserAchievementRepository extends CrudRepository<UserAchievement, Long> {
+public interface UserAchievementRepository extends JpaRepository<UserAchievement, Long> {
 
     @Query("""
         SELECT ua 
@@ -27,4 +27,12 @@ public interface UserAchievementRepository extends CrudRepository<UserAchievemen
     boolean existsByUserAndAchievement(User user, Achievement achievement);
 
     List<UserAchievement> findByUser(User user);
+
+    @Query("""
+    SELECT ua 
+    FROM UserAchievement ua 
+    WHERE ua.user = :user 
+      AND ua.completedAt IS NOT NULL
+    """)
+    List<UserAchievement> findCompletedAchievementsByUser(@Param("user") User user);
 }

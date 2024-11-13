@@ -2,13 +2,13 @@ package com.example.spotspeak.repository;
 
 import com.example.spotspeak.entity.Friendship;
 import com.example.spotspeak.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface FriendshipRepository extends CrudRepository<Friendship, Long> {
+public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
     @Query("SELECT f FROM Friendship f WHERE f.userInitiating = :user OR f.userReceiving = :user")
     List<Friendship> findAllByUser(@Param("user") User user);
 

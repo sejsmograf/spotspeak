@@ -1,4 +1,4 @@
-package com.example.spotspeak.entity.achievements;
+package com.example.spotspeak.entity.achievement;
 
 import com.example.spotspeak.entity.User;
 import jakarta.persistence.Column;

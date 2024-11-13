@@ -1,6 +1,6 @@
-package com.example.spotspeak.entity.achievements;
+package com.example.spotspeak.entity.achievement;
 
-import com.example.spotspeak.dto.LocationConditionDTO;
+import com.example.spotspeak.dto.achievement.LocationConditionDTO;
 import com.example.spotspeak.service.achievement.UserActionEvent;
 import lombok.EqualsAndHashCode;
 import org.locationtech.jts.geom.Point;
@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.locationtech.jts.geom.Polygon;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -21,11 +22,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "location_conditions")
 public class LocationCondition extends Condition {
 
-    @Column(nullable = false)
-    private Point requiredLocation;
-
-    @Column(nullable = false)
-    private double radiusInMeters;
+    @Column(nullable = false, columnDefinition = "geometry(Polygon, 4326)")
+    private Polygon region;
 
     @Override
     public boolean isSatisfied(UserActionEvent event, UserAchievement userAchievement) {
@@ -34,17 +32,13 @@ public class LocationCondition extends Condition {
         if(location == null) {
             return false;
         }
-        double distance = location.distance(requiredLocation);
-        return distance <= radiusInMeters;
+        return region.contains(location);
     }
 
     @Override
     public LocationConditionDTO toDTO() {
         return new LocationConditionDTO(
-            "LocationCondition",
-            this.radiusInMeters,
-            this.requiredLocation.getX(),
-            this.requiredLocation.getY()
+            this.region.toText()
             );
     }
 }

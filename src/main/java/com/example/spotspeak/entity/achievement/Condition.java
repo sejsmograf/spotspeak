@@ -1,4 +1,4 @@
-package com.example.spotspeak.entity.achievements;
+package com.example.spotspeak.entity.achievement;
 
 import com.example.spotspeak.service.achievement.UserActionEvent;
 import jakarta.persistence.Entity;

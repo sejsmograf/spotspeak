@@ -1,26 +1,29 @@
 package com.example.spotspeak.service.achievement;
 
+import com.example.spotspeak.dto.achievement.AchievementUpdateDTO;
+import com.example.spotspeak.dto.achievement.AchievementUploadDTO;
+import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
-import com.example.spotspeak.entity.achievements.Achievement;
-import com.example.spotspeak.entity.achievements.Condition;
-import com.example.spotspeak.entity.achievements.ConsecutiveDaysCondition;
-import com.example.spotspeak.entity.achievements.TimeCondition;
-import com.example.spotspeak.entity.achievements.LocationCondition;
-import com.example.spotspeak.entity.achievements.UserAchievement;
-import com.example.spotspeak.entity.enumeration.EDateGranularity;
+import com.example.spotspeak.entity.achievement.Achievement;
+import com.example.spotspeak.entity.achievement.Condition;
+import com.example.spotspeak.entity.achievement.UserAchievement;
 import com.example.spotspeak.entity.enumeration.EEventType;
+import com.example.spotspeak.exception.AchievementExistsException;
+import com.example.spotspeak.exception.AchievementNotFoundException;
 import com.example.spotspeak.repository.AchievementRepository;
 import com.example.spotspeak.repository.ConditionRepository;
 import com.example.spotspeak.repository.UserAchievementRepository;
+import com.example.spotspeak.service.KeyGenerationService;
+import com.example.spotspeak.service.ResourceService;
 import com.example.spotspeak.service.UserService;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -30,76 +33,119 @@ public class AchievementService {
     private ConditionRepository conditionRepository;
     private UserService userService;
     private UserAchievementRepository userAchievementRepository;
+    private KeyGenerationService keyGenerationService;
+    private ResourceService resourceService;
+    private Logger logger = LoggerFactory.getLogger(AchievementService.class);
 
-    public AchievementService(AchievementRepository achievementRepository, ConditionRepository conditionRepository, UserService userService, UserAchievementRepository userAchievementRepository) {
+    public AchievementService(AchievementRepository achievementRepository, ConditionRepository conditionRepository, UserService userService, UserAchievementRepository userAchievementRepository, KeyGenerationService keyGenerationService, ResourceService resourceService) {
         this.achievementRepository = achievementRepository;
         this.conditionRepository = conditionRepository;
         this.userService = userService;
         this.userAchievementRepository = userAchievementRepository;
+        this.keyGenerationService = keyGenerationService;
+        this.resourceService = resourceService;
     }
 
     public List<Achievement> getAllAchievements() {
-        return (List<Achievement>) achievementRepository.findAll();
+        return achievementRepository.findAll();
     }
 
     @Transactional
-    public void createAchievement(String name, String description, int points, EEventType eventType,
-                                  int requiredQuantity, List<Condition> conditions) {
-        if (checkAchievementNotExists(name)) {
-            Achievement achievement = Achievement.builder()
-                .name(name)
-                .description(description)
-                .points(points)
-                .eventType(eventType)
-                .requiredQuantity(requiredQuantity)
-                .build();
+    public Achievement createAchievement(MultipartFile file, AchievementUploadDTO achievementUploadDTO) {
+        Resource resource = file == null ? null : processAndStoreAchievementResource(file);
 
-            if (conditions != null) {
-                achievement.getConditions().addAll(conditions);
-            }
-
-            achievementRepository.save(achievement);
+        if (checkAchievementExists(achievementUploadDTO.name())) {
+            throw new AchievementExistsException("Achievement already exists");
         }
-    }
 
-    private boolean checkAchievementNotExists(String name) {
-        return achievementRepository.findByName(name) == null;
-    }
-
-
-    public ConsecutiveDaysCondition findOrCreateConsecutiveDaysCondition(int requiredDays) {
-        ConsecutiveDaysCondition condition = ConsecutiveDaysCondition.builder()
-            .requiredConsecutiveDays(requiredDays)
+        Achievement achievement = Achievement.builder()
+            .name(achievementUploadDTO.name())
+            .description(achievementUploadDTO.description())
+            .points(achievementUploadDTO.points())
+            .iconUrl(resource)
+            .eventType(EEventType.valueOf(achievementUploadDTO.eventType()))
+            .requiredQuantity(achievementUploadDTO.requiredQuantity())
+            .createdAt(LocalDateTime.now())
             .build();
-        return conditionRepository.save(condition);
-    }
 
-    public LocationCondition findOrCreateLocationCondition(double latitude, double longitude, double radius) {
-        GeometryFactory geometryFactory = new GeometryFactory();
-        Point location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
-
-        LocationCondition condition = LocationCondition.builder()
-            .requiredLocation(location)
-            .radiusInMeters(radius)
-            .build();
-        return conditionRepository.save(condition);
-    }
-
-    public TimeCondition createTimeCondition(LocalDateTime requiredDateTime,
-                                              EDateGranularity granularity,
-                                              LocalTime startTime,
-                                              LocalTime endTime) {
-        TimeCondition condition = TimeCondition.builder()
-            .requiredDateTime(requiredDateTime)
-            .granularity(granularity)
-            .startTime(startTime)
-            .endTime(endTime)
-            .build();
-        return conditionRepository.save(condition);
+        if (achievementUploadDTO.conditions() != null) {
+            achievementUploadDTO.conditions().forEach(conditionDTO -> {
+                Condition condition = conditionDTO.toCondition();
+                conditionRepository.save(condition);
+                achievement.getConditions().add(condition);
+            });
+        }
+        achievementRepository.save(achievement);
+        return achievement;
     }
 
     @Transactional
-    public void initializeUserAchievements(String userId) {
+    public Achievement updateAchievement(MultipartFile file, AchievementUpdateDTO achievementUpdateDTO) {
+        Achievement achievement = achievementRepository.findById(achievementUpdateDTO.id())
+            .orElseThrow(() -> new AchievementNotFoundException("Achievement not found"));
+
+        achievement.setName(achievementUpdateDTO.name());
+        achievement.setDescription(achievementUpdateDTO.description());
+        achievement.setPoints(achievementUpdateDTO.points());
+        achievement.setEventType(EEventType.valueOf(achievementUpdateDTO.eventType()));
+        achievement.setRequiredQuantity(achievementUpdateDTO.requiredQuantity());
+
+        if (achievementUpdateDTO.conditions() != null) {
+            conditionRepository.deleteAll(achievement.getConditions());
+            achievement.getConditions().clear();
+
+            achievementUpdateDTO.conditions().forEach(conditionDTO -> {
+                Condition condition = conditionDTO.toCondition();
+                conditionRepository.save(condition);
+                achievement.getConditions().add(condition);
+            });
+        }
+
+        if (file != null) {
+            updateAchievementIcon(achievement, file);
+        }
+
+        return achievementRepository.save(achievement);
+    }
+
+    @Transactional
+    public void deleteAchievement(Long achievementId) {
+       Achievement achievement = achievementRepository.findById(achievementId)
+            .orElseThrow(() -> new AchievementNotFoundException("Achievement not found"));
+
+        Resource icon = achievement.getIconUrl();
+        if (icon != null) {
+            achievement.setIconUrl(null);
+            resourceService.deleteResource(icon.getId());
+        }
+
+        achievementRepository.delete(achievement);
+    }
+
+
+    private Resource processAndStoreAchievementResource(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        String resourceKey = keyGenerationService.generateAchievementIconKey(originalFilename);
+        return resourceService.uploadFileAndSaveResource(file, resourceKey);
+    }
+
+    private void updateAchievementIcon(Achievement achievement, MultipartFile file) {
+        Resource existingIcon = achievement.getIconUrl();
+        if (existingIcon != null) {
+            achievement.setIconUrl(null);
+            resourceService.deleteResource(existingIcon.getId());
+        }
+
+        Resource newIcon = processAndStoreAchievementResource(file);
+        achievement.setIconUrl(newIcon);
+    }
+
+    private boolean checkAchievementExists(String name) {
+        return achievementRepository.findByName(name) != null;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    protected void initializeUserAchievements(String userId) {
         User user = userService.findByIdOrThrow(userId);
 
         List<Achievement> allAchievements = getAllAchievements();
@@ -115,5 +161,20 @@ public class AchievementService {
             .toList();
 
         userAchievementRepository.saveAll(newUserAchievements);
+    }
+
+    @Transactional
+    public void initializeAchievementsForAllUsers() {
+        List<User> allUsers = userService.getAllUsers();
+        if (allUsers == null) {
+            allUsers = List.of();
+        }
+        allUsers.forEach(user -> {
+            try {
+                initializeUserAchievements(String.valueOf(user.getId()));
+            } catch (Exception e) {
+                logger.warn("Failed to initialize achievements for user ID: " + user.getId(), e);
+            }
+        });
     }
 }

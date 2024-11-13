@@ -5,12 +5,11 @@ import com.example.spotspeak.dto.CommentRequestDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.entity.*;
-import com.example.spotspeak.entity.achievements.Achievement;
-import com.example.spotspeak.entity.achievements.Condition;
-import com.example.spotspeak.entity.achievements.ConsecutiveDaysCondition;
-import com.example.spotspeak.entity.achievements.LocationCondition;
-import com.example.spotspeak.entity.achievements.TimeCondition;
-import com.example.spotspeak.entity.achievements.UserAchievement;
+import com.example.spotspeak.entity.achievement.Achievement;
+import com.example.spotspeak.entity.achievement.Condition;
+import com.example.spotspeak.entity.achievement.ConsecutiveDaysCondition;
+import com.example.spotspeak.entity.achievement.TimeCondition;
+import com.example.spotspeak.entity.achievement.UserAchievement;
 import com.example.spotspeak.entity.enumeration.EDateGranularity;
 import com.example.spotspeak.entity.enumeration.EEventType;
 import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
@@ -221,15 +220,15 @@ public class TestEntityFactory {
         return condition;
     }
 
-    public static LocationCondition createPersistedLocationCondition(EntityManager em, double latitude, double longitude, double radius) {
-        Point location = new GeometryFactory().createPoint(new Coordinate(longitude, latitude));
-        LocationCondition condition = LocationCondition.builder()
-            .requiredLocation(location)
-            .radiusInMeters(radius)
-            .build();
-        em.persist(condition);
-        return condition;
-    }
+//    public static LocationCondition createPersistedLocationCondition(EntityManager em, double latitude, double longitude, double radius) {
+//        Point location = new GeometryFactory().createPoint(new Coordinate(longitude, latitude));
+//        LocationCondition condition = LocationCondition.builder()
+//            .requiredLocation(location)
+//            .radiusInMeters(radius)
+//            .build();
+//        em.persist(condition);
+//        return condition;
+//    }
 
     public static TimeCondition createPersistedTimeCondition(EntityManager em, LocalDateTime dateTime, EDateGranularity granularity, LocalTime startTime, LocalTime endTime) {
         TimeCondition condition = TimeCondition.builder()

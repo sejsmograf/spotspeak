@@ -132,4 +132,8 @@ public class UserService {
         }
         return userRepostitory.findByUsernameIn(usernames);
     }
+
+    public List<User> getAllUsers() {
+        return userRepostitory.findAll();
+    }
 }

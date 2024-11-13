@@ -1,6 +1,6 @@
-package com.example.spotspeak.entity.achievements;
+package com.example.spotspeak.entity.achievement;
 
-import com.example.spotspeak.dto.ConsecutiveDaysConditionDTO;
+import com.example.spotspeak.dto.achievement.ConsecutiveDaysConditionDTO;
 import com.example.spotspeak.service.achievement.UserActionEvent;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,7 +48,6 @@ public class ConsecutiveDaysCondition extends Condition{
     @Override
     public ConsecutiveDaysConditionDTO toDTO() {
         return new ConsecutiveDaysConditionDTO(
-            "ConsecutiveDaysCondition",
             this.requiredConsecutiveDays
         );
     }

@@ -1,10 +1,14 @@
 package com.example.spotspeak.service.achievement;
 
-import com.example.spotspeak.entity.achievements.Achievement;
-import com.example.spotspeak.entity.achievements.UserAchievement;
+import com.example.spotspeak.entity.achievement.Achievement;
+import com.example.spotspeak.entity.achievement.UserAchievement;
 import com.example.spotspeak.repository.UserAchievementRepository;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,7 +22,8 @@ public class AchievementActionListener {
         this.userAchievementRepository = userAchievementRepository;
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onUserActionEvent(UserActionEvent event) {
         List<UserAchievement> userAchievements = userAchievementRepository
             .findUncompleted(event.getEventType(), event.getUser());

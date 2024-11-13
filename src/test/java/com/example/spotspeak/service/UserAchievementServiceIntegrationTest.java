@@ -1,7 +1,7 @@
 // package com.example.spotspeak.service;
 //
 // import com.example.spotspeak.dto.TraceUploadDTO;
-// import com.example.spotspeak.dto.UserAchievementDTO;
+// import com.example.spotspeak.dto.achievement.UserAchievementDTO;
 // import com.example.spotspeak.entity.User;
 // import com.example.spotspeak.entity.achievements.Achievement;
 // import com.example.spotspeak.entity.achievements.UserAchievement;

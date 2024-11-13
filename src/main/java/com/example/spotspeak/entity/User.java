@@ -3,7 +3,7 @@ package com.example.spotspeak.entity;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import com.example.spotspeak.entity.achievements.UserAchievement;
+import com.example.spotspeak.entity.achievement.UserAchievement;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

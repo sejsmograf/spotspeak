@@ -1,6 +1,6 @@
-package com.example.spotspeak.entity.achievements;
+package com.example.spotspeak.entity.achievement;
 
-import com.example.spotspeak.dto.TimeConditionDTO;
+import com.example.spotspeak.dto.achievement.TimeConditionDTO;
 import com.example.spotspeak.entity.enumeration.EDateGranularity;
 import com.example.spotspeak.service.achievement.UserActionEvent;
 import jakarta.persistence.Column;
@@ -62,8 +62,8 @@ public class TimeCondition extends Condition {
     @Override
     public TimeConditionDTO toDTO() {
         return new TimeConditionDTO(
-            "TimeCondition",
             this.requiredDateTime,
+            this.granularity.toString(),
             this.startTime,
             this.endTime
         );

@@ -1,8 +1,6 @@
-package com.example.spotspeak.dto;
+package com.example.spotspeak.dto.achievement;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
 
 public record UserAchievementDTO(
     Long userAchievementId,
@@ -13,7 +11,5 @@ public record UserAchievementDTO(
     Integer requiredQuantity,
     Integer quantityProgress,
     Integer currentStreak,
-    LocalDate lastActionDate,
-    LocalDateTime completedAt,
-    Set<Object> conditions
+    LocalDateTime completedAt
 ) {}
