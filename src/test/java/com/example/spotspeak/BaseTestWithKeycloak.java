@@ -2,6 +2,7 @@ package com.example.spotspeak;
 
 import java.util.List;
 
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -45,5 +46,22 @@ public abstract class BaseTestWithKeycloak extends BaseServiceIntegrationTest {
                 .realm("testrealm")
                 .users()
                 .list();
+    }
+
+    protected void getAccessTokenForUser(String userId) {
+        System.out.print("IMPERSONATING USER");
+        UserResource user = keycloak.getKeycloakAdminClient()
+                .realm("testrealm")
+                .users()
+                .get(userId);
+
+        var impersonation = user.impersonate();
+
+        for (var key : impersonation.keySet()) {
+            System.out.println("KEY");
+            System.out.println(key);
+            System.out.println("VALUE");
+            System.out.println(impersonation.get(key));
+        }
     }
 }
