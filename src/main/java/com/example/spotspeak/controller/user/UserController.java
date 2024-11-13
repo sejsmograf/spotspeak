@@ -38,7 +38,7 @@ public class UserController {
 
     @PostMapping("/init")
     public ResponseEntity<Void> initializeKeycloakUser(
-            @Valid @NotBlank @RequestBody RegisteredUserDTO userDTO) {
+            @Valid @RequestBody RegisteredUserDTO userDTO) {
 
         userService.initializeKeycloakUser(userDTO);
 
