@@ -95,10 +95,6 @@ public class UserService {
             throw new IllegalArgumentException("User already exists");
         }
 
-        if (!keycloakService.doesUserExist(userDTO.id().toString())) {
-            throw new IllegalArgumentException("Cannot initialize user without keycloak user");
-        }
-
         User created = userRepostitory.save(userMapper.createUserFromDTO(userDTO));
         achievementService.initializeUserAchievements(created);
     }
