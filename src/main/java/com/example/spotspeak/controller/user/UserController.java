@@ -3,6 +3,7 @@ package com.example.spotspeak.controller.user;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,6 +38,7 @@ public class UserController {
     }
 
     @PostMapping("/init")
+    @PreAuthorize("hasRole('INITIALIZE_ACCOUNT')")
     public ResponseEntity<Void> initializeKeycloakUser(
             @Valid @RequestBody RegisteredUserDTO userDTO) {
 
