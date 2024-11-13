@@ -20,7 +20,7 @@ public class AdminControllerExceptionHandler {
 
     @ExceptionHandler(AchievementNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleFriendshipRequestNotFoundException(AchievementNotFoundException ex) {
+    public ErrorResponse handleAchievementNotFoundException(AchievementNotFoundException ex) {
         ErrorResponse response = ErrorResponse.createInstance();
         response.addMessage(ex.getMessage());
         return response;

@@ -1,6 +1,8 @@
 package com.example.spotspeak.controller.achievement;
 
+import com.example.spotspeak.dto.PublicUserProfileDTO;
 import com.example.spotspeak.dto.achievement.UserAchievementDTO;
+import com.example.spotspeak.dto.achievement.UserAchievementDetailsDTO;
 import com.example.spotspeak.service.achievement.UserAchievementService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,6 +30,20 @@ public class UserAchievementController {
         String userId = jwt.getSubject();
         List<UserAchievementDTO> userAchievements = userAchievementService.getUserAchievements(userId);
         return ResponseEntity.ok(userAchievements);
+    }
+
+    @GetMapping("/details/{userAchievementId}")
+    public ResponseEntity<UserAchievementDetailsDTO> getUserAchievementDetails(@AuthenticationPrincipal Jwt jwt, @PathVariable Long userAchievementId) {
+        String userId = jwt.getSubject();
+        UserAchievementDetailsDTO achievementDetailsDTO = userAchievementService.getUserAchievementDetails(userId, userAchievementId);
+        return ResponseEntity.ok(achievementDetailsDTO);
+    }
+
+    @GetMapping("/details/{userAchievementId}/friends")
+    public ResponseEntity<List<PublicUserProfileDTO>> getFriendsWhoCompletedAchievement(@AuthenticationPrincipal Jwt jwt, @PathVariable Long userAchievementId) {
+        String userId = jwt.getSubject();
+        List<PublicUserProfileDTO> friendsWhoCompleted = userAchievementService.getFriendsWhoCompletedAchievement(userId, userAchievementId);
+        return ResponseEntity.ok(friendsWhoCompleted);
     }
 
     @GetMapping("/{userId}")

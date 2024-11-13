@@ -1,6 +1,7 @@
 package com.example.spotspeak.mapper;
 
 import com.example.spotspeak.dto.achievement.UserAchievementDTO;
+import com.example.spotspeak.dto.achievement.UserAchievementDetailsDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.achievement.UserAchievement;
 import com.example.spotspeak.service.ResourceService;
@@ -14,14 +15,13 @@ public class UserAchievementMapper {
         this.resourceService = resourceService;
     }
 
-    public UserAchievementDTO toUserAchievementDTO(UserAchievement userAchievement) {
-
+    public UserAchievementDetailsDTO toUserAchievementDetailsDTO(UserAchievement userAchievement) {
         Resource resource = userAchievement.getAchievement().getIconUrl();
         String resourceUrl = resource != null
             ? resourceService.getResourceAccessUrl(resource.getId())
             : null;
 
-        return new UserAchievementDTO(
+        return new UserAchievementDetailsDTO(
             userAchievement.getId(),
             userAchievement.getAchievement().getName(),
             userAchievement.getAchievement().getDescription(),
@@ -30,6 +30,20 @@ public class UserAchievementMapper {
             userAchievement.getAchievement().getRequiredQuantity(),
             userAchievement.getQuantityProgress(),
             userAchievement.getCurrentStreak(),
+            userAchievement.getCompletedAt()
+        );
+    }
+
+    public UserAchievementDTO toUserAchievementDTO(UserAchievement userAchievement) {
+        Resource resource = userAchievement.getAchievement().getIconUrl();
+        String resourceUrl = resource != null
+            ? resourceService.getResourceAccessUrl(resource.getId())
+            : null;
+
+        return new UserAchievementDTO(
+            userAchievement.getId(),
+            userAchievement.getAchievement().getName(),
+            resourceUrl,
             userAchievement.getCompletedAt()
         );
     }
