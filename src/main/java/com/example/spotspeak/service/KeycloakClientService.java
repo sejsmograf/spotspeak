@@ -55,6 +55,15 @@ public class KeycloakClientService {
         }
     }
 
+    public boolean doesUserExist(String userId) {
+        try {
+            getRealm().users().get(userId).toRepresentation();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public void validatePasswordOrThrow(String userId, String password) {
         UserResource user = getRealm().users().get(userId);
         String username = user.toRepresentation().getUsername();

@@ -12,7 +12,6 @@ import com.example.spotspeak.entity.enumeration.EEventType;
 import com.example.spotspeak.repository.AchievementRepository;
 import com.example.spotspeak.repository.ConditionRepository;
 import com.example.spotspeak.repository.UserAchievementRepository;
-import com.example.spotspeak.service.UserService;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -28,13 +27,12 @@ public class AchievementService {
 
     private AchievementRepository achievementRepository;
     private ConditionRepository conditionRepository;
-    private UserService userService;
     private UserAchievementRepository userAchievementRepository;
 
-    public AchievementService(AchievementRepository achievementRepository, ConditionRepository conditionRepository, UserService userService, UserAchievementRepository userAchievementRepository) {
+    public AchievementService(AchievementRepository achievementRepository, ConditionRepository conditionRepository,
+            UserAchievementRepository userAchievementRepository) {
         this.achievementRepository = achievementRepository;
         this.conditionRepository = conditionRepository;
-        this.userService = userService;
         this.userAchievementRepository = userAchievementRepository;
     }
 
@@ -44,15 +42,15 @@ public class AchievementService {
 
     @Transactional
     public void createAchievement(String name, String description, int points, EEventType eventType,
-                                  int requiredQuantity, List<Condition> conditions) {
+            int requiredQuantity, List<Condition> conditions) {
         if (checkAchievementNotExists(name)) {
             Achievement achievement = Achievement.builder()
-                .name(name)
-                .description(description)
-                .points(points)
-                .eventType(eventType)
-                .requiredQuantity(requiredQuantity)
-                .build();
+                    .name(name)
+                    .description(description)
+                    .points(points)
+                    .eventType(eventType)
+                    .requiredQuantity(requiredQuantity)
+                    .build();
 
             if (conditions != null) {
                 achievement.getConditions().addAll(conditions);
@@ -66,11 +64,10 @@ public class AchievementService {
         return achievementRepository.findByName(name) == null;
     }
 
-
     public ConsecutiveDaysCondition findOrCreateConsecutiveDaysCondition(int requiredDays) {
         ConsecutiveDaysCondition condition = ConsecutiveDaysCondition.builder()
-            .requiredConsecutiveDays(requiredDays)
-            .build();
+                .requiredConsecutiveDays(requiredDays)
+                .build();
         return conditionRepository.save(condition);
     }
 
@@ -79,40 +76,38 @@ public class AchievementService {
         Point location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
 
         LocationCondition condition = LocationCondition.builder()
-            .requiredLocation(location)
-            .radiusInMeters(radius)
-            .build();
+                .requiredLocation(location)
+                .radiusInMeters(radius)
+                .build();
         return conditionRepository.save(condition);
     }
 
     public TimeCondition createTimeCondition(LocalDateTime requiredDateTime,
-                                              EDateGranularity granularity,
-                                              LocalTime startTime,
-                                              LocalTime endTime) {
+            EDateGranularity granularity,
+            LocalTime startTime,
+            LocalTime endTime) {
         TimeCondition condition = TimeCondition.builder()
-            .requiredDateTime(requiredDateTime)
-            .granularity(granularity)
-            .startTime(startTime)
-            .endTime(endTime)
-            .build();
+                .requiredDateTime(requiredDateTime)
+                .granularity(granularity)
+                .startTime(startTime)
+                .endTime(endTime)
+                .build();
         return conditionRepository.save(condition);
     }
 
     @Transactional
-    public void initializeUserAchievements(String userId) {
-        User user = userService.findByIdOrThrow(userId);
-
+    public void initializeUserAchievements(User user) {
         List<Achievement> allAchievements = getAllAchievements();
 
         List<UserAchievement> newUserAchievements = allAchievements.stream()
-            .filter(achievement -> !userAchievementRepository.existsByUserAndAchievement(user, achievement))
-            .map(achievement -> UserAchievement.builder()
-                .user(user)
-                .achievement(achievement)
-                .quantityProgress(0)
-                .currentStreak(0)
-                .build())
-            .toList();
+                .filter(achievement -> !userAchievementRepository.existsByUserAndAchievement(user, achievement))
+                .map(achievement -> UserAchievement.builder()
+                        .user(user)
+                        .achievement(achievement)
+                        .quantityProgress(0)
+                        .currentStreak(0)
+                        .build())
+                .toList();
 
         userAchievementRepository.saveAll(newUserAchievements);
     }

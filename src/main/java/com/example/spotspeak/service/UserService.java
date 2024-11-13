@@ -20,6 +20,7 @@ import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.mapper.UserMapper;
 import com.example.spotspeak.repository.UserRepository;
+import com.example.spotspeak.service.achievement.AchievementService;
 
 import lombok.AllArgsConstructor;
 
@@ -30,6 +31,7 @@ public class UserService {
     private UserRepository userRepostitory;
     private ResourceService resourceService;
     private KeycloakClientService keycloakService;
+    private AchievementService achievementService;
     private PasswordChallengeService passwordChallengeService;
     private KeyGenerationService keyGenerationService;
     private UserMapper userMapper;
@@ -85,14 +87,20 @@ public class UserService {
         return user;
     }
 
-    public void initializeKeycloakUser(RegisteredUserDTO userDTO) {
+    @Transactional
+    public void initializeUser(RegisteredUserDTO userDTO) {
         Optional<User> existing = userRepostitory.findById(userDTO.id());
 
         if (existing.isPresent()) {
             throw new IllegalArgumentException("User already exists");
         }
 
-        userRepostitory.save(userMapper.createUserFromDTO(userDTO));
+        if (!keycloakService.doesUserExist(userDTO.id().toString())) {
+            throw new IllegalArgumentException("Cannot initialize user without keycloak user");
+        }
+
+        User created = userRepostitory.save(userMapper.createUserFromDTO(userDTO));
+        achievementService.initializeUserAchievements(created);
     }
 
     public Resource updateUserProfilePicture(String userIdString, MultipartFile file) {
