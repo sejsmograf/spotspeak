@@ -41,9 +41,7 @@ public class UserController {
     @PreAuthorize("hasRole('INITIALIZE_ACCOUNT')")
     public ResponseEntity<Void> initializeKeycloakUser(
             @Valid @RequestBody RegisteredUserDTO userDTO) {
-
-        userService.initializeKeycloakUser(userDTO);
-
-        return ResponseEntity.ok().build();
+        userService.initializeUser(userDTO);
+        return ResponseEntity.noContent().build();
     }
 }
