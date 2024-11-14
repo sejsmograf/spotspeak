@@ -3,8 +3,6 @@ package com.example.spotspeak.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.spotspeak.entity.enumeration.EEventType;
-import com.example.spotspeak.service.achievement.UserActionEvent;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -18,8 +16,10 @@ import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.enumeration.EEventType;
 import com.example.spotspeak.entity.enumeration.ETraceType;
 import com.example.spotspeak.repository.TraceRepository;
+import com.example.spotspeak.service.achievement.UserActionEvent;
 
 import jakarta.transaction.Transactional;
 
@@ -104,6 +104,8 @@ public class TraceCreationService {
 
     private TraceCreationComponents prepareTraceCreationComponents(TraceUploadDTO dto) {
         Point location = geometryFactory.createPoint(new Coordinate(dto.longitude(), dto.latitude()));
+        location.setSRID(4326);
+
         List<Tag> tags = dto.tagIds() == null
                 ? null
                 : tagService.findAllByIds(dto.tagIds());
