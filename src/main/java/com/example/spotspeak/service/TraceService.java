@@ -1,12 +1,8 @@
 package com.example.spotspeak.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import com.example.spotspeak.entity.enumeration.EEventType;
-import com.example.spotspeak.service.achievement.UserActionEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,21 +26,18 @@ public class TraceService {
     private TraceMapper traceMapper;
     private TraceCreationService traceCreationService;
     private TraceDiscoveryService traceDiscoveryService;
-    private ApplicationEventPublisher eventPublisher;
 
     public TraceService(TraceRepository traceRepository,
             ResourceService resourceService,
             UserService userService,
             TraceMapper traceMapper,
             TraceCreationService traceCreationService,
-            TraceDiscoveryService traceDiscoveryService,
-            ApplicationEventPublisher eventPublisher) {
+            TraceDiscoveryService traceDiscoveryService) {
         this.traceRepository = traceRepository;
         this.userService = userService;
         this.traceMapper = traceMapper;
         this.traceCreationService = traceCreationService;
         this.traceDiscoveryService = traceDiscoveryService;
-        this.eventPublisher = eventPublisher;
     }
 
     public List<TraceDownloadDTO> getTracesForAuthor(String userId) {
@@ -96,26 +89,6 @@ public class TraceService {
             double latitude) {
         User discoverer = userService.findByIdOrThrow(userId);
         Trace discovered = traceDiscoveryService.discoverTrace(discoverer, traceId, longitude, latitude);
-        return traceMapper.createTraceDownloadDTO(discovered);
-    }
-
-    @Transactional
-    public TraceDownloadDTO discoverTraceWithEvent(String userId,
-                                          Long traceId,
-                                          double longitude,
-                                          double latitude) {
-        User discoverer = userService.findByIdOrThrow(userId);
-        Trace discovered = traceDiscoveryService.discoverTrace(discoverer, traceId, longitude, latitude);
-
-        if(!discovered.getAuthor().equals(discoverer)) {
-            UserActionEvent traceEvent = UserActionEvent.builder()
-                .user(discoverer)
-                .eventType(EEventType.DISCOVER_TRACE)
-                .location(discovered.getLocation())
-                .timestamp(LocalDateTime.now())
-                .build();
-            eventPublisher.publishEvent(traceEvent);
-        }
 
         return traceMapper.createTraceDownloadDTO(discovered);
     }
