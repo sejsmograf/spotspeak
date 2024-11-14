@@ -7,7 +7,7 @@ import com.example.spotspeak.dto.achievement.UserAchievementDTO;
 import com.example.spotspeak.dto.achievement.UserAchievementDetailsDTO;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.achievement.UserAchievement;
-import com.example.spotspeak.exception.AchievementNotFoundException;
+import com.example.spotspeak.exception.UserAchievementNotFoundException;
 import com.example.spotspeak.mapper.UserAchievementMapper;
 import com.example.spotspeak.mapper.UserMapper;
 import com.example.spotspeak.repository.UserAchievementRepository;
@@ -51,7 +51,7 @@ public class UserAchievementService {
         User user = userService.findByIdOrThrow(userId);
 
         UserAchievement userAchievement = userAchievementRepository.findByIdAndUser(userAchievementId, user)
-            .orElseThrow(() -> new AchievementNotFoundException("User achievement not found"));
+            .orElseThrow(() -> new UserAchievementNotFoundException("User achievement not found"));
 
         return userAchievementMapper.toUserAchievementDetailsDTO(userAchievement);
     }
@@ -60,7 +60,7 @@ public class UserAchievementService {
         User user = userService.findByIdOrThrow(userId);
 
         UserAchievement userAchievement = userAchievementRepository.findByIdAndUser(userAchievementId, user)
-            .orElseThrow(() -> new AchievementNotFoundException("User achievement not found"));
+            .orElseThrow(() -> new UserAchievementNotFoundException("User achievement not found"));
 
         List<User> friends = friendshipService.getFriendsList(userId).stream()
             .map(FriendshipUserInfoDTO::friendInfo)
