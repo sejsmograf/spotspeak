@@ -25,7 +25,7 @@ public class UserAchievementController {
         this.userAchievementService = userAchievementService;
     }
 
-    @GetMapping
+    @GetMapping("/my")
     public ResponseEntity<List<UserAchievementDTO>> getUserAchievements(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         List<UserAchievementDTO> userAchievements = userAchievementService.getUserAchievements(userId);

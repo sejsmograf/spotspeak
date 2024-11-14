@@ -75,7 +75,7 @@ public class TraceController {
             @PathVariable Long traceId,
             @RequestParam double currentLongitude, @RequestParam double currentLatitude) {
         String userId = jwt.getSubject();
-        TraceDownloadDTO traceInfo = traceService.discoverTrace(userId, traceId, currentLongitude,
+        TraceDownloadDTO traceInfo = traceService.discoverTraceWithEvent(userId, traceId, currentLongitude,
                 currentLatitude);
         return ResponseEntity.ok(traceInfo);
     }
