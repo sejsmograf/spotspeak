@@ -69,7 +69,7 @@ public class FriendshipServiceIntegrationTest extends BaseServiceIntegrationTest
             flushAndClear();
 
             List<FriendshipUserInfoDTO> friendsList = friendshipService
-                    .getFriendsList(userInitiating.getId().toString());
+                    .getFriendshipDTOList(userInitiating.getId().toString());
 
             assertThat(friendsList).hasSize(2);
             assertThat(friendsList).extracting("friendInfo.id")
@@ -80,7 +80,7 @@ public class FriendshipServiceIntegrationTest extends BaseServiceIntegrationTest
         @Transactional
         void shouldReturnEmptyList_whenUserHasNoFriends() {
             List<FriendshipUserInfoDTO> friendsList = friendshipService
-                    .getFriendsList(userInitiating.getId().toString());
+                    .getFriendshipDTOList(userInitiating.getId().toString());
 
             assertThat(friendsList).isEmpty();
         }
@@ -92,7 +92,7 @@ public class FriendshipServiceIntegrationTest extends BaseServiceIntegrationTest
             flushAndClear();
 
             List<FriendshipUserInfoDTO> friendsList = friendshipService
-                    .getFriendsList(userInitiating.getId().toString());
+                    .getFriendshipDTOList(userInitiating.getId().toString());
 
             assertThat(friendsList).hasSize(1);
             assertThat(friendsList.get(0).friendInfo().id()).isEqualTo(userReceiving.getId());
@@ -105,7 +105,7 @@ public class FriendshipServiceIntegrationTest extends BaseServiceIntegrationTest
             flushAndClear();
 
             List<FriendshipUserInfoDTO> friendsList = friendshipService
-                    .getFriendsList(userInitiating.getId().toString());
+                    .getFriendshipDTOList(userInitiating.getId().toString());
 
             assertThat(friendsList).hasSize(1);
             assertThat(friendsList.get(0).friendInfo().id()).isEqualTo(userReceiving.getId());

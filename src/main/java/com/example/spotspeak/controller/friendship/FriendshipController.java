@@ -27,7 +27,7 @@ public class FriendshipController {
     @GetMapping
     public ResponseEntity<List<FriendshipUserInfoDTO>> getFriendsList(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
-        List<FriendshipUserInfoDTO> friends = friendshipService.getFriendsList(userId);
+        List<FriendshipUserInfoDTO> friends = friendshipService.getFriendshipDTOList(userId);
         return ResponseEntity.ok(friends);
     }
 

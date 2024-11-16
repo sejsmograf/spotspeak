@@ -17,4 +17,12 @@ public class UserAchievementControllerExceptionHandler {
         response.addMessage(ex.getMessage());
         return response;
     }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleUserNotFoundException(UserNotFoundException ex) {
+        ErrorResponse response = ErrorResponse.createInstance();
+        response.addMessage(ex.getMessage());
+        return response;
+    }
 }

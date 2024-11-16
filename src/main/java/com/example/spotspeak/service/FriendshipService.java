@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class FriendshipService {
@@ -40,7 +39,7 @@ public class FriendshipService {
         return friendshipRepository.save(friendship);
     }
 
-    public List<FriendshipUserInfoDTO> getFriendsList(String userId) {
+    public List<FriendshipUserInfoDTO> getFriendshipDTOList(String userId) {
         User currentUser = userService.findByIdOrThrow(userId);
 
         List<Friendship> friendships = friendshipRepository.findAllByUser(currentUser);
@@ -55,6 +54,19 @@ public class FriendshipService {
                 })
                 .toList();
     }
+
+    public List<User> getFriends(String userId) {
+        User currentUser = userService.findByIdOrThrow(userId);
+
+        List<Friendship> friendships = friendshipRepository.findAllByUser(currentUser);
+
+        return friendships.stream()
+            .map(friendship -> friendship.getUserInitiating().equals(currentUser)
+                ? friendship.getUserReceiving()
+                : friendship.getUserInitiating())
+            .toList();
+    }
+
 
     @Transactional
     public void deleteFriend(String userId, UUID friendId) {

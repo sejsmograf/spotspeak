@@ -50,4 +50,14 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
         @Param("achievement") Achievement achievement,
         @Param("user") User user
     );
+
+    @Query("""
+    SELECT SUM(a.points)
+    FROM UserAchievement ua
+    JOIN ua.achievement a
+    WHERE ua.user = :user
+      AND ua.completedAt IS NOT NULL
+    """)
+    Integer calculateTotalPointsForUser(@Param("user") User user);
+
 }

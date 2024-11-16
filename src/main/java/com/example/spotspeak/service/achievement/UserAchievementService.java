@@ -1,7 +1,5 @@
 package com.example.spotspeak.service.achievement;
 
-import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
-import com.example.spotspeak.dto.FriendshipUserInfoDTO;
 import com.example.spotspeak.dto.PublicUserProfileDTO;
 import com.example.spotspeak.dto.achievement.UserAchievementDTO;
 import com.example.spotspeak.dto.achievement.UserAchievementDetailsDTO;
@@ -13,12 +11,9 @@ import com.example.spotspeak.mapper.UserMapper;
 import com.example.spotspeak.repository.UserAchievementRepository;
 import com.example.spotspeak.service.FriendshipService;
 import com.example.spotspeak.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -29,7 +24,6 @@ public class UserAchievementService {
     private UserAchievementMapper userAchievementMapper;
     private FriendshipService friendshipService;
     private UserMapper userMapper;
-    private Logger logger = LoggerFactory.getLogger(AchievementService.class);
 
     public UserAchievementService(UserAchievementRepository userAchievementRepository, UserService userService, UserAchievementMapper userAchievementMapper, FriendshipService friendshipService, UserMapper userMapper) {
         this.userAchievementRepository = userAchievementRepository;
@@ -62,19 +56,7 @@ public class UserAchievementService {
         UserAchievement userAchievement = userAchievementRepository.findByIdAndUser(userAchievementId, user)
             .orElseThrow(() -> new UserAchievementNotFoundException("User achievement not found"));
 
-        List<User> friends = friendshipService.getFriendsList(userId).stream()
-            .map(FriendshipUserInfoDTO::friendInfo)
-            .map(AuthenticatedUserProfileDTO::id)
-            .map(friendId -> {
-                try {
-                    return userService.findByIdOrThrow(friendId.toString());
-                } catch (Exception e) {
-                    logger.warn("Failed to find user with ID who completed achievement: " + friendId, e);
-                    return null;
-                }
-            })
-            .filter(Objects::nonNull)
-            .toList();
+        List<User> friends = friendshipService.getFriends(userId);
 
         return friends.stream()
             .filter(friend -> userAchievementRepository
