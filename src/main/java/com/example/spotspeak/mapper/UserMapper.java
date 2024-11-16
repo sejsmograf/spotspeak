@@ -1,5 +1,6 @@
 package com.example.spotspeak.mapper;
 
+import com.example.spotspeak.dto.OtherUserProfileDTO;
 import org.springframework.stereotype.Component;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
@@ -56,6 +57,13 @@ public class UserMapper {
                 user.getId(),
                 user.getUsername(),
                 profilePictureUrl);
+    }
+
+    public OtherUserProfileDTO createOtherUserProfileDTO(
+        AuthenticatedUserProfileDTO userProfile,
+        Integer totalPoints,
+        String friendshipStatus) {
+        return new OtherUserProfileDTO(userProfile, totalPoints, friendshipStatus);
     }
 
     public void updateUserFromDTO(User user, UserUpdateDTO updateDTO) {

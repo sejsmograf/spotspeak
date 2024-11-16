@@ -44,6 +44,8 @@ public class UserAchievementMapper {
             userAchievement.getId(),
             userAchievement.getAchievement().getName(),
             resourceUrl,
+            userAchievement.getAchievement().getPoints(),
+            userAchievement.getAchievement().getEventType().toString(),
             userAchievement.getCompletedAt()
         );
     }
