@@ -142,7 +142,7 @@ public class AchievementService {
         return achievementRepository.findByName(name) != null;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void initializeUserAchievements(User user) {
         List<Achievement> allAchievements = getAllAchievements();
 

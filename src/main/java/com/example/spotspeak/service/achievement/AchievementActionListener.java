@@ -3,7 +3,6 @@ package com.example.spotspeak.service.achievement;
 import com.example.spotspeak.entity.achievement.Achievement;
 import com.example.spotspeak.entity.achievement.UserAchievement;
 import com.example.spotspeak.repository.UserAchievementRepository;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,15 +25,14 @@ public class AchievementActionListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onUserActionEvent(UserActionEvent event) {
         List<UserAchievement> userAchievements = userAchievementRepository
-            .findUncompleted(event.getEventType(), event.getUser());
+                .findUncompleted(event.getEventType(), event.getUser());
 
         for (UserAchievement userAchievement : userAchievements) {
             Achievement achievement = userAchievement.getAchievement();
 
-            boolean allConditionsSatisfied =
-                achievement.getConditions().isEmpty() || achievement.getConditions()
-                .stream()
-                .allMatch(condition -> condition.isSatisfied(event, userAchievement));
+            boolean allConditionsSatisfied = achievement.getConditions().isEmpty() || achievement.getConditions()
+                    .stream()
+                    .allMatch(condition -> condition.isSatisfied(event, userAchievement));
 
             if (allConditionsSatisfied) {
                 userAchievement.setQuantityProgress(userAchievement.getQuantityProgress() + 1);
@@ -48,4 +46,3 @@ public class AchievementActionListener {
         }
     }
 }
-

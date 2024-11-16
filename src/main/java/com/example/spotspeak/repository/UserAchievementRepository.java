@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserAchievementRepository extends JpaRepository<UserAchievement, Long> {
 
@@ -35,4 +36,18 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
       AND ua.completedAt IS NOT NULL
     """)
     List<UserAchievement> findCompletedAchievementsByUser(@Param("user") User user);
+
+    Optional<UserAchievement> findByIdAndUser(Long id, User user);
+
+    @Query("""
+    SELECT ua 
+    FROM UserAchievement ua 
+    WHERE ua.achievement = :achievement 
+      AND ua.user = :user 
+      AND ua.completedAt IS NOT NULL
+    """)
+    Optional<UserAchievement> findCompletedByAchievementAndUser(
+        @Param("achievement") Achievement achievement,
+        @Param("user") User user
+    );
 }

@@ -89,6 +89,7 @@ public class TraceService {
             double latitude) {
         User discoverer = userService.findByIdOrThrow(userId);
         Trace discovered = traceDiscoveryService.discoverTrace(discoverer, traceId, longitude, latitude);
+
         return traceMapper.createTraceDownloadDTO(discovered);
     }
 
