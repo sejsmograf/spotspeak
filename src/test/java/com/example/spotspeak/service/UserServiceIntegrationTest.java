@@ -314,6 +314,8 @@ public class UserServiceIntegrationTest
 
         User deletedUser = entityManager.find(User.class, user.getId());
         assertThat(deletedUser).isNull();
+        getKeycloakUsers().stream().map(UserRepresentation::getId)
+                .forEach(id -> assertThat(id).isNotEqualTo(userId));
     }
 
     @Test

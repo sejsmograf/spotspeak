@@ -2,6 +2,9 @@ package com.example.spotspeak;
 
 import java.util.List;
 
+import org.keycloak.OAuth2Constants;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -45,5 +48,22 @@ public abstract class BaseTestWithKeycloak extends BaseServiceIntegrationTest {
                 .realm("testrealm")
                 .users()
                 .list();
+    }
+
+    protected String getAccessToken(String username) {
+        Keycloak userKeycloak = KeycloakBuilder.builder()
+                .serverUrl(keycloak.getAuthServerUrl())
+                .realm("testrealm")
+                .clientId("spring-backend")
+                .clientSecret("fsIsl8ebo5gU8mCZnzuKjzA1GcE63sFT")
+                .username(username)
+                .password(username)
+                .grantType(OAuth2Constants.PASSWORD)
+                .build();
+
+        String accessToken = userKeycloak.tokenManager().getAccessTokenString();
+        System.out.println(
+                "Access token for user " + username + ": " + accessToken);
+        return accessToken;
     }
 }
