@@ -21,12 +21,12 @@ public class RankingMapper {
             : null;
 
         return new RankingDTO(
-            null,
+            0,
             user.getId(),
             user.getUsername(),
             user.getFirstName(),
             user.getLastName(),
             profilePictureUrl,
-            null);
+            0);
     }
 }

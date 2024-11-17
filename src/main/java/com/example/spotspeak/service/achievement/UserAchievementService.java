@@ -78,6 +78,7 @@ public class UserAchievementService {
 
     public Integer getTotalPointsByUser(String userId) {
         User user = userService.findByIdOrThrow(userId);
-        return userAchievementRepository.calculateTotalPointsForUser(user);
+        Integer totalPoints = userAchievementRepository.calculateTotalPointsForUser(user);
+        return (totalPoints != null) ? totalPoints : 0;
     }
 }
