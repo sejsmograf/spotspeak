@@ -18,7 +18,7 @@ import dasniko.testcontainers.keycloak.KeycloakContainer;
 public abstract class BaseTestWithKeycloak extends BaseServiceIntegrationTest {
 
     public static KeycloakContainer keycloak = new KeycloakContainer()
-            .withRealmImportFile("testrealm.json")
+            .withRealmImportFile("testrealm.json");
 
     static {
         keycloak.start();
