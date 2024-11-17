@@ -40,7 +40,7 @@ public class Comment {
     @Column(nullable = false)
     private String content;
 
-    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private List<CommentMention> mentions = new ArrayList<>();
 
     @CreationTimestamp

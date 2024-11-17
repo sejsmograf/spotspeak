@@ -150,13 +150,6 @@ public class UserService {
         return findByIdOrThrow(convertedId);
     }
 
-    public List<User> findUsersByUsernames(List<String> usernames) {
-        if (usernames == null || usernames.isEmpty()) {
-            return List.of();
-        }
-        return userRepostitory.findByUsernameIn(usernames);
-    }
-
     public List<User> getAllUsers() {
         return userRepostitory.findAll();
     }

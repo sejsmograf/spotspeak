@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +28,12 @@ public class CommentService {
     private CommentMapper commentMapper;
     private CommentMentionService commentMentionService;
 
-    public CommentService(CommentRepository commentRepository, UserService userService, TraceService traceService, CommentMentionService mentionService, CommentMapper commentMapper, CommentMentionService commentMentionService) {
+    public CommentService(CommentRepository commentRepository,
+                          UserService userService,
+                          TraceService traceService,
+                          CommentMentionService mentionService,
+                          CommentMapper commentMapper,
+                          CommentMentionService commentMentionService) {
         this.commentRepository = commentRepository;
         this.userService = userService;
         this.traceService = traceService;
@@ -49,8 +55,7 @@ public class CommentService {
                 .build();
         comment = commentRepository.save(comment);
 
-        List<CommentMention> commentMentions = mentionService.processMentions(comment);
-        commentMentionService.saveAllMentions(commentMentions);
+        List<CommentMention> commentMentions = handleMentions(comment, commentRequest.mentions());
 
         comment.setMentions(commentMentions);
         comment = commentRepository.save(comment);
@@ -77,17 +82,27 @@ public class CommentService {
             throw new ForbiddenException("Only author can update comment");
         }
 
+        List<CommentMention> commentMentions = comment.getMentions();
         comment.setContent(commentRequest.content());
+        comment.setMentions(null);
         comment = commentRepository.save(comment);
 
-        commentMentionService.deleteAllMentions(comment.getMentions());
-        List<CommentMention> commentMentions = mentionService.processMentions(comment);
-        commentMentionService.saveAllMentions(commentMentions);
+        mentionService.deleteAllMentions(commentMentions);
+        List<CommentMention> newCommentMentions = handleMentions(comment, commentRequest.mentions());
 
-        comment.setMentions(commentMentions);
+        comment.setMentions(newCommentMentions);
         comment = commentRepository.save(comment);
 
         return commentMapper.toCommentResponseDTO(comment);
+    }
+
+    private List<CommentMention> handleMentions(Comment comment, List<UUID> mentions) {
+        if (mentions == null || mentions.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<CommentMention> commentMentions = mentionService.createMentions(comment, mentions);
+        commentMentionService.saveAllMentions(commentMentions);
+        return commentMentions;
     }
 
     @Transactional

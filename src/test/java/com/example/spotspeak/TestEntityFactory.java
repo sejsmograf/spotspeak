@@ -190,9 +190,9 @@ public class TestEntityFactory {
         return mention;
     }
 
-    public static CommentRequestDTO createCommentRequestDTO(String content) {
-        return new CommentRequestDTO(content);
-    }
+//    public static CommentRequestDTO createCommentRequestDTO(String content) {
+//        return new CommentRequestDTO(content);
+//    }
 
     public static Achievement createPersistedAchievement(EntityManager em, String name, String description, int points, EEventType eventType, int requiredQuantity, Set<Condition> conditions) {
         Achievement achievement = Achievement.builder()
