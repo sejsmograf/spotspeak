@@ -66,7 +66,7 @@ public class UserController {
         String currentUserId = jwt.getSubject();
         String otherUserId = String.valueOf(userId);
         AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(otherUserId);
-        Integer totalPoints = userAchievementService.getTotalPointsByUser(currentUserId);
+        Integer totalPoints = userAchievementService.getTotalPointsByUser(otherUserId);
         String friendshipStatus = friendshipService.getFriendshipStatus(currentUserId, otherUserId);
         OtherUserProfileDTO otherUserProfileDTO = userService.getOtherUserInfo(userInfo, totalPoints, friendshipStatus);
         return ResponseEntity.ok(otherUserProfileDTO);
