@@ -2,7 +2,9 @@ package com.example.spotspeak;
 
 import java.util.List;
 
-import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.OAuth2Constants;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -16,7 +18,7 @@ import dasniko.testcontainers.keycloak.KeycloakContainer;
 public abstract class BaseTestWithKeycloak extends BaseServiceIntegrationTest {
 
     public static KeycloakContainer keycloak = new KeycloakContainer()
-            .withRealmImportFile("testrealm.json");
+            .withRealmImportFile("testrealm.json")
 
     static {
         keycloak.start();
@@ -48,20 +50,20 @@ public abstract class BaseTestWithKeycloak extends BaseServiceIntegrationTest {
                 .list();
     }
 
-    protected void getAccessTokenForUser(String userId) {
-        System.out.print("IMPERSONATING USER");
-        UserResource user = keycloak.getKeycloakAdminClient()
+    protected String getAccessToken(String username) {
+        Keycloak userKeycloak = KeycloakBuilder.builder()
+                .serverUrl(keycloak.getAuthServerUrl())
                 .realm("testrealm")
-                .users()
-                .get(userId);
+                .clientId("spring-backend")
+                .clientSecret("fsIsl8ebo5gU8mCZnzuKjzA1GcE63sFT")
+                .username(username)
+                .password(username)
+                .grantType(OAuth2Constants.PASSWORD)
+                .build();
 
-        var impersonation = user.impersonate();
-
-        for (var key : impersonation.keySet()) {
-            System.out.println("KEY");
-            System.out.println(key);
-            System.out.println("VALUE");
-            System.out.println(impersonation.get(key));
-        }
+        String accessToken = userKeycloak.tokenManager().getAccessTokenString();
+        System.out.println(
+                "Access token for user " + username + ": " + accessToken);
+        return accessToken;
     }
 }
