@@ -1,6 +1,7 @@
 package com.example.spotspeak.repository;
 
 import com.example.spotspeak.dto.TraceClusterMapping;
+import com.example.spotspeak.entity.Event;
 import com.example.spotspeak.entity.Trace;
 
 import java.time.LocalDateTime;
@@ -99,5 +100,13 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
 
         return result;
     }
+
+    @Modifying
+    @Query("""
+            UPDATE Trace t
+            SET t.associatedEvent = :event
+            WHERE t.id IN :traceIds
+            """)
+    void associateTracesWithEvent(Event event, List<Long> traceIds);
 
 }
