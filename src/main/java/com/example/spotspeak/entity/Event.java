@@ -1,6 +1,7 @@
 package com.example.spotspeak.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.locationtech.jts.geom.Point;
 import org.springframework.data.annotation.CreatedDate;
@@ -33,14 +34,16 @@ public class Event {
     private String name;
 
     @Column(nullable = false)
-    private Point location;
+    private Point eventCenter;
 
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
-    private List<TraceEvent> traceEvents;
+    @OneToMany(mappedBy = "associatedEvent", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Trace> associatedTraces = new ArrayList<>();
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 }

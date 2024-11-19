@@ -3,6 +3,7 @@ package com.example.spotspeak.service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 import com.example.spotspeak.dto.OtherUserProfileDTO;
@@ -50,9 +51,9 @@ public class UserService {
     }
 
     public OtherUserProfileDTO getOtherUserInfo(
-        AuthenticatedUserProfileDTO userInfo,
-        Integer totalPoints,
-        String friendshipStatus) {
+            AuthenticatedUserProfileDTO userInfo,
+            Integer totalPoints,
+            String friendshipStatus) {
         return userMapper.createOtherUserProfileDTO(userInfo, totalPoints, friendshipStatus);
     }
 
@@ -153,4 +154,5 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepostitory.findAll();
     }
+
 }
