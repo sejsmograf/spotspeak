@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.example.spotspeak.constants.TraceConstants;
 import com.example.spotspeak.dto.TraceClusterMapping;
 import com.example.spotspeak.entity.Event;
+import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.repository.EventRepository;
 import com.example.spotspeak.repository.TraceRepository;
 
@@ -44,6 +45,12 @@ public class EventDetectionService {
         for (TraceClusterMapping cluster : traceClusters) {
             createAndPersistTraceEvent(cluster);
         }
+
+        Trace trace = traceRepository.findById(2L).orElseThrow();
+
+        Long closestId = traceRepository.findClosestTraceId(trace.getLocation().getX(),
+                trace.getLocation().getY(), 1000);
+        System.out.println("Closest trace id: " + closestId);
     }
 
     private Event createAndPersistTraceEvent(TraceClusterMapping cluster) {

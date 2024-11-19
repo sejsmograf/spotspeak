@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import org.geolatte.geom.Point;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -109,4 +108,22 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
             """)
     void associateTracesWithEvent(Event event, List<Long> traceIds);
 
+    @Query(value = """
+            SELECT id FROM
+            (
+                SELECT id,
+                       ST_Distance(
+                           location::geography,
+                           ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography
+                       ) as distance
+                FROM traces
+                WHERE ST_DWithin(
+                          location::geography,
+                          ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, :maxDistanceMeters
+                      )
+            )
+            ORDER BY distance asc
+            LIMIT 1
+            """, nativeQuery = true)
+    Long findClosestTraceId(Double longitude, Double latitude, int maxDistanceMeters);
 }
