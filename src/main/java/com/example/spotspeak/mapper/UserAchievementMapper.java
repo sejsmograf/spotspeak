@@ -49,7 +49,7 @@ public class UserAchievementMapper {
     public UserAchievementDTO toUserAchievementDTO(UserAchievement userAchievement) {
         Resource resource = userAchievement.getAchievement().getIconUrl();
         String resourceUrl = resource != null
-            ? resourceService.getResourceAccessUrl(resource.getId())
+            ? resourceService.getResourceAccessUrl(resource)
             : null;
 
         return new UserAchievementDTO(
@@ -83,7 +83,7 @@ public class UserAchievementMapper {
 
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime normalizedRequiredDateTime = normalizeRequiredDateTime(requiredDateTime, granularity)
-            .truncatedTo(ChronoUnit.SECONDS);;
+            .truncatedTo(ChronoUnit.SECONDS);
 
         if (now.isAfter(normalizedRequiredDateTime)) {
             return Duration.ZERO;

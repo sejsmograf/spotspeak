@@ -60,7 +60,7 @@ public class Achievement {
     private Integer requiredQuantity = 1;
 
     @JsonIgnore
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "resource_id", referencedColumnName = "id", nullable = true)
     private Resource iconUrl;
 
