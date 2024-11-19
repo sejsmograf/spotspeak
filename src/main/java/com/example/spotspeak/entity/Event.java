@@ -39,6 +39,9 @@ public class Event {
     @CreatedDate
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
+
     @OneToMany(mappedBy = "associatedEvent", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Trace> associatedTraces = new ArrayList<>();

@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.constants.TraceConstants;
 import com.example.spotspeak.dto.TraceUploadDTO;
+import com.example.spotspeak.entity.Event;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
@@ -32,18 +33,21 @@ public class TraceCreationService {
     private KeyGenerationService keyGenerationService;
     private GeometryFactory geometryFactory;
     private ApplicationEventPublisher eventPublisher;
+    private EventService eventService;
 
     public TraceCreationService(TraceRepository traceRepository, ResourceService resourceService,
             KeyGenerationService keyGenerationService,
             UserService userService,
             TagService tagService,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            EventService eventService) {
         this.traceRepository = traceRepository;
         this.resourceService = resourceService;
         this.tagService = tagService;
         this.geometryFactory = new GeometryFactory();
         this.eventPublisher = eventPublisher;
         this.keyGenerationService = keyGenerationService;
+        this.eventService = eventService;
     }
 
     @Transactional
@@ -73,6 +77,7 @@ public class TraceCreationService {
                 .description(components.description())
                 .tags(components.tags())
                 .resource(resource)
+                .associatedEvent(components.associatedEvent())
                 .expiresAt(LocalDateTime.now().plusHours(TraceConstants.TRACE_EXPIRATION_HOURS))
                 .build();
 
@@ -105,18 +110,20 @@ public class TraceCreationService {
     private TraceCreationComponents prepareTraceCreationComponents(TraceUploadDTO dto) {
         Point location = geometryFactory.createPoint(new Coordinate(dto.longitude(), dto.latitude()));
         location.setSRID(4326);
-
         List<Tag> tags = dto.tagIds() == null
                 ? null
                 : tagService.findAllByIds(dto.tagIds());
-
         String description = dto.description();
-        return new TraceCreationComponents(tags, location, description);
+        Event associatedEvent = eventService.findEventWithinDistance(dto.longitude(), dto.latitude(),
+                TraceConstants.EVENT_EPSILON_METERS);
+
+        return new TraceCreationComponents(tags, location, associatedEvent, description);
     }
 
     private record TraceCreationComponents(
             List<Tag> tags,
             Point location,
+            Event associatedEvent,
             String description) {
     }
 

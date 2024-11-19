@@ -21,14 +21,14 @@ import com.example.spotspeak.repository.TraceRepository;
 import jakarta.transaction.Transactional;
 
 @Service
-public class EventDetectionService {
+public class EventService {
 
     private final TraceRepository traceRepository;
     private final EventRepository eventRepository;
     private final GeometryFactory geometryFactory;
-    private final Logger logger = LoggerFactory.getLogger(EventDetectionService.class);
+    private final Logger logger = LoggerFactory.getLogger(EventService.class);
 
-    public EventDetectionService(TraceRepository traceRepository, EventRepository eventRepository) {
+    public EventService(TraceRepository traceRepository, EventRepository eventRepository) {
         this.traceRepository = traceRepository;
         this.eventRepository = eventRepository;
         this.geometryFactory = new GeometryFactory();
@@ -37,20 +37,38 @@ public class EventDetectionService {
     @Scheduled(fixedRate = 1000 * 5)
     @Transactional
     public void detectAndCreateEvents() {
-        logger.info("Detecting and creating events...");
+        logger.info("Detecting trace events...");
         List<TraceClusterMapping> traceClusters = traceRepository.findTraceClusters(
                 TraceConstants.EVENT_EPSILON_METERS, TraceConstants.EVENT_MIN_POINTS);
-        logger.info("Detected " + traceClusters.size() + " trace clusters.");
+        logger.info("Detected " + traceClusters.size() + " trace events.");
 
         for (TraceClusterMapping cluster : traceClusters) {
             createAndPersistTraceEvent(cluster);
         }
+    }
 
-        Trace trace = traceRepository.findById(2L).orElseThrow();
+    @Scheduled(fixedRate = 1000 * 20)
+    @Transactional
+    public void deactivateExpiredEvents() {
+        logger.info("Deactivating expired events...");
+        List<Event> expiredEvents = eventRepository.findExpiredEvents(LocalDateTime.now());
+        logger.info("Deactivated " + expiredEvents.size() + " expired events.");
+        expiredEvents.forEach(this::deactivateEvent);
+    }
 
-        Long closestId = traceRepository.findClosestTraceId(trace.getLocation().getX(),
-                trace.getLocation().getY(), 1000);
-        System.out.println("Closest trace id: " + closestId);
+    public Event findEventWithinDistance(double longitude, double latitude, int distance) {
+        Long closestTraceId = traceRepository.findClosestTraceId(longitude, latitude, distance);
+        if (closestTraceId == null) {
+            return null;
+        }
+
+        Trace closestTrace = traceRepository.findById(closestTraceId).get();
+        return closestTrace.getAssociatedEvent();
+    }
+
+    private void deactivateEvent(Event event) {
+        event.setIsActive(false);
+        event.getAssociatedTraces().forEach(trace -> trace.setAssociatedEvent(null));
     }
 
     private Event createAndPersistTraceEvent(TraceClusterMapping cluster) {
@@ -62,11 +80,14 @@ public class EventDetectionService {
                 Event.builder()
                         .name("new event")
                         .eventCenter(center)
-                        .createdAt(LocalDateTime.now()).build());
+                        .createdAt(LocalDateTime.now())
+                        .expiresAt(LocalDateTime.now().plusHours(30))
+                        .build());
 
         traceRepository.associateTracesWithEvent(event, cluster.traceIds());
 
         logger.info("Created event with id " + event.getId());
         return event;
     }
+
 }
