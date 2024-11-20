@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.spotspeak.dto.PublicUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
 import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.service.UserService;
 
@@ -37,17 +37,19 @@ public class UserController {
     private FriendshipService friendshipService;
 
     public UserController(UserService userService,
-                          UserAchievementService userAchievementService,
-                          FriendshipService friendshipService) {
+            UserAchievementService userAchievementService,
+            FriendshipService friendshipService) {
         this.userService = userService;
         this.userAchievementService = userAchievementService;
         this.friendshipService = friendshipService;
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<PublicUserProfileDTO>> searchUsersByUsername(
+    public ResponseEntity<List<PublicUserWithFriendshipDTO>> searchUsersByUsername(
+            @AuthenticationPrincipal Jwt jwt,
             @Valid @NotBlank @RequestParam String username) {
-        List<PublicUserProfileDTO> users = userService.searchUsersByUsername(username);
+        String userId = jwt.getSubject();
+        List<PublicUserWithFriendshipDTO> users = userService.searchUsersByUsername(userId, username);
         return ResponseEntity.ok(users);
     }
 

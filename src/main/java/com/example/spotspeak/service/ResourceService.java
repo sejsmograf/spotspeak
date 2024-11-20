@@ -39,6 +39,11 @@ public class ResourceService {
         return resourceAccessUrl;
     }
 
+    public String getResourceAccessUrl(Resource resource) {
+        String resourceAccessUrl = storageService.getResourceAccessUrl(resource.getResourceKey());
+        return resourceAccessUrl;
+    }
+
     @Transactional
     public void deleteResource(Long resourceId) {
         Resource resource = resourceRepository.findById(resourceId).get();

@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserAchievementRepository extends JpaRepository<UserAchievement, Long> {
 
@@ -27,7 +28,14 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
 
     boolean existsByUserAndAchievement(User user, Achievement achievement);
 
-    List<UserAchievement> findByUser(User user);
+    @Query("""
+    SELECT ua
+    FROM UserAchievement ua
+    JOIN FETCH ua.achievement a
+    LEFT JOIN FETCH a.iconUrl r
+    WHERE ua.user.id = :userId
+    """)
+    List<UserAchievement> findByUserWithAchievementsAndResources(UUID userId);
 
     @Query("""
     SELECT ua 

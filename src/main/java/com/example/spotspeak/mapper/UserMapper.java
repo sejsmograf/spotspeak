@@ -1,10 +1,15 @@
 package com.example.spotspeak.mapper;
 
 import com.example.spotspeak.dto.OtherUserProfileDTO;
+
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.stereotype.Component;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.PublicUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
 import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
@@ -59,10 +64,28 @@ public class UserMapper {
                 profilePictureUrl);
     }
 
+    public List<PublicUserWithFriendshipDTO> createPublicUserWithFriendshipDTOs(User user, List<User> users) {
+        Set<User> allFriends = user.getFriends();
+
+        return users.stream()
+                .map(u -> {
+                    String profilePictureUrl = u.getProfilePicture() != null
+                            ? resourceService.getResourceAccessUrl(u.getProfilePicture().getId())
+                            : null;
+                    boolean isFriend = allFriends.contains(u);
+                    return new PublicUserWithFriendshipDTO(
+                            u.getId(),
+                            u.getUsername(),
+                            profilePictureUrl,
+                            isFriend);
+                })
+                .toList();
+    }
+
     public OtherUserProfileDTO createOtherUserProfileDTO(
-        AuthenticatedUserProfileDTO userProfile,
-        Integer totalPoints,
-        String friendshipStatus) {
+            AuthenticatedUserProfileDTO userProfile,
+            Integer totalPoints,
+            String friendshipStatus) {
         return new OtherUserProfileDTO(userProfile, totalPoints, friendshipStatus);
     }
 

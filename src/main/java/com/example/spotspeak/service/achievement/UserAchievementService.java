@@ -33,10 +33,11 @@ public class UserAchievementService {
         this.userMapper = userMapper;
     }
 
-    public List<UserAchievementDTO> getUserAchievements(String userId) {
-        User user = userService.findByIdOrThrow(userId);
 
-        return userAchievementRepository.findByUser(user).stream()
+    public List<UserAchievementDTO> getUserAchievements(String userId) {
+        UUID userUUID = UUID.fromString(userId);
+        List<UserAchievement> userAchievements = userAchievementRepository.findByUserWithAchievementsAndResources(userUUID);
+        return userAchievements.stream()
             .map(userAchievementMapper::toUserAchievementDTO)
             .toList();
     }
