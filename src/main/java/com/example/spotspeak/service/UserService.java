@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
-import com.example.spotspeak.dto.PublicUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
 import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
@@ -37,11 +37,12 @@ public class UserService {
     private KeyGenerationService keyGenerationService;
     private UserMapper userMapper;
 
-    public List<PublicUserProfileDTO> searchUsersByUsername(String username) {
+    public List<PublicUserWithFriendshipDTO> searchUsersByUsername(String userId, String username) {
+        User user = findByIdOrThrow(userId);
         List<User> matchingUsers = userRepostitory.findAllByUsernameIgnoreCase(username);
-        return matchingUsers.stream()
-                .map(user -> userMapper.createPublicUserProfileDTO(user))
-                .toList();
+        matchingUsers.remove(user);
+
+        return userMapper.createPublicUserWithFriendshipDTOs(user, matchingUsers);
     }
 
     public AuthenticatedUserProfileDTO getUserInfo(String userId) {
@@ -50,9 +51,9 @@ public class UserService {
     }
 
     public OtherUserProfileDTO getOtherUserInfo(
-        AuthenticatedUserProfileDTO userInfo,
-        Integer totalPoints,
-        String friendshipStatus) {
+            AuthenticatedUserProfileDTO userInfo,
+            Integer totalPoints,
+            String friendshipStatus) {
         return userMapper.createOtherUserProfileDTO(userInfo, totalPoints, friendshipStatus);
     }
 

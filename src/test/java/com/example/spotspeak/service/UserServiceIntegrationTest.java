@@ -20,7 +20,7 @@ import com.example.spotspeak.exception.PasswordChallengeFailedException;
 import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
-import com.example.spotspeak.dto.PublicUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.Resource;
@@ -62,12 +62,15 @@ public class UserServiceIntegrationTest
     @Test
     @Transactional
     void searchByUsername_shouldReturnUsersMatchingPartially() {
+        User user = testUsers.get(0);
+
         String usernameToSearch = testUsers.get(0).getUsername().substring(0, 2);
         int expectedSize = testUsers.stream()
-                .filter(user -> user.getUsername().startsWith(usernameToSearch))
+                .filter(u -> u.getUsername().startsWith(usernameToSearch) && !u.getId().equals(user.getId()))
                 .toList().size();
 
-        List<PublicUserProfileDTO> foundUsers = userService.searchUsersByUsername(usernameToSearch);
+        List<PublicUserWithFriendshipDTO> foundUsers = userService.searchUsersByUsername(user.getId().toString(),
+                usernameToSearch);
         assertThat(foundUsers).isNotEmpty().hasSize(expectedSize);
     }
 

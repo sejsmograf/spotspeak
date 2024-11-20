@@ -58,18 +58,23 @@ public class User {
     private Set<Trace> discoveredTraces = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<UserAchievement> userAchievements = new ArrayList<>();
 
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
     private List<FriendRequest> sentRequests = new ArrayList<>();
 
     @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
     private List<FriendRequest> receivedRequests = new ArrayList<>();
 
     @OneToMany(mappedBy = "userInitiating", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
     private List<Friendship> initiatedFriendships = new ArrayList<>();
 
     @OneToMany(mappedBy = "userReceiving", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
     private List<Friendship> receivedFriendships = new ArrayList<>();
 
     @Column(nullable = false)
@@ -92,5 +97,16 @@ public class User {
 
     public void removeDiscoveredTrace(Trace trace) {
         discoveredTraces.remove(trace);
+    }
+
+    public Set<User> getFriends() {
+        Set<User> friends = new HashSet<>();
+        for (Friendship friendship : initiatedFriendships) {
+            friends.add(friendship.getUserReceiving());
+        }
+        for (Friendship friendship : receivedFriendships) {
+            friends.add(friendship.getUserInitiating());
+        }
+        return friends;
     }
 }
