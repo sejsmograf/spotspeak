@@ -1,8 +1,11 @@
 package com.example.spotspeak.service;
 
+import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.FriendshipUserInfoDTO;
 import com.example.spotspeak.entity.Friendship;
 import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
+import com.example.spotspeak.entity.enumeration.ERelationStatus;
 import com.example.spotspeak.exception.FriendshipNotFoundException;
 import com.example.spotspeak.TestEntityFactory;
 import jakarta.transaction.Transactional;
@@ -181,6 +184,82 @@ public class FriendshipServiceIntegrationTest extends BaseServiceIntegrationTest
             boolean exists = friendshipService.checkFriendshipExists(userInitiating, userInitiating);
 
             assertThat(exists).isTrue();
+        }
+    }
+
+    @Nested
+    class getFriendshipStatus {
+        @Test
+        @Transactional
+        void shouldReturnFriendsStatus_whenUsersAreFriends() {
+            TestEntityFactory.createPersistedFriendship(entityManager, userInitiating, userReceiving);
+            flushAndClear();
+
+            ERelationStatus friendshipStatus = friendshipService.getFriendshipStatus(String.valueOf(userInitiating.getId()), String.valueOf(userReceiving.getId()));
+
+            assertThat(friendshipStatus).isEqualTo(ERelationStatus.FRIENDS);
+        }
+
+        @Test
+        @Transactional
+        void shouldReturnInvitationSentStatus_whenUserSentInvitation() {
+            TestEntityFactory.createPersistedFriendRequest(entityManager, userInitiating, userReceiving, EFriendRequestStatus.PENDING);
+            flushAndClear();
+
+            ERelationStatus friendshipStatus = friendshipService.getFriendshipStatus(String.valueOf(userInitiating.getId()), String.valueOf(userReceiving.getId()));
+
+            assertThat(friendshipStatus).isEqualTo(ERelationStatus.INVITATION_SENT);
+        }
+
+        @Test
+        @Transactional
+        void shouldReturnInvitationReceivedStatus_whenUserReceivedInvitation() {
+            TestEntityFactory.createPersistedFriendRequest(entityManager, userReceiving, userInitiating, EFriendRequestStatus.PENDING);
+            flushAndClear();
+
+            ERelationStatus friendshipStatus = friendshipService.getFriendshipStatus(String.valueOf(userInitiating.getId()), String.valueOf(userReceiving.getId()));
+
+            assertThat(friendshipStatus).isEqualTo(ERelationStatus.INVITATION_RECEIVED);
+        }
+
+        @Test
+        @Transactional
+        void shouldReturnNoRelationStatus_whenUsersHaveNoRelationship() {
+            ERelationStatus friendshipStatus = friendshipService.getFriendshipStatus(String.valueOf(userInitiating.getId()), String.valueOf(userReceiving.getId()));
+
+            assertThat(friendshipStatus).isEqualTo(ERelationStatus.NO_RELATION);
+        }
+    }
+
+    @Nested
+    class getMutualFriends {
+
+        @Test
+        @Transactional
+        void shouldReturnEmptyList_whenNoMutualFriendsExists() {
+            TestEntityFactory.createPersistedFriendship(entityManager, userInitiating, userReceiving);
+            flushAndClear();
+
+            List<AuthenticatedUserProfileDTO> mutualFriendsDTOs = friendshipService.getMutualFriendsDTO(String.valueOf(userInitiating.getId()), String.valueOf(userReceiving.getId()));
+            assertThat(mutualFriendsDTOs).isEmpty();
+        }
+
+        @Test
+        @Transactional
+        void shouldReturnMutualFriendsList_whenMutualFriendsExists() {
+            User mutualFriend1 = TestEntityFactory.createPersistedUser(entityManager);
+            User mutualFriend2 = TestEntityFactory.createPersistedUser(entityManager);
+            TestEntityFactory.createPersistedFriendship(entityManager, userInitiating, userReceiving);
+            TestEntityFactory.createPersistedFriendship(entityManager, userInitiating, mutualFriend1);
+            TestEntityFactory.createPersistedFriendship(entityManager, userReceiving, mutualFriend1);
+            TestEntityFactory.createPersistedFriendship(entityManager, userInitiating, mutualFriend2);
+            TestEntityFactory.createPersistedFriendship(entityManager, userReceiving, mutualFriend2);
+            flushAndClear();
+
+            List<AuthenticatedUserProfileDTO> mutualFriendsDTOs = friendshipService.getMutualFriendsDTO(String.valueOf(userInitiating.getId()), String.valueOf(userReceiving.getId()));
+            assertThat(mutualFriendsDTOs).hasSize(2);
+            assertThat(mutualFriendsDTOs).extracting("id")
+                .containsExactlyInAnyOrder(mutualFriend1.getId(), mutualFriend2.getId());
         }
     }
 }

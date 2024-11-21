@@ -5,6 +5,7 @@ import com.example.spotspeak.dto.FriendshipUserInfoDTO;
 import com.example.spotspeak.entity.Friendship;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
+import com.example.spotspeak.entity.enumeration.ERelationStatus;
 import com.example.spotspeak.exception.FriendshipNotFoundException;
 import com.example.spotspeak.mapper.FriendshipMapper;
 import com.example.spotspeak.mapper.UserMapper;
@@ -85,7 +86,6 @@ public class FriendshipService {
 
         return currentUserFriends.stream()
                 .filter(otherUserFriends::contains)
-                .filter(user -> !user.getId().toString().equals(otherUserId))
                 .toList();
     }
 
@@ -93,11 +93,11 @@ public class FriendshipService {
         List<User> mutualFriends = getMutualFriends(currentUserId, otherUserId);
 
         return mutualFriends.stream()
-                .map(friend -> userMapper.createAuthenticatedUserProfileDTO(friend))
+                .map(friend -> userMapper.createAuthenticatedUserProfileDTO(friend,null))
                 .toList();
     }
 
-    public String getFriendshipStatus(String currentUserId, String userId) {
+    public ERelationStatus getFriendshipStatus(String currentUserId, String userId) {
         User currentUser = userService.findByIdOrThrow(currentUserId);
         User otherUser = userService.findByIdOrThrow(userId);
 
@@ -110,13 +110,13 @@ public class FriendshipService {
                 otherUser, currentUser, EFriendRequestStatus.PENDING);
 
         if (isFriend) {
-            return "FRIENDS";
+            return ERelationStatus.FRIENDS;
         } else if (invitationSent) {
-            return "INVITATION_SENT";
+            return ERelationStatus.INVITATION_SENT;
         } else if (invitationReceived) {
-            return "INVITATION_RECEIVED";
+            return ERelationStatus.INVITATION_RECEIVED;
         } else {
-            return "NO_RELATION";
+            return ERelationStatus.NO_RELATION;
         }
     }
 
