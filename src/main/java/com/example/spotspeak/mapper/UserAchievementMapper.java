@@ -10,7 +10,6 @@ import com.example.spotspeak.entity.enumeration.EDateGranularity;
 import com.example.spotspeak.service.ResourceService;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -28,8 +27,7 @@ public class UserAchievementMapper {
             ? resourceService.getResourceAccessUrl(resource.getId())
             : null;
 
-        Duration remainingTime = calculateRemainingTime(userAchievement);
-        boolean timeExpired = remainingTime != null && remainingTime.isZero();
+        LocalDateTime endTime = calculateEndTime(userAchievement);
 
         return new UserAchievementDetailsDTO(
             userAchievement.getId(),
@@ -41,8 +39,7 @@ public class UserAchievementMapper {
             userAchievement.getQuantityProgress(),
             userAchievement.getCurrentStreak(),
             userAchievement.getCompletedAt(),
-            remainingTime,
-            timeExpired
+            endTime
         );
     }
 
@@ -62,7 +59,7 @@ public class UserAchievementMapper {
         );
     }
 
-    private Duration calculateRemainingTime(UserAchievement userAchievement) {
+    private LocalDateTime calculateEndTime(UserAchievement userAchievement) {
         Achievement achievement = userAchievement.getAchievement();
         TimeCondition timeCondition = achievement.getConditions().stream()
             .filter(condition -> condition instanceof TimeCondition)
@@ -81,15 +78,8 @@ public class UserAchievementMapper {
             return null;
         }
 
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime normalizedRequiredDateTime = normalizeRequiredDateTime(requiredDateTime, granularity)
+        return normalizeRequiredDateTime(requiredDateTime, granularity)
             .truncatedTo(ChronoUnit.SECONDS);
-
-        if (now.isAfter(normalizedRequiredDateTime)) {
-            return Duration.ZERO;
-        }
-
-        return Duration.between(now, normalizedRequiredDateTime);
     }
 
     private LocalDateTime normalizeRequiredDateTime(LocalDateTime requiredDateTime, EDateGranularity granularity) {
