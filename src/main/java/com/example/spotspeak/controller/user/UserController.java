@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.UUID;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
-import com.example.spotspeak.dto.OtherUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserProfileAllInfoDTO;
+import com.example.spotspeak.entity.enumeration.ERelationStatus;
 import com.example.spotspeak.service.FriendshipService;
-import com.example.spotspeak.service.achievement.UserAchievementService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,14 +33,11 @@ import jakarta.validation.constraints.NotBlank;
 public class UserController {
 
     private UserService userService;
-    private UserAchievementService userAchievementService;
     private FriendshipService friendshipService;
 
     public UserController(UserService userService,
-            UserAchievementService userAchievementService,
-            FriendshipService friendshipService) {
+                          FriendshipService friendshipService) {
         this.userService = userService;
-        this.userAchievementService = userAchievementService;
         this.friendshipService = friendshipService;
     }
 
@@ -62,15 +59,14 @@ public class UserController {
     }
 
     @GetMapping("/profile/{userId}")
-    ResponseEntity<OtherUserProfileDTO> getUserProfile(
+    ResponseEntity<PublicUserProfileAllInfoDTO> getUserProfile(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID userId) {
         String currentUserId = jwt.getSubject();
         String otherUserId = String.valueOf(userId);
         AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(otherUserId);
-        Integer totalPoints = userAchievementService.getTotalPointsByUser(otherUserId);
-        String friendshipStatus = friendshipService.getFriendshipStatus(currentUserId, otherUserId);
-        OtherUserProfileDTO otherUserProfileDTO = userService.getOtherUserInfo(userInfo, totalPoints, friendshipStatus);
-        return ResponseEntity.ok(otherUserProfileDTO);
+        ERelationStatus relationshipStatus = friendshipService.getFriendshipStatus(currentUserId, otherUserId);
+        PublicUserProfileAllInfoDTO publicUserProfileAllInfoDTO = userService.getPublicUserProfileInfo(userInfo, relationshipStatus);
+        return ResponseEntity.ok(publicUserProfileAllInfoDTO);
     }
 }

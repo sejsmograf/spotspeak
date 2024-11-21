@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.example.spotspeak.dto.OtherUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserProfileAllInfoDTO;
+import com.example.spotspeak.entity.enumeration.ERelationStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,14 +48,14 @@ public class UserService {
 
     public AuthenticatedUserProfileDTO getUserInfo(String userId) {
         User user = findByIdOrThrow(userId);
-        return userMapper.createAuthenticatedUserProfileDTO(user);
+        Integer totalPoints = achievementService.getTotalPointsByUser(user);
+        return userMapper.createAuthenticatedUserProfileDTO(user, totalPoints);
     }
 
-    public OtherUserProfileDTO getOtherUserInfo(
+    public PublicUserProfileAllInfoDTO getPublicUserProfileInfo(
             AuthenticatedUserProfileDTO userInfo,
-            Integer totalPoints,
-            String friendshipStatus) {
-        return userMapper.createOtherUserProfileDTO(userInfo, totalPoints, friendshipStatus);
+            ERelationStatus relationshipStatus) {
+        return userMapper.createPublicUserProfileAllInfoDTO(userInfo, relationshipStatus);
     }
 
     public ChallengeResponseDTO generateTemporaryToken(String userId, String password) {
