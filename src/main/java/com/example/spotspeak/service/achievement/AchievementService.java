@@ -18,7 +18,6 @@ import com.example.spotspeak.service.ResourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -171,5 +170,10 @@ public class AchievementService {
                 logger.warn("Failed to initialize achievements for user ID: " + user.getId(), e);
             }
         });
+    }
+
+    public Integer getTotalPointsByUser(User user) {
+        Integer totalPoints = userAchievementRepository.calculateTotalPointsForUser(user);
+        return (totalPoints != null) ? totalPoints : 0;
     }
 }

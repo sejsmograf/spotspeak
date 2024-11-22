@@ -1,10 +1,11 @@
 package com.example.spotspeak.mapper;
 
-import com.example.spotspeak.dto.OtherUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserProfileAllInfoDTO;
 
 import java.util.List;
 import java.util.Set;
 
+import com.example.spotspeak.entity.enumeration.ERelationStatus;
 import org.springframework.stereotype.Component;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
@@ -24,7 +25,7 @@ public class UserMapper {
         this.resourceService = resourceService;
     }
 
-    public AuthenticatedUserProfileDTO createAuthenticatedUserProfileDTO(User user) {
+    public AuthenticatedUserProfileDTO createAuthenticatedUserProfileDTO(User user, Integer totalPoints) {
         Resource profilePicture = user.getProfilePicture();
         String profilePictureUrl = profilePicture != null
                 ? resourceService.getResourceAccessUrl(profilePicture.getId())
@@ -36,7 +37,8 @@ public class UserMapper {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
-                profilePictureUrl);
+                profilePictureUrl,
+                totalPoints);
     }
 
     public User createUserFromDTO(RegisteredUserDTO userDTO) {
@@ -82,11 +84,10 @@ public class UserMapper {
                 .toList();
     }
 
-    public OtherUserProfileDTO createOtherUserProfileDTO(
+    public PublicUserProfileAllInfoDTO createPublicUserProfileAllInfoDTO(
             AuthenticatedUserProfileDTO userProfile,
-            Integer totalPoints,
-            String friendshipStatus) {
-        return new OtherUserProfileDTO(userProfile, totalPoints, friendshipStatus);
+            ERelationStatus relationshipStatus) {
+        return new PublicUserProfileAllInfoDTO(userProfile, relationshipStatus);
     }
 
     public void updateUserFromDTO(User user, UserUpdateDTO updateDTO) {

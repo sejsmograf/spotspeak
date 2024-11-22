@@ -1,6 +1,5 @@
 package com.example.spotspeak.dto.achievement;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 public record UserAchievementDetailsDTO(
@@ -13,6 +12,5 @@ public record UserAchievementDetailsDTO(
     Integer quantityProgress,
     Integer currentStreak,
     LocalDateTime completedAt,
-    Duration remainingTime,
-    boolean timeExpired
+    LocalDateTime endTime
 ) {}

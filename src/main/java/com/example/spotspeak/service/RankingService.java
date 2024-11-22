@@ -3,7 +3,7 @@ package com.example.spotspeak.service;
 import com.example.spotspeak.dto.RankingDTO;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.mapper.RankingMapper;
-import com.example.spotspeak.service.achievement.UserAchievementService;
+import com.example.spotspeak.service.achievement.AchievementService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,16 +13,16 @@ import java.util.List;
 public class RankingService {
 
     private FriendshipService friendshipService;
-    private UserAchievementService userAchievementService;
+    private AchievementService achievementService;
     private UserService userService;
     private RankingMapper rankingMapper;
 
     public RankingService(FriendshipService friendshipService,
-                          UserAchievementService userAchievementService,
+                          AchievementService achievementService,
                           UserService userService,
                           RankingMapper rankingMapper) {
         this.friendshipService = friendshipService;
-        this.userAchievementService = userAchievementService;
+        this.achievementService = achievementService;
         this.userService = userService;
         this.rankingMapper = rankingMapper;
     }
@@ -34,12 +34,12 @@ public class RankingService {
         List<RankingDTO> ranking = new ArrayList<>();
 
         RankingDTO userRankingDTO = rankingMapper.createRankingDTO(user);
-        Integer userPoints = userAchievementService.getTotalPointsByUser(userId);
+        Integer userPoints = achievementService.getTotalPointsByUser(user);
         ranking.add(userRankingDTO.withTotalPoints(userPoints));
 
         for (User friend : friends) {
             RankingDTO friendRankingDTO = rankingMapper.createRankingDTO(friend);
-            Integer friendPoints = userAchievementService.getTotalPointsByUser(String.valueOf(friend.getId()));
+            Integer friendPoints = achievementService.getTotalPointsByUser(friend);
             ranking.add(friendRankingDTO.withTotalPoints(friendPoints));
         }
 

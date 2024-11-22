@@ -76,10 +76,4 @@ public class UserAchievementService {
             .map(userAchievementMapper::toUserAchievementDTO)
             .toList();
     }
-
-    public Integer getTotalPointsByUser(String userId) {
-        User user = userService.findByIdOrThrow(userId);
-        Integer totalPoints = userAchievementRepository.calculateTotalPointsForUser(user);
-        return (totalPoints != null) ? totalPoints : 0;
-    }
 }
