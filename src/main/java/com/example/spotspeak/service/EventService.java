@@ -25,32 +25,33 @@ public class EventService {
 
     private final TraceRepository traceRepository;
     private final EventRepository eventRepository;
+    private final EventNamingService eventNamingService;
     private final GeometryFactory geometryFactory;
     private final Logger logger = LoggerFactory.getLogger(EventService.class);
 
-    public EventService(TraceRepository traceRepository, EventRepository eventRepository) {
+    public EventService(TraceRepository traceRepository, EventRepository eventRepository,
+            EventNamingService eventNamingService) {
         this.traceRepository = traceRepository;
         this.eventRepository = eventRepository;
+        this.eventNamingService = eventNamingService;
         this.geometryFactory = new GeometryFactory();
     }
 
-    @Scheduled(fixedRate = 1000 * 5)
+    @Scheduled(fixedRate = TraceConstants.EVENT_DETECTION_INTERVAL_MS)
     @Transactional
     public void detectAndCreateEvents() {
-        logger.info("Detecting trace events...");
         List<TraceClusterMapping> traceClusters = traceRepository.findTraceClusters(
                 TraceConstants.EVENT_EPSILON_METERS, TraceConstants.EVENT_MIN_POINTS);
-        logger.info("Detected " + traceClusters.size() + " trace events.");
 
         for (TraceClusterMapping cluster : traceClusters) {
+            logger.info("Detected " + traceClusters.size() + " trace events.");
             createAndPersistTraceEvent(cluster);
         }
     }
 
-    @Scheduled(fixedRate = 1000 * 20)
+    @Scheduled(fixedRate = TraceConstants.EXPIRED_EVENT_CLEANUP_INTERVAL_MS)
     @Transactional
     public void deactivateExpiredEvents() {
-        logger.info("Deactivating expired events...");
         List<Event> expiredEvents = eventRepository.findExpiredEvents(LocalDateTime.now());
         logger.info("Deactivated " + expiredEvents.size() + " expired events.");
         expiredEvents.forEach(this::deactivateEvent);
@@ -72,13 +73,15 @@ public class EventService {
     }
 
     private Event createAndPersistTraceEvent(TraceClusterMapping cluster) {
+        List<Trace> traces = traceRepository.findAllById(cluster.traceIds());
         Point center = geometryFactory.createPoint(
                 new Coordinate(cluster.centroidLon(), cluster.centroidLat()));
         center.setSRID(4326);
+        String eventName = eventNamingService.getEventName(traces);
 
         Event event = eventRepository.save(
                 Event.builder()
-                        .name("new event")
+                        .name(eventName)
                         .eventCenter(center)
                         .createdAt(LocalDateTime.now())
                         .expiresAt(LocalDateTime.now().plusHours(TraceConstants.EVENT_EXPIRATION_HOURS))
@@ -86,7 +89,7 @@ public class EventService {
 
         traceRepository.associateTracesWithEvent(event, cluster.traceIds());
 
-        logger.info("Created event with id " + event.getId());
+        logger.info("Created event with id " + event.getId() + " and name " + event.getName());
         return event;
     }
 
