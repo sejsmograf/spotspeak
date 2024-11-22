@@ -7,4 +7,5 @@ public class TraceConstants {
 
     public static final int EVENT_EPSILON_METERS = 500;
     public static final int EVENT_MIN_POINTS = 5;
+    public static final int EVENT_EXPIRATION_HOURS = 12;
 }

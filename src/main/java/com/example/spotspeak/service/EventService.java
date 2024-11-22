@@ -81,7 +81,7 @@ public class EventService {
                         .name("new event")
                         .eventCenter(center)
                         .createdAt(LocalDateTime.now())
-                        .expiresAt(LocalDateTime.now().plusHours(30))
+                        .expiresAt(LocalDateTime.now().plusHours(TraceConstants.EVENT_EXPIRATION_HOURS))
                         .build());
 
         traceRepository.associateTracesWithEvent(event, cluster.traceIds());
