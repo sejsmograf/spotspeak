@@ -2,14 +2,14 @@ package com.example.spotspeak.controller.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,14 +18,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.BaseTestWithKeycloak;
 import com.example.spotspeak.TestEntityFactory;
 import com.example.spotspeak.dto.ChallengeRequestDTO;
+import com.example.spotspeak.dto.ChallengeResponseDTO;
+import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import jakarta.transaction.Transactional;
 
@@ -128,4 +134,85 @@ public class UserProfileControllerTest
                 .with(jwt().jwt(jwt -> jwt.subject(userId))))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void updateProfile_shouldReturn403_whenInvalidPasswordToken() throws Exception {
+        User user = users.get(0);
+        String userId = user.getId().toString();
+        UserUpdateDTO dto = UserUpdateDTO.builder()
+                .passwordChallengeToken("invalid")
+                .username("newusername")
+                .build();
+        String body = new ObjectMapper().writeValueAsString(dto);
+
+        mockMvc.perform(put(baseUri)
+                .header("Content-Type", "application/json")
+                .content(body)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void updateProfile_shouldUpdateProfile_whenValidPasswordTokenProvided() throws Exception {
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        User user = users.get(0);
+        String username = user.getUsername();
+        String userId = user.getId().toString();
+        String password = username;
+        String body = mapper.writeValueAsString(new ChallengeRequestDTO(password));
+
+        MockHttpServletResponse response = mockMvc.perform(post(baseUri + "/generate-challenge")
+                .header("Content-Type", "application/json")
+                .content(body)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("token").isNotEmpty())
+                .andReturn().getResponse();
+
+        ChallengeResponseDTO responseDTO = mapper.readValue(response.getContentAsByteArray(),
+                ChallengeResponseDTO.class);
+        String token = responseDTO.token();
+
+        UserUpdateDTO dto = UserUpdateDTO.builder()
+                .passwordChallengeToken(token)
+                .email("newemail@gmail.com")
+                .build();
+        body = mapper.writeValueAsString(dto);
+
+        mockMvc.perform(put(baseUri)
+                .header("Content-Type", "application/json")
+                .content(body)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void updateProfilePicture_shouldUpdate_whenValidFileProvided() throws Exception {
+        User user = users.get(0);
+        String userId = user.getId().toString();
+        MockMultipartFile file = TestEntityFactory.createMockMultipartFile("image/jpg", 100);
+
+        mockMvc.perform(multipart(baseUri + "/picture")
+                .file(file)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+
+        User retrievedUser = entityManager.find(User.class, UUID.fromString(userId));
+        assertThat(retrievedUser.getProfilePicture()).isNotNull();
+    }
+
+    @Test
+    void updateProfilePicture_shouldReturn400_whenInvalidFileType() throws Exception {
+        User user = users.get(0);
+        String userId = user.getId().toString();
+        MockMultipartFile file = TestEntityFactory.createMockMultipartFile("invlaid/jpg", 100);
+
+        mockMvc.perform(multipart(baseUri + "/picture")
+                .file(file)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResponse();
+    }
 }
+
