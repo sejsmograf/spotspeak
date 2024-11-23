@@ -44,15 +44,19 @@ public class AIEventNamingService implements EventNamingService {
 
     @Override
     public String getEventName(List<Trace> associatedTraces) {
-        String prompt = NAME_EVENT_PROMPT + getTracesJson(associatedTraces);
-        log.info("Prompting AI with traces: " + prompt);
+        try {
+            String prompt = NAME_EVENT_PROMPT + getTracesJson(associatedTraces);
+            log.info("Prompting AI with traces: " + prompt);
 
-        String response = chatClient.prompt()
-                .user(prompt)
-                .call()
-                .content();
+            String response = chatClient.prompt()
+                    .user(prompt)
+                    .call()
+                    .content();
 
-        return response;
+            return response;
+        } catch (Exception e) {
+            return "Event";
+        }
     }
 
     private String getTracesJson(List<Trace> traces) {
