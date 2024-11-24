@@ -56,12 +56,14 @@ public class AchievementService {
             throw new AchievementExistsException("Achievement already exists");
         }
 
+        EEventType eventType = getEventTypeOrThrow(achievementUploadDTO.eventType());
+
         Achievement achievement = Achievement.builder()
                 .name(achievementUploadDTO.name())
                 .description(achievementUploadDTO.description())
                 .points(achievementUploadDTO.points())
                 .iconUrl(resource)
-                .eventType(EEventType.valueOf(achievementUploadDTO.eventType()))
+                .eventType(eventType)
                 .requiredQuantity(achievementUploadDTO.requiredQuantity())
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -82,10 +84,12 @@ public class AchievementService {
         Achievement achievement = achievementRepository.findById(achievementUpdateDTO.id())
                 .orElseThrow(() -> new AchievementNotFoundException("Achievement not found"));
 
+        EEventType eventType = getEventTypeOrThrow(achievementUpdateDTO.eventType());
+
         achievement.setName(achievementUpdateDTO.name());
         achievement.setDescription(achievementUpdateDTO.description());
         achievement.setPoints(achievementUpdateDTO.points());
-        achievement.setEventType(EEventType.valueOf(achievementUpdateDTO.eventType()));
+        achievement.setEventType(eventType);
         achievement.setRequiredQuantity(achievementUpdateDTO.requiredQuantity());
 
         if (achievementUpdateDTO.conditions() != null) {
@@ -160,20 +164,23 @@ public class AchievementService {
 
     @Transactional
     public void initializeAchievementsForAllUsers(List<User> allUsers) {
-        if (allUsers == null) {
-            allUsers = List.of();
+        if (allUsers == null || allUsers.isEmpty()) {
+            return;
         }
-        allUsers.forEach(user -> {
-            try {
-                initializeUserAchievements(user);
-            } catch (Exception e) {
-                logger.warn("Failed to initialize achievements for user ID: " + user.getId(), e);
-            }
-        });
+        allUsers.forEach(this::initializeUserAchievements);
     }
 
     public Integer getTotalPointsByUser(User user) {
         Integer totalPoints = userAchievementRepository.calculateTotalPointsForUser(user);
         return (totalPoints != null) ? totalPoints : 0;
     }
+
+    private EEventType getEventTypeOrThrow(String eventType) {
+        try {
+            return EEventType.valueOf(eventType);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid event type: " + eventType, e);
+        }
+    }
+
 }
