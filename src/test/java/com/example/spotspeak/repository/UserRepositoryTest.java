@@ -64,7 +64,7 @@ public class UserRepositoryTest extends BaseRepositoryTest {
         }
 
         @Test
-        void deleteUser_shouldNotDeleteProfilePicture() {
+        void deleteUser_shouldDeleteProfilePicture() {
             User user = TestEntityFactory.createPersistedUser(entityManager);
             Resource profilePicture = TestEntityFactory.createPersistedResource(entityManager);
             user.setProfilePicture(profilePicture);

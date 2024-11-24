@@ -291,4 +291,17 @@ public class UserProfileControllerTest
                 .andExpect(status().isNoContent());
         keycloakClientService.validatePasswordOrThrow(userId, oldPassword);
     }
+
+    @Test
+    void deleteProfile_shouldDeleteProfile() throws Exception {
+        User user = users.get(0);
+        String userId = user.getId().toString();
+
+        mockMvc.perform(delete(baseUri)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isNoContent());
+
+        User retrieved = entityManager.find(User.class, UUID.fromString(userId));
+        assertThat(retrieved).isNull();
+    }
 }

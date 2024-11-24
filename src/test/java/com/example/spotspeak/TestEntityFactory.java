@@ -1,7 +1,6 @@
 package com.example.spotspeak;
 
 import com.example.spotspeak.constants.TraceConstants;
-import com.example.spotspeak.dto.CommentRequestDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.entity.*;
@@ -76,6 +75,7 @@ public class TestEntityFactory {
         double latitude = RANDOM.nextDouble() * 180 - 90;
         double longitude = RANDOM.nextDouble() * 360 - 180;
         Point location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+        location.setSRID(4326);
 
         Trace trace = Trace.builder()
                 .author(author)
@@ -98,6 +98,7 @@ public class TestEntityFactory {
     public static Trace createPersistedTrace(EntityManager em, User author, List<Tag> tags, double longitude,
             double latitude) {
         Point location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+        location.setSRID(4326);
         Trace trace = createPersistedTrace(em, author, tags);
         trace.setLocation(location);
 
@@ -251,5 +252,22 @@ public class TestEntityFactory {
             .build();
         em.persist(userAchievement);
         return userAchievement;
+    }
+
+    public static Event createPersistedEvent(EntityManager em) {
+        double latitude = RANDOM.nextDouble() * 180 - 90;
+        double longitude = RANDOM.nextDouble() * 360 - 180;
+        Point location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+        location.setSRID(4326);
+
+        Event event = Event.builder()
+            .name("Test event")
+            .eventCenter(location)
+            .expiresAt(LocalDateTime.now().plusHours(TraceConstants.EVENT_EXPIRATION_HOURS))
+            .isActive(true)
+            .build();
+
+        em.persist(event);
+        return event;
     }
 }
