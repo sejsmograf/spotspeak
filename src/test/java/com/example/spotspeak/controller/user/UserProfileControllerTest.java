@@ -22,14 +22,16 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.BaseTestWithKeycloak;
 import com.example.spotspeak.TestEntityFactory;
+import com.example.spotspeak.constants.FileUploadConsants;
 import com.example.spotspeak.dto.ChallengeRequestDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
+import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.User;
+import com.example.spotspeak.service.KeycloakClientService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
@@ -46,6 +48,9 @@ public class UserProfileControllerTest
 
     @Autowired
     private UserProfileController profileController;
+
+    @Autowired
+    KeycloakClientService keycloakClientService;
 
     private final URI baseUri = URI.create("/api/users/me");
 
@@ -214,5 +219,76 @@ public class UserProfileControllerTest
                 .andExpect(status().isBadRequest())
                 .andReturn().getResponse();
     }
-}
 
+    @Test
+    void updateProfilePicture_shouldReturn400_whenFileTooBig() throws Exception {
+        User user = users.get(0);
+        String userId = user.getId().toString();
+        int size = (int) FileUploadConsants.PROFILE_PICTURE_MAX_SIZE + 1;
+        MockMultipartFile file = TestEntityFactory.createMockMultipartFile("image/jpg", size);
+
+        mockMvc.perform(multipart(baseUri + "/picture")
+                .file(file)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResponse();
+    }
+
+    @Test
+    void deleteProfilePictureShouldWork_whenUserHasNoProfilePicture() throws Exception {
+        User user = users.get(0);
+        String userId = user.getId().toString();
+        MockMultipartFile file = TestEntityFactory.createMockMultipartFile("image/jpg", 100);
+
+        mockMvc.perform(multipart(baseUri + "/picture")
+                .file(file)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+
+        mockMvc.perform(delete(baseUri + "/picture")
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isNoContent())
+                .andReturn().getResponse();
+    }
+
+    @Test
+    void deleteProfilePictureShouldWork_whenUserHasProfilePicture() throws Exception {
+        User user = users.get(0);
+        String userId = user.getId().toString();
+
+        mockMvc.perform(delete(baseUri + "/picture")
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isNoContent())
+                .andReturn().getResponse();
+    }
+
+    @Test
+    void updatePassword_shouldUpdatePassword_whenValidOldPassword() throws Exception {
+        User user = users.get(0);
+        String userId = user.getId().toString();
+        String oldPassword = user.getUsername(); // testusers have the same username and password
+        String newPassword = "newpass123";
+
+        PasswordUpdateDTO dto = new PasswordUpdateDTO(oldPassword, newPassword);
+        ObjectMapper mapper = new ObjectMapper();
+        String body = mapper.writeValueAsString(dto);
+
+        mockMvc.perform(put(baseUri + "/update-password")
+                .header("Content-Type", "application/json")
+                .content(body)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isNoContent());
+        keycloakClientService.validatePasswordOrThrow(userId, newPassword);
+
+        // Restore previoous password for test consistency
+        dto = new PasswordUpdateDTO(newPassword, oldPassword);
+        body = mapper.writeValueAsString(dto);
+        mockMvc.perform(put(baseUri + "/update-password")
+                .header("Content-Type", "application/json")
+                .content(body)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isNoContent());
+        keycloakClientService.validatePasswordOrThrow(userId, oldPassword);
+    }
+}
