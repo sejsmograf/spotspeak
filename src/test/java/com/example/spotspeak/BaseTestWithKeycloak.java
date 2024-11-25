@@ -2,6 +2,7 @@ package com.example.spotspeak;
 
 import java.util.List;
 
+import org.junit.jupiter.api.AfterAll;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;

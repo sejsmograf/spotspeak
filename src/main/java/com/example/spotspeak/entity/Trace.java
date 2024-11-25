@@ -79,11 +79,6 @@ public class Trace {
     @Builder.Default
     Set<User> discoverers = new HashSet<>();
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<TraceEvent> traceEvents = new ArrayList<>();
-
     @Column(nullable = false)
     @Builder.Default
     private Boolean isActive = true;
@@ -97,6 +92,10 @@ public class Trace {
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", nullable = true)
+    private Event associatedEvent;
 
     public double getLongitude() {
         return location.getX();
