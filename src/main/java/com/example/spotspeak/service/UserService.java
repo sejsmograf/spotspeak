@@ -121,6 +121,12 @@ public class UserService {
         return resource;
     }
 
+    public void setFcmToken(String userId, String fcmToken) {
+        User user = findByIdOrThrow(userId);
+        user.setFcmToken(fcmToken);
+        userRepostitory.save(user);
+    }
+
     public void deleteUserProfilePicture(String userId) {
         User user = findByIdOrThrow(userId);
         Resource profilePicture = user.getProfilePicture();

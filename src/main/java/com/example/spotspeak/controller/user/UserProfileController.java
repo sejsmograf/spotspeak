@@ -25,6 +25,7 @@ import com.example.spotspeak.service.UserService;
 import com.example.spotspeak.validation.ValidFile;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 @RestController
 @RequestMapping("/api/users/me")
@@ -100,6 +101,14 @@ public class UserProfileController {
     ResponseEntity<Void> deleteProfilePicture(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         userService.deleteUserProfilePicture(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/fcm-token")
+    ResponseEntity<Void> updateFcmToken(@AuthenticationPrincipal Jwt jwt,
+            @NotBlank @Valid @RequestBody String fcmToken) {
+        String userId = jwt.getSubject();
+        userService.setFcmToken(userId, fcmToken);
         return ResponseEntity.noContent().build();
     }
 }
