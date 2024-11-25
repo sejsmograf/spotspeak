@@ -43,7 +43,14 @@ public class RankingService {
             ranking.add(friendRankingDTO.withTotalPoints(friendPoints));
         }
 
-        ranking.sort((a, b) -> b.totalPoints().compareTo(a.totalPoints()));
+        ranking.sort((a, b) -> {
+            int pointsComparison = b.totalPoints().compareTo(a.totalPoints());
+            if (pointsComparison != 0) {
+                return pointsComparison;
+            }
+            return a.username().compareToIgnoreCase(b.username());
+        });
+
 
         for (int i = 0; i < ranking.size(); i++) {
             RankingDTO original = ranking.get(i);
