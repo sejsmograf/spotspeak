@@ -20,6 +20,7 @@ import com.example.spotspeak.entity.enumeration.EDateGranularity;
 import com.example.spotspeak.entity.enumeration.EEventType;
 import com.example.spotspeak.exception.AchievementExistsException;
 import com.example.spotspeak.exception.AchievementNotFoundException;
+import com.example.spotspeak.repository.AchievementRepository;
 import com.example.spotspeak.repository.UserAchievementRepository;
 import com.example.spotspeak.service.achievement.AchievementService;
 import com.example.spotspeak.service.achievement.UserAchievementService;
@@ -48,6 +49,9 @@ public class AchievementServiceIntegrationTest extends BaseServiceIntegrationTes
 
     @Autowired
     private UserAchievementRepository userAchievementRepository;
+
+    @Autowired
+    private AchievementRepository achievementRepository;
 
     private User testUser;
     private Achievement existingAchievement;
@@ -363,9 +367,17 @@ public class AchievementServiceIntegrationTest extends BaseServiceIntegrationTes
         @Test
         @Transactional
         void shouldReplaceAchievementIcon_whenNewFileProvidedAndUpdatedIconExists() {
-            Resource existingIcon = TestEntityFactory.createPersistedResource(entityManager);
-            existingAchievement.setIconUrl(existingIcon);
-            entityManager.merge(existingAchievement);
+            MockMultipartFile existingIcon = TestEntityFactory.createMockMultipartFile("image/png", 1000);
+            AchievementUpdateDTO updateIconDTO = TestEntityFactory.createAchievementUpdateDTO(
+                existingAchievement.getId(),
+                "Achievement with New Icon",
+                "Updated Description",
+                100,
+                "ADD_TRACE",
+                15,
+                null
+            );
+            Achievement originalAchievement = achievementService.updateAchievement(existingIcon, updateIconDTO);
             flushAndClear();
 
             MockMultipartFile newFile = TestEntityFactory.createMockMultipartFile("image/png", 2000);
@@ -382,7 +394,7 @@ public class AchievementServiceIntegrationTest extends BaseServiceIntegrationTes
             Achievement updatedAchievement = achievementService.updateAchievement(newFile, updateDTO);
             flushAndClear();
 
-            Resource deletedIcon = entityManager.find(Resource.class, existingIcon.getId());
+            Resource deletedIcon = entityManager.find(Resource.class, originalAchievement.getIconUrl().getId());
             assertThat(deletedIcon).isNull();
 
             Achievement retrieved = entityManager.find(Achievement.class, updatedAchievement.getId());
@@ -511,11 +523,20 @@ public class AchievementServiceIntegrationTest extends BaseServiceIntegrationTes
         @Test
         @Transactional
         void shouldDeleteAchievementWithIcon() {
-            Long achievementId = existingAchievement.getId();
-            Resource existingIcon = TestEntityFactory.createPersistedResource(entityManager);
-            existingAchievement.setIconUrl(existingIcon);
-            entityManager.merge(existingAchievement);
+            MockMultipartFile existingIcon = TestEntityFactory.createMockMultipartFile("image/png", 1000);
+            AchievementUpdateDTO updateIconDTO = TestEntityFactory.createAchievementUpdateDTO(
+                existingAchievement.getId(),
+                "Achievement with New Icon",
+                "Updated Description",
+                100,
+                "ADD_TRACE",
+                15,
+                null
+            );
+            Achievement originalAchievement = achievementService.updateAchievement(existingIcon, updateIconDTO);
             flushAndClear();
+
+            Long achievementId = existingAchievement.getId();
 
             achievementService.deleteAchievement(existingAchievement.getId());
             flushAndClear();
@@ -523,7 +544,7 @@ public class AchievementServiceIntegrationTest extends BaseServiceIntegrationTes
             Achievement deletedAchievement = entityManager.find(Achievement.class, achievementId);
             assertThat(deletedAchievement).isNull();
 
-            Resource deletedIcon = entityManager.find(Resource.class, existingIcon.getId());
+            Resource deletedIcon = entityManager.find(Resource.class, originalAchievement.getIconUrl().getId());
             assertThat(deletedIcon).isNull();
         }
 
@@ -561,6 +582,18 @@ public class AchievementServiceIntegrationTest extends BaseServiceIntegrationTes
     @Test
     @Transactional
     void shouldInitializeAchievementsForAllUsers() {
+        achievementRepository.deleteAll();
+        flushAndClear();
+
+        existingAchievement = TestEntityFactory.createPersistedAchievement(
+            entityManager,
+            "Existing Achievement",
+            "Description",
+            100,
+            EEventType.ADD_TRACE,
+            5,
+            null);
+
         User user1 = TestEntityFactory.createPersistedUser(entityManager);
         User user2 = TestEntityFactory.createPersistedUser(entityManager);
         flushAndClear();
@@ -581,7 +614,9 @@ public class AchievementServiceIntegrationTest extends BaseServiceIntegrationTes
     @Test
     @Transactional
     void shouldDoNothing_whenUserListIsNullOrEmpty() {
-        achievementService.deleteAchievement(existingAchievement.getId());
+        achievementRepository.deleteAll();
+        flushAndClear();
+
         List<Achievement> achievements = achievementService.getAllAchievements();
         assertThat(achievements).isEmpty();
 
