@@ -11,7 +11,7 @@ import com.example.spotspeak.entity.Trace;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Profile("local")
+@Profile({ "local", "remote" })
 @Slf4j
 public class AIEventNamingService implements EventNamingService {
 

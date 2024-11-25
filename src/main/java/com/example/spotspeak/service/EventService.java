@@ -37,7 +37,7 @@ public class EventService {
         this.geometryFactory = new GeometryFactory();
     }
 
-    @Scheduled(fixedRate = TraceConstants.EVENT_DETECTION_INTERVAL_MS)
+    @Scheduled(fixedRate = TraceConstants.EVENT_DETECTION_INTERVAL_MS, initialDelay = 1000 * 20)
     @Transactional
     public void detectAndCreateEvents() {
         List<TraceClusterMapping> traceClusters = traceRepository.findTraceClusters(
@@ -49,7 +49,7 @@ public class EventService {
         }
     }
 
-    @Scheduled(fixedRate = TraceConstants.EXPIRED_EVENT_CLEANUP_INTERVAL_MS)
+    @Scheduled(fixedRate = TraceConstants.EXPIRED_EVENT_CLEANUP_INTERVAL_MS, initialDelay = 1000 * 20)
     @Transactional
     public void deactivateExpiredEvents() {
         List<Event> expiredEvents = eventRepository.findExpiredEvents(LocalDateTime.now());
