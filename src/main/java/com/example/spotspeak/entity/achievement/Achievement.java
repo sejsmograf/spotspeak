@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -77,6 +78,7 @@ public class Achievement {
     @Builder.Default
     private Set<Condition> conditions = new HashSet<>();
 
+    @ToString.Exclude
     @JsonIgnore
     @OneToMany(mappedBy = "achievement", cascade = CascadeType.REMOVE)
     @Builder.Default

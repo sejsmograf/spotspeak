@@ -68,4 +68,6 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
     """)
     Integer calculateTotalPointsForUser(@Param("user") User user);
 
+    @Query("SELECT ua FROM UserAchievement ua WHERE ua.currentStreak > 0 AND ua.completedAt IS NULL")
+    List<UserAchievement> findAllWithActiveStreaks();
 }

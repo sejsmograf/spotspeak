@@ -27,12 +27,12 @@ public class ConsecutiveDaysCondition extends Condition{
 
     @Override
     public boolean isSatisfied(UserActionEvent event, UserAchievement userAchievement) {
-        LocalDate today = event.getTimestamp().toLocalDate();
-        LocalDate lastActionDate = userAchievement.getLastActionDate();
-
-        if(today == null) {
+        if(event.getTimestamp() == null) {
             return false;
         }
+        
+        LocalDate today = event.getTimestamp().toLocalDate();
+        LocalDate lastActionDate = userAchievement.getLastActionDate();
 
         if (lastActionDate != null && lastActionDate.plusDays(1).equals(today)) {
             userAchievement.setCurrentStreak(userAchievement.getCurrentStreak() + 1);

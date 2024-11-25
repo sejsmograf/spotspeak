@@ -4,10 +4,17 @@ import com.example.spotspeak.constants.TraceConstants;
 import com.example.spotspeak.dto.CommentRequestDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
+import com.example.spotspeak.dto.achievement.AchievementUpdateDTO;
+import com.example.spotspeak.dto.achievement.AchievementUploadDTO;
+import com.example.spotspeak.dto.achievement.ConditionDTO;
+import com.example.spotspeak.dto.achievement.ConsecutiveDaysConditionDTO;
+import com.example.spotspeak.dto.achievement.LocationConditionDTO;
+import com.example.spotspeak.dto.achievement.TimeConditionDTO;
 import com.example.spotspeak.entity.*;
 import com.example.spotspeak.entity.achievement.Achievement;
 import com.example.spotspeak.entity.achievement.Condition;
 import com.example.spotspeak.entity.achievement.ConsecutiveDaysCondition;
+import com.example.spotspeak.entity.achievement.LocationCondition;
 import com.example.spotspeak.entity.achievement.TimeCondition;
 import com.example.spotspeak.entity.achievement.UserAchievement;
 import com.example.spotspeak.entity.enumeration.EDateGranularity;
@@ -30,6 +37,10 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
 
@@ -190,9 +201,9 @@ public class TestEntityFactory {
         return mention;
     }
 
-//    public static CommentRequestDTO createCommentRequestDTO(String content) {
-//        return new CommentRequestDTO(content);
-//    }
+    public static CommentRequestDTO createCommentRequestDTO(String content, List<UUID> mentions) {
+        return new CommentRequestDTO(content, mentions);
+    }
 
     public static Achievement createPersistedAchievement(EntityManager em, String name, String description, int points, EEventType eventType, int requiredQuantity, Set<Condition> conditions) {
         Achievement achievement = Achievement.builder()
@@ -220,15 +231,29 @@ public class TestEntityFactory {
         return condition;
     }
 
-//    public static LocationCondition createPersistedLocationCondition(EntityManager em, double latitude, double longitude, double radius) {
-//        Point location = new GeometryFactory().createPoint(new Coordinate(longitude, latitude));
-//        LocationCondition condition = LocationCondition.builder()
-//            .requiredLocation(location)
-//            .radiusInMeters(radius)
-//            .build();
-//        em.persist(condition);
-//        return condition;
-//    }
+    public static LocationCondition createPersistedLocationCondition(EntityManager em, String wktPolygon) {
+        try {
+            WKTReader reader = new WKTReader();
+            Polygon polygon = (Polygon) reader.read(wktPolygon);
+            polygon.setSRID(4326);
+
+            LocationCondition locationCondition = LocationCondition.builder()
+                .region(polygon)
+                .build();
+
+            em.persist(locationCondition);
+            return locationCondition;
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Point createPoint(double x, double y) {
+        GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+        Point point = geometryFactory.createPoint(new Coordinate(x, y));
+        point.setSRID(4326);
+        return point;
+    }
 
     public static TimeCondition createPersistedTimeCondition(EntityManager em, LocalDateTime dateTime, EDateGranularity granularity, LocalTime startTime, LocalTime endTime) {
         TimeCondition condition = TimeCondition.builder()
@@ -241,15 +266,133 @@ public class TestEntityFactory {
         return condition;
     }
 
-    public static UserAchievement createPersistedUserAchievement(EntityManager em, User user, Achievement achievement, int progress, int streak, LocalDate lastActionDate) {
+    public static UserAchievement createPersistedUserAchievement(EntityManager em, User user, Achievement achievement, int progress, int streak, LocalDate lastActionDate, LocalDateTime completedAt) {
         UserAchievement userAchievement = UserAchievement.builder()
             .user(user)
             .achievement(achievement)
             .quantityProgress(progress)
             .currentStreak(streak)
             .lastActionDate(lastActionDate)
+            .completedAt(completedAt)
             .build();
         em.persist(userAchievement);
         return userAchievement;
+    }
+
+    public static AchievementUploadDTO createAchievementUploadDTO(
+        String name,
+        String description,
+        int points,
+        String eventType,
+        int requiredQuantity,
+        List<ConditionDTO> conditions
+    ) {
+        return new AchievementUploadDTO(
+            name,
+            description,
+            points,
+            eventType,
+            requiredQuantity,
+            conditions
+        );
+    }
+
+    public static ConsecutiveDaysConditionDTO createConsecutiveDaysConditionDTO(int requiredDays) {
+        return new ConsecutiveDaysConditionDTO(requiredDays);
+    }
+
+    public static TimeConditionDTO createTimeConditionDTO(
+        LocalDateTime requiredDateTime,
+        String granularity,
+        LocalTime startTime,
+        LocalTime endTime
+    ) {
+        return new TimeConditionDTO(
+            requiredDateTime,
+            granularity,
+            startTime,
+            endTime
+        );
+    }
+
+    public static LocationConditionDTO createLocationConditionDTO(String polygonWKT) {
+        return new LocationConditionDTO(polygonWKT);
+    }
+
+    public static AchievementUpdateDTO createAchievementUpdateDTO(
+        Long id,
+        String name,
+        String description,
+        int points,
+        String eventType,
+        int requiredQuantity,
+        List<ConditionDTO> conditions
+    ) {
+        return new AchievementUpdateDTO(id, name, description, points, eventType, requiredQuantity, conditions);
+    }
+
+    public static void addConditionsToAchievement(EntityManager em, Achievement achievement, List<ConditionDTO> conditions) {
+        Achievement managedAchievement = em.contains(achievement) ? achievement : em.merge(achievement);
+
+        if (conditions != null) {
+            for (ConditionDTO conditionDTO : conditions) {
+                Condition condition = conditionDTO.toCondition();
+                em.persist(condition);
+                managedAchievement.getConditions().add(condition);
+            }
+        }
+    }
+
+    public static UserAchievement createPersistedUserAchievementWithConditions(
+        EntityManager em,
+        User user,
+        Set<Condition> conditions
+    ) {
+        Achievement achievement = createPersistedAchievement(
+            em,
+            "Default Achievement Name" + UUID.randomUUID(),
+            "Default Achievement Description",
+            100,
+            EEventType.ADD_TRACE,
+            1,
+            conditions
+        );
+
+        return createPersistedUserAchievement(
+            em,
+            user,
+            achievement,
+            0,
+            0,
+            null,
+            null
+        );
+    }
+
+    public static UserAchievement createPersistedUserAchievementWithStreak(
+        EntityManager em,
+        User user,
+        int currentStreak,
+        LocalDate lastActionDate
+    ) {
+        Achievement achievement = createPersistedAchievement(
+            em,
+            "Default Achievement Name" + UUID.randomUUID(),
+            "Default Achievement Description",
+            100,
+            EEventType.ADD_TRACE,
+            1,
+            null
+        );
+
+        return createPersistedUserAchievement(
+            em,
+            user,
+            achievement,
+            0,
+            currentStreak,
+            lastActionDate,
+            null
+        );
     }
 }

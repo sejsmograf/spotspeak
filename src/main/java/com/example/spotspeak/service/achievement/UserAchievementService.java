@@ -68,7 +68,6 @@ public class UserAchievementService {
             .toList();
     }
 
-
     public List<UserAchievementDTO> getCompletedAchievementsByUser(String currentUserId, UUID userId) {
         userService.findByIdOrThrow(currentUserId);
         User user = userService.findByIdOrThrow(String.valueOf(userId));
