@@ -26,7 +26,6 @@ import com.example.spotspeak.service.UserService;
 import com.example.spotspeak.validation.ValidFile;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 
 @RestController
 @RequestMapping("/api/users/me")
