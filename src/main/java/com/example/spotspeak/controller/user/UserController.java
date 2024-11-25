@@ -24,6 +24,7 @@ import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
 import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.service.UserService;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
@@ -36,7 +37,7 @@ public class UserController {
     private FriendshipService friendshipService;
 
     public UserController(UserService userService,
-                          FriendshipService friendshipService) {
+            FriendshipService friendshipService) {
         this.userService = userService;
         this.friendshipService = friendshipService;
     }
@@ -50,6 +51,7 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @Hidden
     @PostMapping("/init")
     @PreAuthorize("hasRole('INITIALIZE_ACCOUNT')")
     public ResponseEntity<Void> initializeKeycloakUser(
@@ -66,7 +68,8 @@ public class UserController {
         String otherUserId = String.valueOf(userId);
         AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(otherUserId);
         ERelationStatus relationshipStatus = friendshipService.getFriendshipStatus(currentUserId, otherUserId);
-        PublicUserProfileAllInfoDTO publicUserProfileAllInfoDTO = userService.getPublicUserProfileInfo(userInfo, relationshipStatus);
+        PublicUserProfileAllInfoDTO publicUserProfileAllInfoDTO = userService.getPublicUserProfileInfo(userInfo,
+                relationshipStatus);
         return ResponseEntity.ok(publicUserProfileAllInfoDTO);
     }
 }

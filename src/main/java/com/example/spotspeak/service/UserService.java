@@ -3,7 +3,6 @@ package com.example.spotspeak.service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 
 import com.example.spotspeak.dto.PublicUserProfileAllInfoDTO;
