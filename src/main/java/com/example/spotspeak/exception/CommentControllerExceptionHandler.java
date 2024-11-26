@@ -19,4 +19,13 @@ public class CommentControllerExceptionHandler {
 
         return response;
     }
+
+    @ExceptionHandler(TraceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleTraceNotFoundException(TraceNotFoundException ex) {
+        ErrorResponse response = ErrorResponse.createInstance();
+        response.addMessage(ex.getMessage());
+
+        return response;
+    }
 }
