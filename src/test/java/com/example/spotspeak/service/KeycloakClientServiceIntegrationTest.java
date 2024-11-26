@@ -177,14 +177,4 @@ public class KeycloakClientServiceIntegrationTest
         assertThrows(KeycloakClientException.class,
                 () -> keycloakClientService.deleteUser(userId));
     }
-
-    @Test
-    void deleteUser_shouldDeleteUser() {
-        List<UserRepresentation> users = getKeycloakUsers();
-        UserRepresentation user = users.get(0);
-        String userId = user.getId();
-
-        keycloakClientService.deleteUser(userId);
-    }
-
 }

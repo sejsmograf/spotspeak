@@ -3,7 +3,6 @@ package com.example.spotspeak.service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 
 import com.example.spotspeak.dto.PublicUserProfileAllInfoDTO;
@@ -120,6 +119,12 @@ public class UserService {
         user.setProfilePicture(resource);
         userRepostitory.save(user);
         return resource;
+    }
+
+    public void setFcmToken(String userId, String fcmToken) {
+        User user = findByIdOrThrow(userId);
+        user.setFcmToken(fcmToken);
+        userRepostitory.save(user);
     }
 
     public void deleteUserProfilePicture(String userId) {

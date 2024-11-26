@@ -18,6 +18,7 @@ import com.example.spotspeak.constants.FileUploadConsants;
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.ChallengeRequestDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
+import com.example.spotspeak.dto.FcmTokenDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
@@ -100,6 +101,15 @@ public class UserProfileController {
     ResponseEntity<Void> deleteProfilePicture(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         userService.deleteUserProfilePicture(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/fcm-token")
+    ResponseEntity<Void> updateFcmToken(@AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody FcmTokenDTO tokenDTO) {
+        String userId = jwt.getSubject();
+        String token = tokenDTO.fcmToken();
+        userService.setFcmToken(userId, token);
         return ResponseEntity.noContent().build();
     }
 }

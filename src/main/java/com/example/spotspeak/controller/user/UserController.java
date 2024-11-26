@@ -23,7 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
 import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.service.UserService;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.Message;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
@@ -34,11 +37,14 @@ public class UserController {
 
     private UserService userService;
     private FriendshipService friendshipService;
+    private FirebaseMessaging firebaseMessaging;
 
     public UserController(UserService userService,
-                          FriendshipService friendshipService) {
+            FriendshipService friendshipService,
+            FirebaseMessaging firebaseMessaging) {
         this.userService = userService;
         this.friendshipService = friendshipService;
+        this.firebaseMessaging = firebaseMessaging;
     }
 
     @GetMapping("/search")
@@ -50,6 +56,7 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @Hidden
     @PostMapping("/init")
     @PreAuthorize("hasRole('INITIALIZE_ACCOUNT')")
     public ResponseEntity<Void> initializeKeycloakUser(
@@ -66,7 +73,8 @@ public class UserController {
         String otherUserId = String.valueOf(userId);
         AuthenticatedUserProfileDTO userInfo = userService.getUserInfo(otherUserId);
         ERelationStatus relationshipStatus = friendshipService.getFriendshipStatus(currentUserId, otherUserId);
-        PublicUserProfileAllInfoDTO publicUserProfileAllInfoDTO = userService.getPublicUserProfileInfo(userInfo, relationshipStatus);
+        PublicUserProfileAllInfoDTO publicUserProfileAllInfoDTO = userService.getPublicUserProfileInfo(userInfo,
+                relationshipStatus);
         return ResponseEntity.ok(publicUserProfileAllInfoDTO);
     }
 }

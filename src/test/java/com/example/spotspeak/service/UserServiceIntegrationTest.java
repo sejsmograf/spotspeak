@@ -6,6 +6,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import org.junit.jupiter.api.AfterEach;
@@ -21,8 +22,11 @@ import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
+import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.achievement.Achievement;
+import com.example.spotspeak.entity.enumeration.EEventType;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.BaseTestWithKeycloak;
 import com.example.spotspeak.TestEntityFactory;
@@ -339,5 +343,75 @@ public class UserServiceIntegrationTest
         assertThat(deletedUser).isNull();
         assertThat(deletedResource).isNull();
         assertThat(deletedResourceExists).isFalse();
+    }
+
+    @Test
+    @Transactional
+    void initializeUser_shouldThrow_whenUserAlreadyExists() {
+        User user = testUsers.get(0);
+        UUID userId = user.getId();
+        String username = user.getUsername();
+        String email = user.getEmail();
+        String firstName = user.getFirstName();
+        String lastName = user.getLastName();
+        LocalDateTime registeredAt = user.getRegisteredAt();
+
+        RegisteredUserDTO userDTO = new RegisteredUserDTO(userId, firstName, lastName, email, username, registeredAt);
+
+        assertThrows(IllegalArgumentException.class, () -> userService.initializeUser(userDTO));
+    }
+
+    @Test
+    @Transactional
+    void initializeUser_shouldSaveUser_whenValidUser() {
+        User newUser = User.builder()
+                .id(UUID.randomUUID())
+                .firstName("new")
+                .lastName("user")
+                .email("newuser@test.com")
+                .username("newuser")
+                .registeredAt(LocalDateTime.now())
+                .build();
+        RegisteredUserDTO userDTO = new RegisteredUserDTO(newUser.getId(), newUser.getFirstName(),
+                newUser.getLastName(),
+                newUser.getEmail(), newUser.getUsername(), newUser.getRegisteredAt());
+        userService.initializeUser(userDTO);
+        flushAndClear();
+
+        User retrievedUser = entityManager.find(User.class, newUser.getId());
+        assertThat(retrievedUser).isNotNull();
+        assertThat(retrievedUser.getId()).isEqualTo(newUser.getId());
+    }
+
+    @Test
+    @Transactional
+    void initializeUser_shouldSaveUser_andInitializeAchievements() {
+        User newUser = User.builder()
+                .id(UUID.randomUUID())
+                .firstName("new")
+                .lastName("user")
+                .email("newuser@test.com")
+                .username("newuser")
+                .registeredAt(LocalDateTime.now())
+                .build();
+
+        Achievement achievement = TestEntityFactory.createPersistedAchievement(
+                entityManager,
+                "Dodaj pierwszy ślad",
+                "Dodaj pierwszy ślad",
+                20,
+                EEventType.ADD_TRACE,
+                1,
+                null);
+
+        RegisteredUserDTO userDTO = new RegisteredUserDTO(newUser.getId(), newUser.getFirstName(),
+                newUser.getLastName(),
+                newUser.getEmail(), newUser.getUsername(), newUser.getRegisteredAt());
+        userService.initializeUser(userDTO);
+        flushAndClear();
+
+        User retrievedUser = entityManager.find(User.class, newUser.getId());
+        assertThat(retrievedUser.getUserAchievements()).isNotEmpty();
+        assertThat(retrievedUser.getUserAchievements().get(0).getAchievement().getId()).isEqualTo(achievement.getId());
     }
 }
