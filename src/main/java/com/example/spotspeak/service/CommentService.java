@@ -4,12 +4,17 @@ import com.example.spotspeak.dto.CommentRequestDTO;
 import com.example.spotspeak.dto.CommentResponseDTO;
 import com.example.spotspeak.entity.Comment;
 import com.example.spotspeak.entity.CommentMention;
+import com.example.spotspeak.entity.NotificationEvent;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.enumeration.ENotificationType;
 import com.example.spotspeak.exception.CommentNotFoundException;
 import com.example.spotspeak.mapper.CommentMapper;
 import com.example.spotspeak.repository.CommentRepository;
+
 import jakarta.ws.rs.ForbiddenException;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,19 +32,22 @@ public class CommentService {
     private CommentMentionService mentionService;
     private CommentMapper commentMapper;
     private CommentMentionService commentMentionService;
+    private ApplicationEventPublisher publisher;
 
     public CommentService(CommentRepository commentRepository,
-                          UserService userService,
-                          TraceService traceService,
-                          CommentMentionService mentionService,
-                          CommentMapper commentMapper,
-                          CommentMentionService commentMentionService) {
+            UserService userService,
+            TraceService traceService,
+            CommentMentionService mentionService,
+            CommentMapper commentMapper,
+            CommentMentionService commentMentionService,
+            ApplicationEventPublisher publisher) {
         this.commentRepository = commentRepository;
         this.userService = userService;
         this.traceService = traceService;
         this.mentionService = mentionService;
         this.commentMapper = commentMapper;
         this.commentMentionService = commentMentionService;
+        this.publisher = publisher;
     }
 
     @Transactional
@@ -59,6 +67,13 @@ public class CommentService {
 
         comment.setMentions(commentMentions);
         comment = commentRepository.save(comment);
+
+        NotificationEvent notification = NotificationEvent.builder()
+                .associatedUser(trace.getAuthor())
+                .type(ENotificationType.TRACE_COMMENTED)
+                .build();
+
+        publisher.publishEvent(notification);
 
         return commentMapper.toCommentResponseDTO(comment);
     }
