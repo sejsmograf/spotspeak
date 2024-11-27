@@ -2,6 +2,7 @@ package com.example.spotspeak.service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -88,7 +89,10 @@ public class LocalStorageService implements StorageService {
     public String getResourceAccessUrl(String key) {
         String baseUrl = "http://localhost:8080/";
         Path relativePath = Path.of(directory, key);
-        return baseUrl + relativePath.toString();
+        String normalizedPath = relativePath.toString().replace("\\", "/");
+        URI uri = URI.create(baseUrl).resolve(normalizedPath);
+
+        return uri.toString();
     }
 
     @Override
