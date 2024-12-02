@@ -5,7 +5,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.example.spotspeak.entity.NotificationEvent;
+import com.example.spotspeak.entity.notification.NotificationEvent;
+
 
 @Component
 public class NotificationEventListener {

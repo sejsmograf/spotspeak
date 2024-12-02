@@ -5,7 +5,9 @@ import java.util.Locale;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
-import com.example.spotspeak.entity.NotificationEvent;
+import com.example.spotspeak.entity.notification.MultiUserNotificationEvent;
+import com.example.spotspeak.entity.notification.NotificationEvent;
+import com.example.spotspeak.entity.notification.SingleUserNotificationEvent;
 
 @Service
 public class NotificationService {
@@ -61,6 +63,12 @@ public class NotificationService {
         String title = messageSource.getMessage(titleKey, null, polish);
         String body = messageSource.getMessage(bodyKey, null, polish);
 
-        notificationSendingService.sendNotification(event.getAssociatedUser(), title, body);
+        if (event instanceof MultiUserNotificationEvent) {
+            MultiUserNotificationEvent castedEvent = (MultiUserNotificationEvent) event;
+            notificationSendingService.sendNotification(castedEvent.getAssociatedUsers(), title, body);
+        } else if (event instanceof SingleUserNotificationEvent) {
+            SingleUserNotificationEvent castedEvent = (SingleUserNotificationEvent) event;
+            notificationSendingService.sendNotification(castedEvent.getAssociatedUser(), title, body);
+        }
     }
 }

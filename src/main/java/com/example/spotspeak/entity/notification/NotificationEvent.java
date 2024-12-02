@@ -1,20 +1,19 @@
-package com.example.spotspeak.entity;
+package com.example.spotspeak.entity.notification;
 
 
 import com.example.spotspeak.entity.enumeration.ENotificationType;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class NotificationEvent {
+public abstract class NotificationEvent {
 
-    private User associatedUser;
     private ENotificationType type;
     private String description;
 }
