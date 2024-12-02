@@ -17,6 +17,7 @@ import com.example.spotspeak.repository.TraceRepository;
 import com.example.spotspeak.service.achievement.UserActionEvent;
 
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.ForbiddenException;
 
 @Service
 public class TraceDiscoveryService {
@@ -49,6 +50,10 @@ public class TraceDiscoveryService {
         Trace toDiscover = traceRepository.findById(traceId).orElseGet(() -> {
             throw new TraceNotFoundException("Trace not found");
         });
+
+        if(!toDiscover.getIsActive()) {
+            throw new ForbiddenException("Trace is not active");
+        }
 
         if (!withinDiscoveryDistance) {
             throw new TraceNotWithinDistanceException("Trace is not within discovery distance");

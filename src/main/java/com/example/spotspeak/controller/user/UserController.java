@@ -24,7 +24,6 @@ import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
 import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.service.UserService;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.Message;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
@@ -37,14 +36,12 @@ public class UserController {
 
     private UserService userService;
     private FriendshipService friendshipService;
-    private FirebaseMessaging firebaseMessaging;
 
     public UserController(UserService userService,
             FriendshipService friendshipService,
             FirebaseMessaging firebaseMessaging) {
         this.userService = userService;
         this.friendshipService = friendshipService;
-        this.firebaseMessaging = firebaseMessaging;
     }
 
     @GetMapping("/search")
