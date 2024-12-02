@@ -1,5 +1,8 @@
 package com.example.spotspeak.service.notification;
 
+import java.util.Locale;
+
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import com.example.spotspeak.entity.NotificationEvent;
@@ -8,9 +11,12 @@ import com.example.spotspeak.entity.NotificationEvent;
 public class NotificationService {
 
     private final NotificationSendingService notificationSendingService;
+    private final MessageSource messageSource;
 
-    public NotificationService(NotificationSendingService notificationSendingService) {
+    public NotificationService(NotificationSendingService notificationSendingService,
+            MessageSource messageSource) {
         this.notificationSendingService = notificationSendingService;
+        this.messageSource = messageSource;
     }
 
     public void createAndSendNotificationFromEvent(NotificationEvent event) {
@@ -31,23 +37,30 @@ public class NotificationService {
     }
 
     private void sendTraceCommentedMessage(NotificationEvent event) {
-        String title = "Nowy komentarz";
-        String body = "Twój ślad został skomentowany";
-        notificationSendingService.sendNotification(event.getAssociatedUser(), title, body);
+        sendLocalizedNotification(event,
+                "trace.commented.title",
+                "trace.commented.body");
     }
 
     private void sendUserMentionedMessage(NotificationEvent event) {
-        String title = "Nowe wzmianki";
-        String body = "Zostałeś oznaczony w komentarzu";
-
-        notificationSendingService.sendNotification(event.getAssociatedUser(), title, body);
+        sendLocalizedNotification(event,
+                "user.mentioned.title",
+                "user.mentioned.body");
     }
 
     private void sendFriendRequestReceivedMessage(NotificationEvent event) {
-        String title = "Nowe zaproszenie do znajomych";
-        String body = "Otrzymałeś zaproszenie do znajomych";
+        sendLocalizedNotification(event,
+                "friend.request.received.title",
+                "friend.request.received.body");
+    }
+
+    private void sendLocalizedNotification(NotificationEvent event, String titleKey, String bodyKey) {
+        // There is possibility to extend this method to support more languages
+        // For now, only Polish is supported
+        Locale polish = new Locale("pl");
+        String title = messageSource.getMessage(titleKey, null, polish);
+        String body = messageSource.getMessage(bodyKey, null, polish);
 
         notificationSendingService.sendNotification(event.getAssociatedUser(), title, body);
     }
-
 }
