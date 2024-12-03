@@ -9,5 +9,6 @@ public record AuthenticatedUserProfileDTO(
         String lastName,
         String email,
         String profilePictureUrl,
-        Integer totalPoints) {
+        Integer totalPoints,
+        Boolean receiveNotifications) {
 }
