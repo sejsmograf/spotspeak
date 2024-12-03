@@ -9,5 +9,5 @@ public class TraceConstants {
     public static final int EVENT_MIN_POINTS = 5;
     public static final int EVENT_EXPIRATION_HOURS = 12;
     public static final int EXPIRED_EVENT_CLEANUP_INTERVAL_MS = 1000 * 60; // 1 minute
-    public static final int EVENT_DETECTION_INTERVAL_MS = 1000 * 60; // 1 minute
+    public static final int EVENT_DETECTION_INTERVAL_MS = 1000 * 20; // 20 seconds
 }

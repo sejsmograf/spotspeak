@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.example.spotspeak.constants.TraceConstants;
+import com.example.spotspeak.dto.EventLocationDTO;
 import com.example.spotspeak.dto.TraceClusterMapping;
 import com.example.spotspeak.entity.Event;
 import com.example.spotspeak.entity.Trace;
@@ -91,6 +92,23 @@ public class EventService {
 
         logger.info("Created event with id " + event.getId() + " and name " + event.getName());
         return event;
+    }
+
+    public List<EventLocationDTO> getNearbyEvents(double longitude, double latitude, int distance) {
+        List<Long> nearbyIds = eventRepository.findEventsWithinDistance(
+                longitude, latitude, distance)
+                .stream().map(arr -> (Long) arr[0]).toList();
+
+        List<Event> events = (List<Event>) eventRepository.findAllById(nearbyIds);
+
+        return events.stream().map(
+                e -> new EventLocationDTO(
+                        e.getId(),
+                        e.getEventCenter().getX(),
+                        e.getEventCenter().getY(),
+                        e.getName(),
+                        e.getIsActive()))
+                .toList();
     }
 
 }
