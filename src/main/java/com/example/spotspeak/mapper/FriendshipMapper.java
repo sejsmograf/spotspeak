@@ -14,8 +14,8 @@ public class FriendshipMapper {
         this.userMapper = userMapper;
     }
 
-    public FriendshipUserInfoDTO toFriendshipUserInfoDTO(Friendship friendship, User friend) {
-        AuthenticatedUserProfileDTO friendInfo = userMapper.createAuthenticatedUserProfileDTO(friend, null);
+    public FriendshipUserInfoDTO toFriendshipUserInfoDTO(Friendship friendship, User friend, Integer totalPoints) {
+        AuthenticatedUserProfileDTO friendInfo = userMapper.createAuthenticatedUserProfileDTO(friend, totalPoints);
         return new FriendshipUserInfoDTO(
                 friendship.getId(),
                 friendInfo,

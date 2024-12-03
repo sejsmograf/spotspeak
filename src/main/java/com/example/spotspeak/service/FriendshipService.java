@@ -11,6 +11,7 @@ import com.example.spotspeak.mapper.FriendshipMapper;
 import com.example.spotspeak.mapper.UserMapper;
 import com.example.spotspeak.repository.FriendRequestRepository;
 import com.example.spotspeak.repository.FriendshipRepository;
+import com.example.spotspeak.service.achievement.AchievementService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,17 +25,20 @@ public class FriendshipService {
     private UserService userService;
     private FriendshipMapper friendshipMapper;
     private UserMapper userMapper;
+    private AchievementService achievementService;
 
     public FriendshipService(FriendshipRepository friendshipRepository,
                              UserService userService,
                              FriendshipMapper friendshipMapper,
                              UserMapper userMapper,
-                             FriendRequestRepository friendRequestRepository) {
+                             FriendRequestRepository friendRequestRepository,
+                             AchievementService achievementService) {
         this.friendshipRepository = friendshipRepository;
         this.userService = userService;
         this.friendshipMapper = friendshipMapper;
         this.userMapper = userMapper;
         this.friendRequestRepository = friendRequestRepository;
+        this.achievementService = achievementService;
     }
 
     @Transactional
@@ -61,8 +65,8 @@ public class FriendshipService {
                     User friend = friendship.getUserInitiating().equals(currentUser)
                             ? friendship.getUserReceiving()
                             : friendship.getUserInitiating();
-
-                    return friendshipMapper.toFriendshipUserInfoDTO(friendship, friend);
+                    Integer totalPoints = achievementService.getTotalPointsByUser(friend);
+                    return friendshipMapper.toFriendshipUserInfoDTO(friendship, friend, totalPoints);
                 })
                 .toList();
     }
