@@ -141,6 +141,7 @@ public class UserService {
     public void setNotificationPreferences(String userId, NotificationPreferencesDTO preferences) {
         User user = findByIdOrThrow(userId);
         user.setReceiveNotifications(preferences.receiveNotifications());
+        userRepostitory.save(user);
     }
 
 
