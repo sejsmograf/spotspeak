@@ -19,6 +19,7 @@ import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.ChallengeRequestDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
 import com.example.spotspeak.dto.FcmTokenDTO;
+import com.example.spotspeak.dto.NotificationPreferencesDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
@@ -110,6 +111,14 @@ public class UserProfileController {
         String userId = jwt.getSubject();
         String token = tokenDTO.fcmToken();
         userService.setFcmToken(userId, token);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/preferences/notifications")
+    ResponseEntity<Void> setNotificationPreferences(@AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody NotificationPreferencesDTO preferences) {
+        String userId = jwt.getSubject();
+        userService.setNotificationPreferences(userId, preferences);
         return ResponseEntity.noContent().build();
     }
 }

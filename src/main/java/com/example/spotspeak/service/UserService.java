@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
+import com.example.spotspeak.dto.NotificationPreferencesDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
 import com.example.spotspeak.dto.RegisteredUserDTO;
@@ -136,6 +137,12 @@ public class UserService {
             resourceService.deleteResource(profilePicture.getId());
         }
     }
+
+    public void setNotificationPreferences(String userId, NotificationPreferencesDTO preferences) {
+        User user = findByIdOrThrow(userId);
+        user.setReceiveNotifications(preferences.receiveNotifications());
+    }
+
 
     private User findByIdOrThrow(UUID userId) {
         return userRepostitory.findById(userId).orElseThrow(

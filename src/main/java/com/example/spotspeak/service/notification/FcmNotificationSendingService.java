@@ -24,6 +24,10 @@ public class FcmNotificationSendingService implements NotificationSendingService
 
     @Override
     public void sendNotification(User to, String title, String body) {
+        if (!to.getReceiveNotifications()) {
+            return;
+        }
+
         if (to.getFcmToken() == null) {
             logger.warn("User {} has no FCM token", to.getId());
             return;

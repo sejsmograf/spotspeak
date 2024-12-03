@@ -54,6 +54,10 @@ public class User {
 
     private String fcmToken;
 
+    @Builder.Default
+    private Boolean receiveNotifications = true;
+
+
     @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinTable(name = "discovered_traces", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "trace_id"))
     @Builder.Default
