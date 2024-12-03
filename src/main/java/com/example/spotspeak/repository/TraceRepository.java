@@ -26,7 +26,7 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
 
     @Query(value = """
             SELECT t.id, ST_X(t.location::geometry) AS longitude, ST_Y(t.location::geometry) AS latitude,
-                   t.trace_type AS trace_type, dt.user_id IS NOT NULL AS has_discovered
+                   t.trace_type AS trace_type, dt.user_id IS NOT NULL AS has_discovered, t.created_at
             FROM traces t
             LEFT JOIN discovered_traces dt
             ON t.id = dt.trace_id AND dt.user_id = :userId

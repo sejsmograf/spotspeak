@@ -11,6 +11,8 @@ import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.enumeration.ETraceType;
 import com.example.spotspeak.service.ResourceService;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -54,9 +56,10 @@ public class TraceMapper {
     }
 
     public TraceLocationDTO createTraceLocationDtoFromNativeQueryResult(Object[] result) {
-        if (result.length != 5) {
+        if (result.length != 6) {
             throw new IllegalArgumentException("Expected 5 elements in the result array, but got " + result.length);
         }
+
         ETraceType traceType = ETraceType.valueOf((String) result[3]);
 
         return new TraceLocationDTO(
@@ -64,7 +67,8 @@ public class TraceMapper {
                 (Double) result[1],
                 (Double) result[2],
                 traceType,
-                (Boolean) result[4]);
+                (Boolean) result[4],
+                ((Timestamp) result[5]).toLocalDateTime());
     }
 
     public TraceLocationDTO crateTraceDownloadDtoForUser(String userId, Trace trace) {
@@ -76,6 +80,7 @@ public class TraceMapper {
                 trace.getLatitude(),
                 trace.getLongitude(),
                 trace.getTraceType(),
-                hasDiscovered);
+                hasDiscovered, 
+                trace.getCreatedAt());
     }
 }
