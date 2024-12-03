@@ -51,7 +51,7 @@ public class Trace {
     @Column(nullable = false)
     private Point location;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String description;
 
     @JsonIgnore

@@ -87,6 +87,10 @@ public class TraceController {
                     "image/jpeg", "image/png", "image/jpg", "image/gif", "image/heic", "image/heif", "video/mp4",
                     "video/3pg", "video/quicktime" }) @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestPart @Valid TraceUploadDTO traceUploadDTO) {
+        if (file == null && (traceUploadDTO.description() == null
+                || traceUploadDTO.description().isBlank())) {
+            throw new IllegalArgumentException("Either file or description must be provided");
+        }
         String userId = jwt.getSubject();
         Trace trace = traceService.createTrace(userId, file, traceUploadDTO);
         TraceDownloadDTO dto = mapper.createTraceDownloadDTO(trace);
