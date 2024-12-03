@@ -66,4 +66,16 @@ public class TraceMapper {
                 traceType,
                 (Boolean) result[4]);
     }
+
+    public TraceLocationDTO crateTraceDownloadDtoForUser(String userId, Trace trace) {
+        boolean hasDiscovered = trace.getDiscoverers().stream()
+                .anyMatch(user -> user.getId().toString().equals(userId));
+
+        return new TraceLocationDTO(
+                trace.getId(),
+                trace.getLatitude(),
+                trace.getLongitude(),
+                trace.getTraceType(),
+                hasDiscovered);
+    }
 }

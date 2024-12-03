@@ -1,6 +1,8 @@
 package com.example.spotspeak.dto;
 
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotNull;
 
 public record EventLocationDTO(
@@ -8,5 +10,6 @@ public record EventLocationDTO(
         @NotNull Double longitude,
         @NotNull Double latitude,
         String name, 
-        boolean isActive) {
+        boolean isActive,
+        List<TraceLocationDTO> traces) {
 }

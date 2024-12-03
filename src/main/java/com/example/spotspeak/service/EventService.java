@@ -16,6 +16,7 @@ import com.example.spotspeak.dto.EventLocationDTO;
 import com.example.spotspeak.dto.TraceClusterMapping;
 import com.example.spotspeak.entity.Event;
 import com.example.spotspeak.entity.Trace;
+import com.example.spotspeak.mapper.EventMapper;
 import com.example.spotspeak.repository.EventRepository;
 import com.example.spotspeak.repository.TraceRepository;
 
@@ -25,17 +26,21 @@ import jakarta.transaction.Transactional;
 public class EventService {
 
     private final TraceRepository traceRepository;
+    private final EventMapper eventMapper;
     private final EventRepository eventRepository;
     private final EventNamingService eventNamingService;
     private final GeometryFactory geometryFactory;
     private final Logger logger = LoggerFactory.getLogger(EventService.class);
 
-    public EventService(TraceRepository traceRepository, EventRepository eventRepository,
-            EventNamingService eventNamingService) {
+    public EventService(TraceRepository traceRepository,
+            EventRepository eventRepository,
+            EventNamingService eventNamingService,
+            EventMapper eventMapper) {
         this.traceRepository = traceRepository;
         this.eventRepository = eventRepository;
         this.eventNamingService = eventNamingService;
         this.geometryFactory = new GeometryFactory();
+        this.eventMapper = eventMapper;
     }
 
     @Scheduled(fixedRate = TraceConstants.EVENT_DETECTION_INTERVAL_MS, initialDelay = 1000 * 20)
@@ -94,21 +99,23 @@ public class EventService {
         return event;
     }
 
-    public List<EventLocationDTO> getNearbyEvents(double longitude, double latitude, int distance) {
+    public List<EventLocationDTO> getNearbyEventsForUser(
+            String userId, double longitude, double latitude, int distance) {
+        List<Event> events = getNearbyEvents(longitude, latitude, distance);
+        List<EventLocationDTO> eventLocations = events.stream()
+            .map(event -> eventMapper.createEventLocationDTO(userId, event))
+            .toList();
+
+        return eventLocations;
+    }
+
+    public List<Event> getNearbyEvents(double longitude, double latitude, int distance) {
         List<Long> nearbyIds = eventRepository.findEventsWithinDistance(
                 longitude, latitude, distance)
                 .stream().map(arr -> (Long) arr[0]).toList();
-
         List<Event> events = (List<Event>) eventRepository.findAllById(nearbyIds);
 
-        return events.stream().map(
-                e -> new EventLocationDTO(
-                        e.getId(),
-                        e.getEventCenter().getX(),
-                        e.getEventCenter().getY(),
-                        e.getName(),
-                        e.getIsActive()))
-                .toList();
+        return events;
     }
 
 }

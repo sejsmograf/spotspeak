@@ -31,7 +31,9 @@ public class EventController {
             @RequestParam double longitude,
             @RequestParam double latitude,
             @RequestParam int distance) {
-        List<EventLocationDTO> nearbyEvents = eventService.getNearbyEvents(longitude, latitude, distance);
+        String userId = jwt.getSubject();
+        List<EventLocationDTO> nearbyEvents = eventService.getNearbyEventsForUser(
+                userId, longitude, latitude, distance);
 
         return ResponseEntity.ok(nearbyEvents);
     }

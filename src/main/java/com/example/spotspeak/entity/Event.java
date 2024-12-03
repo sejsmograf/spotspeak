@@ -42,7 +42,7 @@ public class Event {
     @Column(nullable = false)
     private LocalDateTime expiresAt;
 
-    @OneToMany(mappedBy = "associatedEvent", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "associatedEvent", fetch = FetchType.EAGER)
     @Builder.Default
     private List<Trace> associatedTraces = new ArrayList<>();
 
