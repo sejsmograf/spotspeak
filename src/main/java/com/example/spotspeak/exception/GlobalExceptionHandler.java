@@ -1,7 +1,5 @@
 package com.example.spotspeak.exception;
 
-import jakarta.ws.rs.ForbiddenException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -14,6 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.example.spotspeak.dto.ErrorResponse;
 
 import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.ForbiddenException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -31,6 +30,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                         constraintViolation.getPropertyPath().toString() + " : "
                                 + constraintViolation.getMessage()));
 
+        return response;
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    ErrorResponse handleInvalidArgumentException(IllegalArgumentException e) {
+        ErrorResponse response = ErrorResponse.createInstance();
+        response.addMessage("Illegal argument" + e.getMessage());
         return response;
     }
 
