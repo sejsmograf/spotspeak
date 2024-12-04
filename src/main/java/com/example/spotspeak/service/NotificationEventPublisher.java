@@ -1,6 +1,7 @@
 package com.example.spotspeak.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -30,10 +31,11 @@ public class NotificationEventPublisher {
 
     public void publishCommentEvent(
             User associatedUser,
-            String additionalDescription) {
+            Map<String, String> additionalData) {
         NotificationEvent event = SingleUserNotificationEvent.builder()
                 .associatedUser(associatedUser)
                 .type(ENotificationType.TRACE_COMMENTED)
+                .additionalData(additionalData)
                 .build();
 
         publisher.publishEvent(event);
@@ -41,10 +43,11 @@ public class NotificationEventPublisher {
 
     public void publishMentionEvent(
             List<User> associatedUsers,
-            String additionalDescription) {
+            Map<String, String> additionalData) {
         NotificationEvent event = MultiUserNotificationEvent.builder()
                 .associatedUsers(associatedUsers)
                 .type(ENotificationType.USER_MENTIONED)
+                .additionalData(additionalData)
                 .build();
 
         publisher.publishEvent(event);
@@ -52,10 +55,11 @@ public class NotificationEventPublisher {
 
     public void publishFriendRequestEvent(
             User associatedUser,
-            String additionalDescription) {
+            Map<String, String> additionalData) {
         NotificationEvent event = SingleUserNotificationEvent.builder()
                 .associatedUser(associatedUser)
                 .type(ENotificationType.FRIEND_REQUEST_RECEIVED)
+                .additionalData(additionalData)
                 .build();
 
         publisher.publishEvent(event);

@@ -1,6 +1,7 @@
 package com.example.spotspeak.service.notification;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,16 +25,18 @@ public class FcmNotificationSendingService implements NotificationSendingService
     }
 
     @Override
-    public void sendNotification(User to, String title, String body) {
+    public void sendNotification(User to, String title, String body,
+            Map<String, String> additionalData) {
+
         if (!to.getReceiveNotifications()) {
             return;
         }
 
-        if (to.getFcmToken() == null) {
+        String token = to.getFcmToken();
+        if (token == null) {
             logger.warn("User {} has no FCM token", to.getId());
             return;
         }
-        String token = to.getFcmToken();
 
         Notification notification = Notification.builder()
                 .setTitle(title)
@@ -42,6 +45,7 @@ public class FcmNotificationSendingService implements NotificationSendingService
 
         Message message = Message.builder()
                 .setNotification(notification)
+                .putAllData(additionalData)
                 .setToken(token)
                 .build();
 
@@ -54,7 +58,8 @@ public class FcmNotificationSendingService implements NotificationSendingService
     }
 
     @Override
-    public void sendNotification(List<User> to, String title, String body) {
+    public void sendNotification(List<User> to, String title, String body,
+            Map<String, String> additionalData) {
         List<String> tokens = to.stream()
                 .filter(User::getReceiveNotifications)
                 .map(User::getFcmToken)
@@ -72,6 +77,7 @@ public class FcmNotificationSendingService implements NotificationSendingService
         MulticastMessage message = MulticastMessage.builder()
                 .setNotification(notification)
                 .addAllTokens(tokens)
+                .putAllData(additionalData)
                 .build();
         try {
             firebaseMessaging.sendEachForMulticast(message);

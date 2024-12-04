@@ -1,5 +1,6 @@
 package com.example.spotspeak.entity.notification;
 
+import java.util.Map;
 
 import com.example.spotspeak.entity.enumeration.ENotificationType;
 
@@ -15,5 +16,5 @@ import lombok.experimental.SuperBuilder;
 public abstract class NotificationEvent {
 
     private ENotificationType type;
-    private String description;
+    private Map<String, String> additionalData;
 }

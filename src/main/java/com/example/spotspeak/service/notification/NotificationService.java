@@ -1,6 +1,8 @@
 package com.example.spotspeak.service.notification;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -39,36 +41,59 @@ public class NotificationService {
     }
 
     private void sendTraceCommentedMessage(NotificationEvent event) {
+        String traceId = event.getAdditionalData().get("traceId");
+        String deepLink = "spotspeak:///user-traces?traceId=" + traceId;
         sendLocalizedNotification(event,
+                deepLink,
                 "trace.commented.title",
                 "trace.commented.body");
     }
 
     private void sendUserMentionedMessage(NotificationEvent event) {
+        String traceId = event.getAdditionalData().get("traceId");
+        String deepLink = "spotspeak:///home?initialIndex=0//map?traceId=" + traceId;
         sendLocalizedNotification(event,
+                deepLink,
                 "user.mentioned.title",
                 "user.mentioned.body");
     }
 
     private void sendFriendRequestReceivedMessage(NotificationEvent event) {
+        String deepLink = "spotspeak///home?initialIndex=2//friends-tab?initialTabIndex=1";
         sendLocalizedNotification(event,
+                deepLink,
                 "friend.request.received.title",
                 "friend.request.received.body");
     }
 
-    private void sendLocalizedNotification(NotificationEvent event, String titleKey, String bodyKey) {
+    private void sendLocalizedNotification(NotificationEvent event,
+            String deepLink,
+            String titleKey, String bodyKey) {
         // There is possibility to extend this method to support more languages
         // For now, only Polish is supported
         Locale polish = Locale.forLanguageTag("pl");
         String title = messageSource.getMessage(titleKey, null, polish);
         String body = messageSource.getMessage(bodyKey, null, polish);
 
+        sendNotification(event, deepLink, title, body);
+    }
+
+    private void sendNotification(NotificationEvent event, String deepLink, String title, String body) {
+
+        Map<String, String> data = new HashMap<>() {
+            {
+                put("deepLink", deepLink);
+            }
+        };
+
         if (event instanceof MultiUserNotificationEvent) {
             MultiUserNotificationEvent castedEvent = (MultiUserNotificationEvent) event;
-            notificationSendingService.sendNotification(castedEvent.getAssociatedUsers(), title, body);
+            notificationSendingService.sendNotification(castedEvent.getAssociatedUsers(),
+                    title, body, data);
         } else if (event instanceof SingleUserNotificationEvent) {
             SingleUserNotificationEvent castedEvent = (SingleUserNotificationEvent) event;
-            notificationSendingService.sendNotification(castedEvent.getAssociatedUser(), title, body);
+            notificationSendingService.sendNotification(castedEvent.getAssociatedUser(),
+                    title, body, data);
         }
     }
 }

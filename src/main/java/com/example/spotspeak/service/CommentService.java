@@ -6,8 +6,6 @@ import com.example.spotspeak.entity.Comment;
 import com.example.spotspeak.entity.CommentMention;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
-import com.example.spotspeak.entity.enumeration.ENotificationType;
-import com.example.spotspeak.entity.notification.SingleUserNotificationEvent;
 import com.example.spotspeak.exception.CommentNotFoundException;
 import com.example.spotspeak.mapper.CommentMapper;
 import com.example.spotspeak.repository.CommentRepository;
@@ -20,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -67,7 +66,8 @@ public class CommentService {
         comment.setMentions(commentMentions);
         comment = commentRepository.save(comment);
 
-        publisher.publishCommentEvent(trace.getAuthor(), null);
+        Map<String, String> additionalData = Map.of("traceId", comment.getTrace().getId().toString());
+        publisher.publishCommentEvent(trace.getAuthor(), additionalData);
 
         return commentMapper.toCommentResponseDTO(comment);
     }
@@ -111,7 +111,8 @@ public class CommentService {
         }
         List<CommentMention> commentMentions = mentionService.createMentions(comment, mentions);
         List<User> mentionedUsers = commentMentions.stream().map(m -> m.getMentionedUser()).toList();
-        publisher.publishMentionEvent(mentionedUsers, null);
+        Map<String, String> additionalData = Map.of("traceId", comment.getTrace().getId().toString());
+        publisher.publishMentionEvent(mentionedUsers, additionalData);
 
         commentMentionService.saveAllMentions(commentMentions);
         return commentMentions;
