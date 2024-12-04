@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import com.example.spotspeak.entity.User;
@@ -15,6 +16,7 @@ import com.google.firebase.messaging.MulticastMessage;
 import com.google.firebase.messaging.Notification;
 
 @Service
+@Profile("remote")
 public class FcmNotificationSendingService implements NotificationSendingService {
 
     private final Logger logger = LoggerFactory.getLogger(FcmNotificationSendingService.class);
