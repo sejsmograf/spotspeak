@@ -36,10 +36,10 @@ public class TraceMapper {
         PublicUserProfileDTO author = userMapper.createPublicUserProfileDTO(trace.getAuthor());
 
         List<CommentResponseDTO> commentResponseDTOs = trace.getComments() != null
-            ? trace.getComments().stream()
-            .map(commentMapper::toCommentResponseDTO)
-            .toList()
-            : List.of();
+                ? trace.getComments().stream()
+                        .map(commentMapper::toCommentResponseDTO)
+                        .toList()
+                : List.of();
 
         return new TraceDownloadDTO(
                 trace.getId(),
@@ -77,10 +77,10 @@ public class TraceMapper {
 
         return new TraceLocationDTO(
                 trace.getId(),
-                trace.getLatitude(),
                 trace.getLongitude(),
+                trace.getLatitude(),
                 trace.getTraceType(),
-                hasDiscovered, 
+                hasDiscovered,
                 trace.getCreatedAt());
     }
 }
