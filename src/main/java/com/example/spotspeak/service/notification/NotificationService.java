@@ -59,7 +59,7 @@ public class NotificationService {
     }
 
     private void sendFriendRequestReceivedMessage(NotificationEvent event) {
-        String deepLink = "spotspeak///home?initialIndex=2//friends-tab?initialTabIndex=1";
+        String deepLink = "spotspeak:///home?initialIndex=2//friends-tab?initialTabIndex=1";
         sendLocalizedNotification(event,
                 deepLink,
                 "friend.request.received.title",
