@@ -27,14 +27,18 @@ public class FriendRequestService {
     private UserService userService;
     private FriendRequestMapper friendRequestMapper;
     private ApplicationEventPublisher eventPublisher;
+    private NotificationEventPublisher notificationPublisher;
 
     public FriendRequestService(FriendRequestRepository friendRequestRepository, FriendshipService friendshipService,
-            UserService userService, FriendRequestMapper friendRequestMapper, ApplicationEventPublisher eventPublisher) {
+            UserService userService, FriendRequestMapper friendRequestMapper,
+            ApplicationEventPublisher eventPublisher,
+            NotificationEventPublisher domainEventPublisher) {
         this.friendRequestRepository = friendRequestRepository;
         this.friendshipService = friendshipService;
         this.userService = userService;
         this.friendRequestMapper = friendRequestMapper;
         this.eventPublisher = eventPublisher;
+        this.notificationPublisher = domainEventPublisher;
     }
 
     @Transactional
@@ -62,6 +66,7 @@ public class FriendRequestService {
                 .build();
 
         friendRequestRepository.save(friendRequest);
+        notificationPublisher.publishFriendRequestEvent(receiver, null);
 
         return friendRequestMapper.toFriendRequestDTO(friendRequest);
     }
@@ -78,16 +83,16 @@ public class FriendRequestService {
         friendshipService.createFriendship(friendRequest.getSender(), currentUser);
 
         UserActionEvent friendshipEventForSender = UserActionEvent.builder()
-            .user(friendRequest.getSender())
-            .eventType(EEventType.ADD_FRIEND)
-            .timestamp(LocalDateTime.now())
-            .build();
+                .user(friendRequest.getSender())
+                .eventType(EEventType.ADD_FRIEND)
+                .timestamp(LocalDateTime.now())
+                .build();
 
         UserActionEvent friendshipEventForReceiver = UserActionEvent.builder()
-            .user(currentUser)
-            .eventType(EEventType.ADD_FRIEND)
-            .timestamp(LocalDateTime.now())
-            .build();
+                .user(currentUser)
+                .eventType(EEventType.ADD_FRIEND)
+                .timestamp(LocalDateTime.now())
+                .build();
 
         eventPublisher.publishEvent(friendshipEventForSender);
         eventPublisher.publishEvent(friendshipEventForReceiver);

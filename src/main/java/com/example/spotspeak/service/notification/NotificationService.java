@@ -59,7 +59,7 @@ public class NotificationService {
     private void sendLocalizedNotification(NotificationEvent event, String titleKey, String bodyKey) {
         // There is possibility to extend this method to support more languages
         // For now, only Polish is supported
-        Locale polish = new Locale("pl");
+        Locale polish = Locale.forLanguageTag("pl");
         String title = messageSource.getMessage(titleKey, null, polish);
         String body = messageSource.getMessage(bodyKey, null, polish);
 

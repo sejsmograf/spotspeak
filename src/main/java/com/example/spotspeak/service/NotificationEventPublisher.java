@@ -10,19 +10,26 @@ import com.example.spotspeak.entity.enumeration.ENotificationType;
 import com.example.spotspeak.entity.notification.MultiUserNotificationEvent;
 import com.example.spotspeak.entity.notification.NotificationEvent;
 import com.example.spotspeak.entity.notification.SingleUserNotificationEvent;
+import com.example.spotspeak.service.notification.NotificationEventListener;
 
+/**
+ * The {@code NotificationEventPublisher} class is responsible for publishing
+ * domain-specific events.
+ * 
+ * These events are processed by listeners such as:
+ * {@link NotificationEventListener}
+ */
 @Service
-public class DomainEventPublisher {
+public class NotificationEventPublisher {
 
     private final ApplicationEventPublisher publisher;
 
-    public DomainEventPublisher(ApplicationEventPublisher publisher) {
+    public NotificationEventPublisher(ApplicationEventPublisher publisher) {
         this.publisher = publisher;
     }
 
-    public void publishNotificationEvent(
+    public void publishCommentEvent(
             User associatedUser,
-            ENotificationType type,
             String additionalDescription) {
         NotificationEvent event = SingleUserNotificationEvent.builder()
                 .associatedUser(associatedUser)
@@ -32,13 +39,23 @@ public class DomainEventPublisher {
         publisher.publishEvent(event);
     }
 
-    public void publishNotificationEvent(
+    public void publishMentionEvent(
             List<User> associatedUsers,
-            ENotificationType type,
             String additionalDescription) {
         NotificationEvent event = MultiUserNotificationEvent.builder()
                 .associatedUsers(associatedUsers)
-                .type(ENotificationType.TRACE_COMMENTED)
+                .type(ENotificationType.USER_MENTIONED)
+                .build();
+
+        publisher.publishEvent(event);
+    }
+
+    public void publishFriendRequestEvent(
+            User associatedUser,
+            String additionalDescription) {
+        NotificationEvent event = SingleUserNotificationEvent.builder()
+                .associatedUser(associatedUser)
+                .type(ENotificationType.FRIEND_REQUEST_RECEIVED)
                 .build();
 
         publisher.publishEvent(event);

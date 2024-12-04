@@ -31,7 +31,7 @@ public class CommentService {
     private CommentMentionService mentionService;
     private CommentMapper commentMapper;
     private CommentMentionService commentMentionService;
-    private DomainEventPublisher publisher;
+    private NotificationEventPublisher publisher;
 
     public CommentService(CommentRepository commentRepository,
             UserService userService,
@@ -39,7 +39,7 @@ public class CommentService {
             CommentMentionService mentionService,
             CommentMapper commentMapper,
             CommentMentionService commentMentionService,
-            DomainEventPublisher publisher) {
+            NotificationEventPublisher publisher) {
         this.commentRepository = commentRepository;
         this.userService = userService;
         this.traceService = traceService;
@@ -67,8 +67,7 @@ public class CommentService {
         comment.setMentions(commentMentions);
         comment = commentRepository.save(comment);
 
-        publisher.publishNotificationEvent(trace.getAuthor(),
-                ENotificationType.TRACE_COMMENTED, null);
+        publisher.publishCommentEvent(trace.getAuthor(), null);
 
         return commentMapper.toCommentResponseDTO(comment);
     }
@@ -112,7 +111,7 @@ public class CommentService {
         }
         List<CommentMention> commentMentions = mentionService.createMentions(comment, mentions);
         List<User> mentionedUsers = commentMentions.stream().map(m -> m.getMentionedUser()).toList();
-        publisher.publishNotificationEvent(mentionedUsers, ENotificationType.USER_MENTIONED, null);
+        publisher.publishMentionEvent(mentionedUsers, null);
 
         commentMentionService.saveAllMentions(commentMentions);
         return commentMentions;
