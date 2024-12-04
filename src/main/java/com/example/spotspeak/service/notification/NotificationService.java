@@ -82,7 +82,7 @@ public class NotificationService {
 
         Map<String, String> data = new HashMap<>() {
             {
-                put("deepLink", deepLink);
+                put("deep_link", deepLink);
             }
         };
 
