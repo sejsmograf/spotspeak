@@ -1,11 +1,12 @@
 package com.example.spotspeak.mapper;
 
+import com.example.spotspeak.dto.CommentMentionDTO;
 import com.example.spotspeak.dto.CommentResponseDTO;
 import com.example.spotspeak.entity.Comment;
+import com.example.spotspeak.entity.CommentMention;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.UUID;
 
 @Component
 public class CommentMapper {
@@ -16,9 +17,9 @@ public class CommentMapper {
     }
 
     public CommentResponseDTO toCommentResponseDTO(Comment comment) {
-        List<UUID> mentionedUserIds = comment.getMentions() != null
+        List<CommentMentionDTO> mentionedUsers = comment.getMentions() != null
             ? comment.getMentions().stream()
-            .map(mention -> mention.getMentionedUser().getId())
+            .map(this::toCommentMentionDTO)
             .toList()
             : List.of();
 
@@ -28,7 +29,14 @@ public class CommentMapper {
                 userMapper.createPublicUserProfileDTO(comment.getAuthor()),
                 comment.getContent(),
                 comment.getCreatedAt(),
-                mentionedUserIds
+                mentionedUsers
+        );
+    }
+
+    private CommentMentionDTO toCommentMentionDTO(CommentMention mention) {
+        return new CommentMentionDTO(
+            mention.getMentionedUser().getId(),
+            mention.getMentionedUser().getUsername()
         );
     }
 }

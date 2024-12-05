@@ -56,10 +56,18 @@ public class TraceController {
             @RequestParam double longitude,
             @RequestParam double latitude,
             @RequestParam int distance) {
-        String userId = jwt.getSubject();
-        List<TraceLocationDTO> nearbyTraces = traceService.getNearbyTracesForUser(userId, longitude, latitude,
-                distance);
-        return ResponseEntity.ok(nearbyTraces);
+        boolean anonymous = jwt == null;
+        List<TraceLocationDTO> nearby = List.of();
+
+        if (anonymous) {
+            nearby = traceService.getNearbyTracesAnonymous(longitude, latitude, distance);
+        } else {
+            String userId = jwt.getSubject();
+            traceService.getNearbyTracesForUser(userId, longitude, latitude,
+                    distance);
+        }
+
+        return ResponseEntity.ok(nearby);
     }
 
     @GetMapping("/{traceId}")
@@ -87,6 +95,10 @@ public class TraceController {
                     "image/jpeg", "image/png", "image/jpg", "image/gif", "image/heic", "image/heif", "video/mp4",
                     "video/3pg", "video/quicktime" }) @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestPart @Valid TraceUploadDTO traceUploadDTO) {
+        if (file == null && (traceUploadDTO.description() == null
+                || traceUploadDTO.description().isBlank())) {
+            throw new IllegalArgumentException("Either file or description must be provided");
+        }
         String userId = jwt.getSubject();
         Trace trace = traceService.createTrace(userId, file, traceUploadDTO);
         TraceDownloadDTO dto = mapper.createTraceDownloadDTO(trace);

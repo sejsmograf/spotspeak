@@ -3,13 +3,13 @@ package com.example.spotspeak.repository;
 import com.example.spotspeak.entity.FriendRequest;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface FriendRequestRepository extends CrudRepository<FriendRequest, Long> {
+public interface FriendRequestRepository extends JpaRepository<FriendRequest, Long> {
 
     boolean existsBySenderAndReceiverAndStatus(User sender, User receiver, EFriendRequestStatus status);
 

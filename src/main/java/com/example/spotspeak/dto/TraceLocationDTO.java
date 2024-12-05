@@ -1,10 +1,16 @@
 package com.example.spotspeak.dto;
 
+import java.time.LocalDateTime;
+
+import com.example.spotspeak.entity.enumeration.ETraceType;
+
 import jakarta.validation.constraints.NotNull;
 
 public record TraceLocationDTO(
         @NotNull Long id,
         @NotNull Double longitude,
         @NotNull Double latitude,
-        boolean hasDiscovered) {
+        @NotNull ETraceType type,
+        Boolean hasDiscovered,
+        LocalDateTime createdAt) {
 }

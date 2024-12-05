@@ -3,19 +3,20 @@ package com.example.spotspeak.service;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
-import com.example.spotspeak.entity.*;
+import com.example.spotspeak.entity.Trace;
+import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.TraceNotFoundException;
 import com.example.spotspeak.mapper.TraceMapper;
+import com.example.spotspeak.repository.TraceRepository;
 
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ForbiddenException;
-
-import org.springframework.stereotype.Service;
-import com.example.spotspeak.repository.TraceRepository;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class TraceService {
@@ -54,18 +55,25 @@ public class TraceService {
 
     public List<TraceLocationDTO> getNearbyTracesForUser(String userId, double longitude, double latitude,
             double distance) {
-        List<Object[]> results = traceRepository.findNearbyTracesLocationsForUser(UUID.fromString(userId),
+        List<TraceLocationDTO> results = traceRepository.findNearbyTracesLocationsForUser(
+                UUID.fromString(userId), longitude, latitude, distance);
+
+        return results;
+    }
+
+    public List<TraceLocationDTO> getNearbyTracesAnonymous(double longitude, double latitude,
+            double distance) {
+        List<TraceLocationDTO> results = traceRepository.findNearbyTracesLocations(
                 longitude, latitude, distance);
 
-        return (List<TraceLocationDTO>) results.stream()
-                .map(result -> new TraceLocationDTO((Long) result[0], (Double) result[1], (Double) result[2],
-                        (boolean) result[3]))
-                .toList();
+        return results;
     }
 
     public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {
         User author = userService.findByIdOrThrow(userId);
-        return traceCreationService.createAndPersistTrace(author, file, traceUploadDTO);
+        Trace created = traceCreationService.createAndPersistTrace(author, file, traceUploadDTO);
+        discoverTrace(userId, created.getId(), created.getLongitude(), created.getLatitude());
+        return created;
     }
 
     @Transactional
@@ -89,6 +97,7 @@ public class TraceService {
             double latitude) {
         User discoverer = userService.findByIdOrThrow(userId);
         Trace discovered = traceDiscoveryService.discoverTrace(discoverer, traceId, longitude, latitude);
+
         return traceMapper.createTraceDownloadDTO(discovered);
     }
 

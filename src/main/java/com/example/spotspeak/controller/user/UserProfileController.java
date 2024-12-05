@@ -14,9 +14,12 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.spotspeak.constants.FileUploadConsants;
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.ChallengeRequestDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
+import com.example.spotspeak.dto.FcmTokenDTO;
+import com.example.spotspeak.dto.NotificationPreferencesDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
@@ -64,8 +67,16 @@ public class UserProfileController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody ChallengeRequestDTO challengeRequestDTO) {
         String userId = jwt.getSubject();
-        ChallengeResponseDTO response = userService.generatePasswordChallenge(userId,
-                challengeRequestDTO.password());
+        boolean authenticatedWithGoogle = "google".equals(jwt.getClaim("identity_provider"));
+        ChallengeResponseDTO response;
+
+        if (authenticatedWithGoogle) {
+            response = userService.generateTemporaryTokenForGoogleUser(userId);
+        } else {
+            response = userService.generateTemporaryToken(userId,
+                    challengeRequestDTO.password());
+        }
+
         return ResponseEntity.ok(response);
     }
 
@@ -79,7 +90,7 @@ public class UserProfileController {
 
     @PostMapping("/picture")
     ResponseEntity<Resource> updateProfilePicture(@AuthenticationPrincipal Jwt jwt,
-            @Valid @ValidFile(maxSize = 1024 * 1024 * 2, allowedTypes = {
+            @Valid @ValidFile(maxSize = FileUploadConsants.PROFILE_PICTURE_MAX_SIZE, allowedTypes = {
                     "image/jpeg", "image/jpg", "image/png"
             }) @RequestPart MultipartFile file) {
         String userId = jwt.getSubject();
@@ -91,6 +102,23 @@ public class UserProfileController {
     ResponseEntity<Void> deleteProfilePicture(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         userService.deleteUserProfilePicture(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/fcm-token")
+    ResponseEntity<Void> updateFcmToken(@AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody FcmTokenDTO tokenDTO) {
+        String userId = jwt.getSubject();
+        String token = tokenDTO.fcmToken();
+        userService.setFcmToken(userId, token);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/preferences/notifications")
+    ResponseEntity<Void> setNotificationPreferences(@AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody NotificationPreferencesDTO preferences) {
+        String userId = jwt.getSubject();
+        userService.setNotificationPreferences(userId, preferences);
         return ResponseEntity.noContent().build();
     }
 }

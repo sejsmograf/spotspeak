@@ -9,12 +9,16 @@ import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.CommentNotFoundException;
 import com.example.spotspeak.mapper.CommentMapper;
 import com.example.spotspeak.repository.CommentRepository;
+
 import jakarta.ws.rs.ForbiddenException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -26,14 +30,22 @@ public class CommentService {
     private CommentMentionService mentionService;
     private CommentMapper commentMapper;
     private CommentMentionService commentMentionService;
+    private NotificationEventPublisher publisher;
 
-    public CommentService(CommentRepository commentRepository, UserService userService, TraceService traceService, CommentMentionService mentionService, CommentMapper commentMapper, CommentMentionService commentMentionService) {
+    public CommentService(CommentRepository commentRepository,
+            UserService userService,
+            TraceService traceService,
+            CommentMentionService mentionService,
+            CommentMapper commentMapper,
+            CommentMentionService commentMentionService,
+            NotificationEventPublisher publisher) {
         this.commentRepository = commentRepository;
         this.userService = userService;
         this.traceService = traceService;
         this.mentionService = mentionService;
         this.commentMapper = commentMapper;
         this.commentMentionService = commentMentionService;
+        this.publisher = publisher;
     }
 
     @Transactional
@@ -49,11 +61,13 @@ public class CommentService {
                 .build();
         comment = commentRepository.save(comment);
 
-        List<CommentMention> commentMentions = mentionService.processMentions(comment);
-        commentMentionService.saveAllMentions(commentMentions);
+        List<CommentMention> commentMentions = handleMentions(comment, commentRequest.mentions());
 
         comment.setMentions(commentMentions);
         comment = commentRepository.save(comment);
+
+        Map<String, String> additionalData = Map.of("traceId", comment.getTrace().getId().toString());
+        publisher.publishCommentEvent(trace.getAuthor(), additionalData);
 
         return commentMapper.toCommentResponseDTO(comment);
     }
@@ -77,17 +91,31 @@ public class CommentService {
             throw new ForbiddenException("Only author can update comment");
         }
 
+        List<CommentMention> commentMentions = comment.getMentions();
         comment.setContent(commentRequest.content());
+        comment.setMentions(null);
         comment = commentRepository.save(comment);
 
-        commentMentionService.deleteAllMentions(comment.getMentions());
-        List<CommentMention> commentMentions = mentionService.processMentions(comment);
-        commentMentionService.saveAllMentions(commentMentions);
+        mentionService.deleteAllMentions(commentMentions);
+        List<CommentMention> newCommentMentions = handleMentions(comment, commentRequest.mentions());
 
-        comment.setMentions(commentMentions);
+        comment.setMentions(newCommentMentions);
         comment = commentRepository.save(comment);
 
         return commentMapper.toCommentResponseDTO(comment);
+    }
+
+    private List<CommentMention> handleMentions(Comment comment, List<UUID> mentions) {
+        if (mentions == null || mentions.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<CommentMention> commentMentions = mentionService.createMentions(comment, mentions);
+        List<User> mentionedUsers = commentMentions.stream().map(m -> m.getMentionedUser()).toList();
+        Map<String, String> additionalData = Map.of("traceId", comment.getTrace().getId().toString());
+        publisher.publishMentionEvent(mentionedUsers, additionalData);
+
+        commentMentionService.saveAllMentions(commentMentions);
+        return commentMentions;
     }
 
     @Transactional

@@ -1,9 +1,9 @@
 package com.example.spotspeak.service;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,10 +12,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.TestEntityFactory;
@@ -23,14 +22,8 @@ import com.example.spotspeak.TestEntityFactory;
 public class LocalStorageServiceIntegrationTest
         extends BaseServiceIntegrationTest {
 
+    @Autowired
     private LocalStorageService storageService;
-
-    @BeforeEach
-    void setUp() {
-        storageService = new LocalStorageService();
-
-        ReflectionTestUtils.setField(storageService, "directory", "test");
-    }
 
     @Test
     void init_createsRootDirectoryIfNotExists() {

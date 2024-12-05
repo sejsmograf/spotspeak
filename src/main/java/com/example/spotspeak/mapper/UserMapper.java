@@ -1,9 +1,17 @@
 package com.example.spotspeak.mapper;
 
+import com.example.spotspeak.dto.PublicUserProfileAllInfoDTO;
+
+import java.util.List;
+import java.util.Set;
+
+import com.example.spotspeak.entity.enumeration.ERelationStatus;
 import org.springframework.stereotype.Component;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.PublicUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
+import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
@@ -17,7 +25,7 @@ public class UserMapper {
         this.resourceService = resourceService;
     }
 
-    public AuthenticatedUserProfileDTO createAuthenticatedUserProfileDTO(User user) {
+    public AuthenticatedUserProfileDTO createAuthenticatedUserProfileDTO(User user, Integer totalPoints) {
         Resource profilePicture = user.getProfilePicture();
         String profilePictureUrl = profilePicture != null
                 ? resourceService.getResourceAccessUrl(profilePicture.getId())
@@ -29,7 +37,22 @@ public class UserMapper {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
-                profilePictureUrl);
+                profilePictureUrl,
+                totalPoints,
+                user.getReceiveNotifications());
+    }
+
+    public User createUserFromDTO(RegisteredUserDTO userDTO) {
+        User user = User.builder()
+                .id(userDTO.id())
+                .firstName(userDTO.firstName())
+                .lastName(userDTO.lastName())
+                .username(userDTO.username())
+                .email(userDTO.email())
+                .registeredAt(userDTO.registeredAt())
+                .build();
+
+        return user;
     }
 
     public PublicUserProfileDTO createPublicUserProfileDTO(User user) {
@@ -42,6 +65,30 @@ public class UserMapper {
                 user.getId(),
                 user.getUsername(),
                 profilePictureUrl);
+    }
+
+    public List<PublicUserWithFriendshipDTO> createPublicUserWithFriendshipDTOs(User user, List<User> users) {
+        Set<User> allFriends = user.getFriends();
+
+        return users.stream()
+                .map(u -> {
+                    String profilePictureUrl = u.getProfilePicture() != null
+                            ? resourceService.getResourceAccessUrl(u.getProfilePicture().getId())
+                            : null;
+                    boolean isFriend = allFriends.contains(u);
+                    return new PublicUserWithFriendshipDTO(
+                            u.getId(),
+                            u.getUsername(),
+                            profilePictureUrl,
+                            isFriend);
+                })
+                .toList();
+    }
+
+    public PublicUserProfileAllInfoDTO createPublicUserProfileAllInfoDTO(
+            AuthenticatedUserProfileDTO userProfile,
+            ERelationStatus relationshipStatus) {
+        return new PublicUserProfileAllInfoDTO(userProfile, relationshipStatus);
     }
 
     public void updateUserFromDTO(User user, UserUpdateDTO updateDTO) {

@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -49,7 +51,7 @@ public class Trace {
     @Column(nullable = false)
     private Point location;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String description;
 
     @JsonIgnore
@@ -77,20 +79,23 @@ public class Trace {
     @Builder.Default
     Set<User> discoverers = new HashSet<>();
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "trace", fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<TraceEvent> traceEvents = new ArrayList<>();
-
     @Column(nullable = false)
     @Builder.Default
     private Boolean isActive = true;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private ETraceType traceType;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime expiresAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", nullable = true)
+    private Event associatedEvent;
 
     public double getLongitude() {
         return location.getX();

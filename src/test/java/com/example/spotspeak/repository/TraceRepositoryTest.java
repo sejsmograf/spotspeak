@@ -155,7 +155,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
             int searchDistanceMeters = 1;
             flushAndClear();
 
-            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(tracaLon, traceLat,
+            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocationsRaw(tracaLon, traceLat,
                     searchDistanceMeters);
 
             assertThat(nearbyTraces).isNotEmpty().hasSize(1);
@@ -174,7 +174,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
             int searchDistanceMeters = 500;
             flushAndClear();
 
-            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(searchLongitude, searchLatitude,
+            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocationsRaw(searchLongitude, searchLatitude,
                     searchDistanceMeters);
 
             assertThat(nearbyTraces).isEmpty();
@@ -194,7 +194,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
             int searchDistanceMeters = 1000;
             flushAndClear();
 
-            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(searchLongitude, searchLatitude,
+            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocationsRaw(searchLongitude, searchLatitude,
                     searchDistanceMeters);
 
             assertThat(nearbyTraces).isNotEmpty().hasSize(1);
@@ -218,7 +218,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
             double searchLatitude = TEST_LATITUDE_3; // should cover both traces
             int searchDistanceMeters = 1000;
 
-            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocations(searchLongitude, searchLatitude,
+            List<Object[]> nearbyTraces = traceRepository.findNearbyTracesLocationsRaw(searchLongitude, searchLatitude,
                     searchDistanceMeters);
 
             assertThat(nearbyTraces).isNotEmpty().hasSize(2);

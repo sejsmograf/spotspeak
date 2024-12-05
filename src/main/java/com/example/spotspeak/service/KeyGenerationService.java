@@ -4,4 +4,6 @@ public interface KeyGenerationService {
     public String generateUserProfilePictureKey(String userId, String filaName);
 
     public String generateUniqueTraceResourceKey(String authorId, String fileName);
+
+    public String generateAchievementIconKey(String originalFilename);
 }

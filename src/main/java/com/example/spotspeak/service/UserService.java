@@ -2,22 +2,28 @@ package com.example.spotspeak.service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import com.example.spotspeak.dto.PublicUserProfileAllInfoDTO;
+import com.example.spotspeak.entity.enumeration.ERelationStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
+import com.example.spotspeak.dto.NotificationPreferencesDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
-import com.example.spotspeak.dto.PublicUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
+import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.mapper.UserMapper;
 import com.example.spotspeak.repository.UserRepository;
+import com.example.spotspeak.service.achievement.AchievementService;
 
 import lombok.AllArgsConstructor;
 
@@ -28,25 +34,40 @@ public class UserService {
     private UserRepository userRepostitory;
     private ResourceService resourceService;
     private KeycloakClientService keycloakService;
+    private AchievementService achievementService;
     private PasswordChallengeService passwordChallengeService;
     private KeyGenerationService keyGenerationService;
     private UserMapper userMapper;
 
-    public List<PublicUserProfileDTO> searchUsersByUsername(String username) {
+    public List<PublicUserWithFriendshipDTO> searchUsersByUsername(String userId, String username) {
+        User user = findByIdOrThrow(userId);
         List<User> matchingUsers = userRepostitory.findAllByUsernameIgnoreCase(username);
-        return matchingUsers.stream()
-                .map(user -> userMapper.createPublicUserProfileDTO(user))
-                .toList();
+        matchingUsers.remove(user);
+
+        return userMapper.createPublicUserWithFriendshipDTOs(user, matchingUsers);
     }
 
     public AuthenticatedUserProfileDTO getUserInfo(String userId) {
         User user = findByIdOrThrow(userId);
-        return userMapper.createAuthenticatedUserProfileDTO(user);
+        Integer totalPoints = achievementService.getTotalPointsByUser(user);
+        return userMapper.createAuthenticatedUserProfileDTO(user, totalPoints);
     }
 
-    public ChallengeResponseDTO generatePasswordChallenge(String userId, String password) {
+    public PublicUserProfileAllInfoDTO getPublicUserProfileInfo(
+            AuthenticatedUserProfileDTO userInfo,
+            ERelationStatus relationshipStatus) {
+        return userMapper.createPublicUserProfileAllInfoDTO(userInfo, relationshipStatus);
+    }
+
+    public ChallengeResponseDTO generateTemporaryToken(String userId, String password) {
         User user = findByIdOrThrow(userId);
         keycloakService.validatePasswordOrThrow(userId, password);
+        String token = passwordChallengeService.createAndStoreChallenge(user.getId());
+        return new ChallengeResponseDTO(Instant.now(), user.getId(), token);
+    }
+
+    public ChallengeResponseDTO generateTemporaryTokenForGoogleUser(String userId) {
+        User user = findByIdOrThrow(userId);
         String token = passwordChallengeService.createAndStoreChallenge(user.getId());
         return new ChallengeResponseDTO(Instant.now(), user.getId(), token);
     }
@@ -77,6 +98,18 @@ public class UserService {
         return user;
     }
 
+    @Transactional
+    public void initializeUser(RegisteredUserDTO userDTO) {
+        Optional<User> existing = userRepostitory.findById(userDTO.id());
+
+        if (existing.isPresent()) {
+            throw new IllegalArgumentException("User already exists");
+        }
+
+        User created = userRepostitory.save(userMapper.createUserFromDTO(userDTO));
+        achievementService.initializeUserAchievements(created);
+    }
+
     public Resource updateUserProfilePicture(String userIdString, MultipartFile file) {
         User user = findByIdOrThrow(userIdString);
         deleteUserProfilePicture(userIdString);
@@ -89,6 +122,12 @@ public class UserService {
         return resource;
     }
 
+    public void setFcmToken(String userId, String fcmToken) {
+        User user = findByIdOrThrow(userId);
+        user.setFcmToken(fcmToken);
+        userRepostitory.save(user);
+    }
+
     public void deleteUserProfilePicture(String userId) {
         User user = findByIdOrThrow(userId);
         Resource profilePicture = user.getProfilePicture();
@@ -98,6 +137,13 @@ public class UserService {
             resourceService.deleteResource(profilePicture.getId());
         }
     }
+
+    public void setNotificationPreferences(String userId, NotificationPreferencesDTO preferences) {
+        User user = findByIdOrThrow(userId);
+        user.setReceiveNotifications(preferences.receiveNotifications());
+        userRepostitory.save(user);
+    }
+
 
     private User findByIdOrThrow(UUID userId) {
         return userRepostitory.findById(userId).orElseThrow(
@@ -120,10 +166,8 @@ public class UserService {
         return findByIdOrThrow(convertedId);
     }
 
-    public List<User> findUsersByUsernames(List<String> usernames) {
-        if (usernames == null || usernames.isEmpty()) {
-            return List.of();
-        }
-        return userRepostitory.findByUsernameIn(usernames);
+    public List<User> getAllUsers() {
+        return userRepostitory.findAll();
     }
+
 }

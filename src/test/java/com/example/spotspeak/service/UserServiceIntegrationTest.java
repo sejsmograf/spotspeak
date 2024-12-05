@@ -6,6 +6,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import org.junit.jupiter.api.AfterEach;
@@ -20,9 +21,12 @@ import com.example.spotspeak.exception.PasswordChallengeFailedException;
 import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
-import com.example.spotspeak.dto.PublicUserProfileDTO;
+import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
+import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.achievement.Achievement;
+import com.example.spotspeak.entity.enumeration.EEventType;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.BaseTestWithKeycloak;
 import com.example.spotspeak.TestEntityFactory;
@@ -62,12 +66,15 @@ public class UserServiceIntegrationTest
     @Test
     @Transactional
     void searchByUsername_shouldReturnUsersMatchingPartially() {
+        User user = testUsers.get(0);
+
         String usernameToSearch = testUsers.get(0).getUsername().substring(0, 2);
         int expectedSize = testUsers.stream()
-                .filter(user -> user.getUsername().startsWith(usernameToSearch))
+                .filter(u -> u.getUsername().startsWith(usernameToSearch) && !u.getId().equals(user.getId()))
                 .toList().size();
 
-        List<PublicUserProfileDTO> foundUsers = userService.searchUsersByUsername(usernameToSearch);
+        List<PublicUserWithFriendshipDTO> foundUsers = userService.searchUsersByUsername(user.getId().toString(),
+                usernameToSearch);
         assertThat(foundUsers).isNotEmpty().hasSize(expectedSize);
     }
 
@@ -103,24 +110,24 @@ public class UserServiceIntegrationTest
 
     @Test
     @Transactional
-    void generatePasswordChallenge_shouldReturnToken_whenPasswordMatches() {
+    void generateTemporaryToken_shouldReturnToken_whenPasswordMatches() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         String password = user.getUsername(); // testusers have the same username and password
 
-        String token = userService.generatePasswordChallenge(userId, password).token();
+        String token = userService.generateTemporaryToken(userId, password).token();
         assertThat(token).isNotBlank();
     }
 
     @Test
     @Transactional
-    void generatePasswordChallenge_shouldThrowWhenPasswordDoesntMatch() {
+    void generateTemporaryToken_shouldThrowWhenPasswordDoesntMatch() {
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         String password = user.getUsername() + "notcorrect";
 
         assertThrows(PasswordChallengeFailedException.class,
-                () -> userService.generatePasswordChallenge(userId, password).token());
+                () -> userService.generateTemporaryToken(userId, password).token());
     }
 
     @Test
@@ -226,7 +233,7 @@ public class UserServiceIntegrationTest
         String userId = user.getId().toString();
         String username = user.getUsername();
         String password = username;
-        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        String challengeToken = userService.generateTemporaryToken(userId, password).token();
         String newFirstName = "newname";
         String newLastName = "newlastname";
         UserUpdateDTO updateDTO = UserUpdateDTO.builder()
@@ -249,7 +256,7 @@ public class UserServiceIntegrationTest
         String userId = user.getId().toString();
         String username = user.getUsername();
         String password = username;
-        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        String challengeToken = userService.generateTemporaryToken(userId, password).token();
         User otherUser = testUsers.get(1);
         String otherUsername = otherUser.getUsername();
 
@@ -269,7 +276,7 @@ public class UserServiceIntegrationTest
         String userId = user.getId().toString();
         String username = user.getUsername();
         String password = username; // testusers have the same username and password
-        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        String challengeToken = userService.generateTemporaryToken(userId, password).token();
         User otherUser = testUsers.get(1);
         String otherEmail = otherUser.getEmail();
 
@@ -288,7 +295,7 @@ public class UserServiceIntegrationTest
         User user = testUsers.get(0);
         String userId = user.getId().toString();
         String password = user.getUsername();
-        String challengeToken = userService.generatePasswordChallenge(userId, password).token();
+        String challengeToken = userService.generateTemporaryToken(userId, password).token();
         String firstName = user.getFirstName();
         String lastName = user.getLastName();
         String email = user.getEmail();
@@ -314,6 +321,8 @@ public class UserServiceIntegrationTest
 
         User deletedUser = entityManager.find(User.class, user.getId());
         assertThat(deletedUser).isNull();
+        getKeycloakUsers().stream().map(UserRepresentation::getId)
+                .forEach(id -> assertThat(id).isNotEqualTo(userId));
     }
 
     @Test
@@ -334,5 +343,75 @@ public class UserServiceIntegrationTest
         assertThat(deletedUser).isNull();
         assertThat(deletedResource).isNull();
         assertThat(deletedResourceExists).isFalse();
+    }
+
+    @Test
+    @Transactional
+    void initializeUser_shouldThrow_whenUserAlreadyExists() {
+        User user = testUsers.get(0);
+        UUID userId = user.getId();
+        String username = user.getUsername();
+        String email = user.getEmail();
+        String firstName = user.getFirstName();
+        String lastName = user.getLastName();
+        LocalDateTime registeredAt = user.getRegisteredAt();
+
+        RegisteredUserDTO userDTO = new RegisteredUserDTO(userId, firstName, lastName, email, username, registeredAt);
+
+        assertThrows(IllegalArgumentException.class, () -> userService.initializeUser(userDTO));
+    }
+
+    @Test
+    @Transactional
+    void initializeUser_shouldSaveUser_whenValidUser() {
+        User newUser = User.builder()
+                .id(UUID.randomUUID())
+                .firstName("new")
+                .lastName("user")
+                .email("newuser@test.com")
+                .username("newuser")
+                .registeredAt(LocalDateTime.now())
+                .build();
+        RegisteredUserDTO userDTO = new RegisteredUserDTO(newUser.getId(), newUser.getFirstName(),
+                newUser.getLastName(),
+                newUser.getEmail(), newUser.getUsername(), newUser.getRegisteredAt());
+        userService.initializeUser(userDTO);
+        flushAndClear();
+
+        User retrievedUser = entityManager.find(User.class, newUser.getId());
+        assertThat(retrievedUser).isNotNull();
+        assertThat(retrievedUser.getId()).isEqualTo(newUser.getId());
+    }
+
+    @Test
+    @Transactional
+    void initializeUser_shouldSaveUser_andInitializeAchievements() {
+        User newUser = User.builder()
+                .id(UUID.randomUUID())
+                .firstName("new")
+                .lastName("user")
+                .email("newuser@test.com")
+                .username("newuser")
+                .registeredAt(LocalDateTime.now())
+                .build();
+
+        Achievement achievement = TestEntityFactory.createPersistedAchievement(
+                entityManager,
+                "Dodaj pierwszy ślad",
+                "Dodaj pierwszy ślad",
+                20,
+                EEventType.ADD_TRACE,
+                1,
+                null);
+
+        RegisteredUserDTO userDTO = new RegisteredUserDTO(newUser.getId(), newUser.getFirstName(),
+                newUser.getLastName(),
+                newUser.getEmail(), newUser.getUsername(), newUser.getRegisteredAt());
+        userService.initializeUser(userDTO);
+        flushAndClear();
+
+        User retrievedUser = entityManager.find(User.class, newUser.getId());
+        assertThat(retrievedUser.getUserAchievements()).isNotEmpty();
+        assertThat(retrievedUser.getUserAchievements().get(0).getAchievement().getId()).isEqualTo(achievement.getId());
     }
 }

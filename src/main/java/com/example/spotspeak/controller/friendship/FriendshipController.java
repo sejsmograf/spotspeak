@@ -1,5 +1,6 @@
 package com.example.spotspeak.controller.friendship;
 
+import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.FriendshipUserInfoDTO;
 import com.example.spotspeak.service.FriendshipService;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class FriendshipController {
     @GetMapping
     public ResponseEntity<List<FriendshipUserInfoDTO>> getFriendsList(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
-        List<FriendshipUserInfoDTO> friends = friendshipService.getFriendsList(userId);
+        List<FriendshipUserInfoDTO> friends = friendshipService.getFriendshipDTOList(userId);
         return ResponseEntity.ok(friends);
     }
 
@@ -37,4 +38,14 @@ public class FriendshipController {
         friendshipService.deleteFriend(userId, friendId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/mutual/{userId}")
+    public ResponseEntity<List<AuthenticatedUserProfileDTO>> getMutualFriends(
+        @AuthenticationPrincipal Jwt jwt,
+        @PathVariable String userId) {
+        String currentUserId = jwt.getSubject();
+        List<AuthenticatedUserProfileDTO> mutualFriends = friendshipService.getMutualFriendsDTO(currentUserId, userId);
+        return ResponseEntity.ok(mutualFriends);
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.example.spotspeak.service;
 
+import com.example.spotspeak.dto.CommentMentionDTO;
 import com.example.spotspeak.dto.CommentRequestDTO;
 import com.example.spotspeak.dto.CommentResponseDTO;
 import com.example.spotspeak.entity.Comment;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,16 +28,17 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
     private CommentService commentService;
 
     private User testUser;
-    private User mentionedUser;
+    private User mentionedUser1;
+    private User mentionedUser2;
     private Trace testTrace;
 
     @BeforeEach
     public void setUp() {
         testUser = TestEntityFactory.createPersistedUser(entityManager);
         testTrace = TestEntityFactory.createPersistedTrace(entityManager, testUser, null);
-        mentionedUser = TestEntityFactory.createPersistedUser(entityManager);
-        mentionedUser.setUsername("user123");
-        entityManager.persist(mentionedUser);
+        mentionedUser1 = TestEntityFactory.createPersistedUser(entityManager);
+        mentionedUser2 = TestEntityFactory.createPersistedUser(entityManager);
+        flushAndClear();
     }
 
     @Nested
@@ -43,7 +46,8 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldAddCommentToTrace_whenValidRequest() {
-            CommentRequestDTO commentRequest = TestEntityFactory.createCommentRequestDTO("Test comment");
+            CommentRequestDTO commentRequest = TestEntityFactory.createCommentRequestDTO("Test comment", null);
+            flushAndClear();
 
             CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(),
                     commentRequest);
@@ -52,7 +56,7 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
             assertThat(responseDTO.content()).isEqualTo(commentRequest.content());
             assertThat(responseDTO.author().id()).isEqualTo(testUser.getId());
 
-            Comment savedComment = entityManager.find(Comment.class, responseDTO.id());
+            Comment savedComment = entityManager.find(Comment.class, responseDTO.commentId());
 
             assertThat(savedComment.getContent()).isEqualTo(responseDTO.content());
             assertThat(savedComment.getTrace()).isEqualTo(testTrace);
@@ -63,17 +67,61 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldProcessMentions_whenRequestContainsMentions() {
-            CommentRequestDTO commentRequest = TestEntityFactory.createCommentRequestDTO("Mentioning someone @user123");
+            List<UUID> mentions = List.of(mentionedUser1.getId(), mentionedUser2.getId());
+            CommentRequestDTO commentRequest = TestEntityFactory.createCommentRequestDTO("Mentioning someone @user123", mentions);
+            flushAndClear();
 
             CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(),
                     commentRequest);
 
-            Comment savedComment = entityManager.find(Comment.class, responseDTO.id());
+            Comment savedComment = entityManager.find(Comment.class, responseDTO.commentId());
             assertThat(savedComment.getMentions()).isNotEmpty();
             assertThat(savedComment.getMentions())
-                    .hasSize(1)
+                    .hasSize(2)
                     .extracting(CommentMention::getMentionedUser)
-                    .containsExactly(mentionedUser);
+                    .containsExactlyInAnyOrder(mentionedUser1, mentionedUser2);
+        }
+
+        @Test
+        @Transactional
+        void shouldNotProcessMention_whenMentionedUserNotFound() {
+            List<UUID> mentions = List.of(mentionedUser1.getId(), UUID.randomUUID());
+            CommentRequestDTO commentRequest = TestEntityFactory.createCommentRequestDTO("Mentioning someone @user123", mentions);
+            flushAndClear();
+
+            CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(),
+                commentRequest);
+
+            Comment savedComment = entityManager.find(Comment.class, responseDTO.commentId());
+            assertThat(savedComment.getMentions()).isNotEmpty();
+            assertThat(savedComment.getMentions())
+                .hasSize(1)
+                .extracting(CommentMention::getMentionedUser)
+                .containsExactlyInAnyOrder(mentionedUser1);
+        }
+
+        @Test
+        @Transactional
+        void shouldNotProcessMentions_whenMentionsAreNull() {
+            CommentRequestDTO commentRequest = TestEntityFactory.createCommentRequestDTO("Test comment without mentions", null);
+            flushAndClear();
+
+            CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(), commentRequest);
+
+            Comment savedComment = entityManager.find(Comment.class, responseDTO.commentId());
+            assertThat(savedComment.getMentions()).isEmpty();
+        }
+
+        @Test
+        @Transactional
+        void shouldNotProcessMentions_whenMentionsAreEmpty() {
+            CommentRequestDTO commentRequest = TestEntityFactory.createCommentRequestDTO("Test comment with empty mentions", List.of());
+            flushAndClear();
+
+            CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(), commentRequest);
+
+            Comment savedComment = entityManager.find(Comment.class, responseDTO.commentId());
+            assertThat(savedComment.getMentions()).isEmpty();
         }
     }
 
@@ -93,7 +141,7 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
                     testTrace.getId());
 
             assertThat(comments).hasSize(2);
-            assertThat(comments).extracting("id").containsExactlyInAnyOrder(comment1.getId(), comment2.getId());
+            assertThat(comments).extracting("commentId").containsExactlyInAnyOrder(comment1.getId(), comment2.getId());
             assertThat(comments).extracting("content").containsExactlyInAnyOrder("First comment", "Second comment");
         }
 
@@ -115,20 +163,20 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         void shouldUpdateCommentContent_whenAuthorUpdates() {
             Comment testComment = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace,
                     "Original content");
-            CommentRequestDTO updateRequest = TestEntityFactory.createCommentRequestDTO("Updated content");
+            CommentRequestDTO updateRequest = TestEntityFactory.createCommentRequestDTO("Updated content",null);
             flushAndClear();
 
             CommentResponseDTO response = commentService.updateComment(testUser.getId().toString(), testComment.getId(),
                     updateRequest);
 
-            Comment updatedComment = entityManager.find(Comment.class, response.id());
+            Comment updatedComment = entityManager.find(Comment.class, response.commentId());
 
             assertThat(updatedComment.getId()).isEqualTo(testComment.getId());
             assertThat(updatedComment.getAuthor()).isEqualTo(testUser);
             assertThat(updatedComment.getContent()).isEqualTo("Updated content");
 
             assertThat(response).isNotNull();
-            assertThat(response.id()).isEqualTo(testComment.getId());
+            assertThat(response.commentId()).isEqualTo(testComment.getId());
             assertThat(response.author().id()).isEqualTo(testUser.getId());
             assertThat(response.content()).isEqualTo("Updated content");
         }
@@ -136,31 +184,35 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldUpdateCommentContent_whenAuthorUpdates_whenRequestContainsMentions() {
+            List<UUID> mentions = List.of(mentionedUser1.getId());
             CommentRequestDTO commentRequest = TestEntityFactory
-                    .createCommentRequestDTO("Original. Mentioning someone @user123");
+                    .createCommentRequestDTO("Original. Mentioning someone @user123", mentions);
+            flushAndClear();
+
             CommentResponseDTO responseDTO = commentService.addComment(testUser.getId().toString(), testTrace.getId(),
                     commentRequest);
-            Comment comment = entityManager.find(Comment.class, responseDTO.id());
+            Comment comment = entityManager.find(Comment.class, responseDTO.commentId());
 
-            User updateMentionedUser = TestEntityFactory.createPersistedUser(entityManager);
-            updateMentionedUser.setUsername("user456");
-            entityManager.persist(updateMentionedUser);
-
+            List<UUID> mentionsUpdated = List.of(mentionedUser2.getId());
             CommentRequestDTO updateRequest = TestEntityFactory
-                    .createCommentRequestDTO("Updated. Mentioning someone @user456");
+                    .createCommentRequestDTO("Updated. Mentioning someone @user456", mentionsUpdated);
             CommentResponseDTO response = commentService.updateComment(testUser.getId().toString(), comment.getId(),
                     updateRequest);
 
-            Comment updatedComment = entityManager.find(Comment.class, response.id());
+            Comment updatedComment = entityManager.find(Comment.class, response.commentId());
             assertThat(updatedComment.getContent()).isEqualTo("Updated. Mentioning someone @user456");
             assertThat(updatedComment.getMentions()).isNotEmpty();
             assertThat(updatedComment.getMentions())
                     .hasSize(1)
                     .extracting(CommentMention::getMentionedUser)
-                    .containsExactly(updateMentionedUser);
+                    .containsExactly(mentionedUser2);
 
             assertThat(response).isNotNull();
             assertThat(response.content()).isEqualTo("Updated. Mentioning someone @user456");
+            assertThat(response.mentions())
+                .hasSize(1)
+                .extracting(CommentMentionDTO::mentionedUserId)
+                .containsExactly(mentionedUser2.getId());
         }
 
         @Test
@@ -169,7 +221,9 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
             Comment testComment = TestEntityFactory.createPersistedComment(entityManager, testUser, testTrace,
                     "Test comment");
             User otherUser = TestEntityFactory.createPersistedUser(entityManager);
-            CommentRequestDTO updateRequest = new CommentRequestDTO("Test comment");
+            flushAndClear();
+
+            CommentRequestDTO updateRequest = new CommentRequestDTO("Test comment",null);
 
             assertThrows(ForbiddenException.class, () -> commentService.updateComment(otherUser.getId().toString(),
                     testComment.getId(), updateRequest));
@@ -178,7 +232,7 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldThrowException_whenCommentNotFound() {
-            CommentRequestDTO updateRequest = new CommentRequestDTO("Test comment");
+            CommentRequestDTO updateRequest = new CommentRequestDTO("Test comment",null);
 
             assertThrows(CommentNotFoundException.class,
                     () -> commentService.updateComment(testUser.getId().toString(), 999L, updateRequest));
