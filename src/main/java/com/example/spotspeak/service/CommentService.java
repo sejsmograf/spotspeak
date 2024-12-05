@@ -7,7 +7,6 @@ import com.example.spotspeak.entity.CommentMention;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.enumeration.ENotificationType;
-import com.example.spotspeak.entity.notification.SingleUserNotificationEvent;
 import com.example.spotspeak.exception.CommentNotFoundException;
 import com.example.spotspeak.mapper.CommentMapper;
 import com.example.spotspeak.repository.CommentRepository;
@@ -30,7 +29,6 @@ public class CommentService {
     private TraceService traceService;
     private CommentMentionService mentionService;
     private CommentMapper commentMapper;
-    private CommentMentionService commentMentionService;
     private DomainEventPublisher publisher;
 
     public CommentService(CommentRepository commentRepository,
@@ -38,14 +36,12 @@ public class CommentService {
             TraceService traceService,
             CommentMentionService mentionService,
             CommentMapper commentMapper,
-            CommentMentionService commentMentionService,
             DomainEventPublisher publisher) {
         this.commentRepository = commentRepository;
         this.userService = userService;
         this.traceService = traceService;
         this.mentionService = mentionService;
         this.commentMapper = commentMapper;
-        this.commentMentionService = commentMentionService;
         this.publisher = publisher;
     }
 
@@ -114,7 +110,7 @@ public class CommentService {
         List<User> mentionedUsers = commentMentions.stream().map(m -> m.getMentionedUser()).toList();
         publisher.publishNotificationEvent(mentionedUsers, ENotificationType.USER_MENTIONED, null);
 
-        commentMentionService.saveAllMentions(commentMentions);
+        mentionService.saveAllMentions(commentMentions);
         return commentMentions;
     }
 
