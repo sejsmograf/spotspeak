@@ -39,7 +39,7 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
                     (Double) entry[2],
                     ETraceType.valueOf((String) entry[3]),
                     null,
-                    ((Timestamp) entry[5]).toLocalDateTime());
+                    ((Timestamp) entry[4]).toLocalDateTime());
 
             result.add(dto);
         }
