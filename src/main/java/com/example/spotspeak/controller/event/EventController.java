@@ -31,10 +31,18 @@ public class EventController {
             @RequestParam double longitude,
             @RequestParam double latitude,
             @RequestParam int distance) {
-        String userId = jwt.getSubject();
-        List<EventLocationDTO> nearbyEvents = eventService.getNearbyEventsForUser(
-                userId, longitude, latitude, distance);
+        boolean anonymous = jwt == null;
+        List<EventLocationDTO> events = List.of();
 
-        return ResponseEntity.ok(nearbyEvents);
+        if (anonymous) {
+            events = eventService.getNearbyEventsAnonymous(
+                    longitude, latitude, distance);
+        } else {
+            String userId = jwt.getSubject();
+            events = eventService.getNearbyEventsForUser(
+                    userId, longitude, latitude, distance);
+        }
+
+        return ResponseEntity.ok(events);
     }
 }

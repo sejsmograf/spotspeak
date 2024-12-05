@@ -67,4 +67,14 @@ public class TraceMapper {
                 hasDiscovered,
                 trace.getCreatedAt());
     }
+
+    public TraceLocationDTO crateTraceDownloadDtoAnonymous(Trace trace) {
+        return new TraceLocationDTO(
+                trace.getId(),
+                trace.getLongitude(),
+                trace.getLatitude(),
+                trace.getTraceType(),
+                null,
+                trace.getCreatedAt());
+    }
 }
