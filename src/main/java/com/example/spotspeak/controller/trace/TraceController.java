@@ -63,7 +63,7 @@ public class TraceController {
             nearby = traceService.getNearbyTracesAnonymous(longitude, latitude, distance);
         } else {
             String userId = jwt.getSubject();
-            traceService.getNearbyTracesForUser(userId, longitude, latitude,
+            nearby = traceService.getNearbyTracesForUser(userId, longitude, latitude,
                     distance);
         }
 
