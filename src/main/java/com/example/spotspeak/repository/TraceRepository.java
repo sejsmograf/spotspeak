@@ -1,9 +1,12 @@
 package com.example.spotspeak.repository;
 
 import com.example.spotspeak.dto.TraceClusterMapping;
+import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.entity.Event;
 import com.example.spotspeak.entity.Trace;
+import com.example.spotspeak.entity.enumeration.ETraceType;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,13 +19,33 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface TraceRepository extends JpaRepository<Trace, Long> {
 
-    // returns an array [Long id, Double longitude, Double latitude]
     @Query(value = """
-            SELECT id, ST_X(location::geometry) AS longitude, ST_Y(location::geometry) AS latitude
+            SELECT id, ST_X(location::geometry) AS longitude, ST_Y(location::geometry) AS latitude,
+                trace_type, created_at
             FROM traces
             WHERE ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint(?1, ?2), 4326)::geography, ?3)
             """, nativeQuery = true)
-    List<Object[]> findNearbyTracesLocations(double longitude, double latitude, double distance);
+    List<Object[]> findNearbyTracesLocationsRaw(double longitude, double latitude, double distance);
+
+    default List<TraceLocationDTO> findNearbyTracesLocations(double longitude, double latitude, double distance) {
+        List<TraceLocationDTO> result = new ArrayList<>();
+        List<Object[]> rawEntries = findNearbyTracesLocationsRaw(
+                longitude, latitude, distance);
+
+        for (Object[] entry : rawEntries) {
+            TraceLocationDTO dto = new TraceLocationDTO(
+                    (Long) entry[0],
+                    (Double) entry[1],
+                    (Double) entry[2],
+                    ETraceType.valueOf((String) entry[3]),
+                    null,
+                    ((Timestamp) entry[5]).toLocalDateTime());
+
+            result.add(dto);
+        }
+
+        return result;
+    }
 
     @Query(value = """
             SELECT t.id, ST_X(t.location::geometry) AS longitude, ST_Y(t.location::geometry) AS latitude,
@@ -34,8 +57,29 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
                              ST_SetSRID(ST_MakePoint(:longitude, :latitude)::geography, 4326), :distance)
                 AND t.is_active = true
             """, nativeQuery = true)
-    List<Object[]> findNearbyTracesLocationsForUser(
+    List<Object[]> findNearbyTracesLocationsForUserRaw(
             UUID userId, double longitude, double latitude, double distance);
+
+    default List<TraceLocationDTO> findNearbyTracesLocationsForUser(
+            UUID userId, double longitude, double latitude, double distance) {
+        List<TraceLocationDTO> result = new ArrayList<>();
+        List<Object[]> rawEntries = findNearbyTracesLocationsForUserRaw(
+                userId, longitude, latitude, distance);
+
+        for (Object[] entry : rawEntries) {
+            TraceLocationDTO dto = new TraceLocationDTO(
+                    (Long) entry[0],
+                    (Double) entry[1],
+                    (Double) entry[2],
+                    ETraceType.valueOf((String) entry[3]),
+                    (Boolean) entry[4],
+                    ((Timestamp) entry[5]).toLocalDateTime());
+
+            result.add(dto);
+        }
+
+        return result;
+    }
 
     @Query("""
             SELECT t

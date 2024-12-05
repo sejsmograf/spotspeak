@@ -55,10 +55,18 @@ public class TraceService {
 
     public List<TraceLocationDTO> getNearbyTracesForUser(String userId, double longitude, double latitude,
             double distance) {
-        List<Object[]> results = traceRepository.findNearbyTracesLocationsForUser(UUID.fromString(userId),
+        List<TraceLocationDTO> results = traceRepository.findNearbyTracesLocationsForUser(
+                UUID.fromString(userId), longitude, latitude, distance);
+
+        return results;
+    }
+
+    public List<TraceLocationDTO> getNearbyTracesAnonymous(double longitude, double latitude,
+            double distance) {
+        List<TraceLocationDTO> results = traceRepository.findNearbyTracesLocations(
                 longitude, latitude, distance);
 
-        return results.stream().map(traceMapper::createTraceLocationDtoFromNativeQueryResult).toList();
+        return results;
     }
 
     public Trace createTrace(String userId, MultipartFile file, TraceUploadDTO traceUploadDTO) {

@@ -11,6 +11,6 @@ public record TraceLocationDTO(
         @NotNull Double longitude,
         @NotNull Double latitude,
         @NotNull ETraceType type,
-        boolean hasDiscovered,
+        Boolean hasDiscovered,
         LocalDateTime createdAt) {
 }

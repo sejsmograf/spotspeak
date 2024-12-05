@@ -56,10 +56,18 @@ public class TraceController {
             @RequestParam double longitude,
             @RequestParam double latitude,
             @RequestParam int distance) {
-        String userId = jwt.getSubject();
-        List<TraceLocationDTO> nearbyTraces = traceService.getNearbyTracesForUser(userId, longitude, latitude,
-                distance);
-        return ResponseEntity.ok(nearbyTraces);
+        boolean anonymous = jwt == null;
+        List<TraceLocationDTO> nearby = List.of();
+
+        if (anonymous) {
+            nearby = traceService.getNearbyTracesAnonymous(longitude, latitude, distance);
+        } else {
+            String userId = jwt.getSubject();
+            traceService.getNearbyTracesForUser(userId, longitude, latitude,
+                    distance);
+        }
+
+        return ResponseEntity.ok(nearby);
     }
 
     @GetMapping("/{traceId}")
