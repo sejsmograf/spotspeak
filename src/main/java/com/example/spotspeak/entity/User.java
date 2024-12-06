@@ -85,6 +85,9 @@ public class User {
     @OneToMany(mappedBy = "mentionedUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<CommentMention> commentMentions;
 
+    @OneToMany(mappedBy = "author", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> comments;
+
     @Column(nullable = false)
     private LocalDateTime registeredAt;
 
