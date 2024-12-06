@@ -57,7 +57,6 @@ public class User {
     @Builder.Default
     private Boolean receiveNotifications = true;
 
-
     @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinTable(name = "discovered_traces", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "trace_id"))
     @Builder.Default
@@ -82,6 +81,9 @@ public class User {
     @OneToMany(mappedBy = "userReceiving", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<Friendship> receivedFriendships = new ArrayList<>();
+
+    @OneToMany(mappedBy = "mentionedUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<CommentMention> commentMentions;
 
     @Column(nullable = false)
     private LocalDateTime registeredAt;
