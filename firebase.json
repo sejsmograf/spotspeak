@@ -1,4 +1,0 @@
-# This file should contain JSON object with firebase key allowing 
-# to send push notifications (FirebaseCloudMessaging) to the app.
-# It will be copied to docker container and it's path is hardcoded in 
-# run_docker.sh
