@@ -50,7 +50,9 @@ public class User {
     private Resource profilePicture;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Trace> traces;
+    @Builder.Default
+    private List<Trace> traces = new ArrayList<>();
+
 
     private String fcmToken;
 
