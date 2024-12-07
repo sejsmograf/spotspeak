@@ -36,10 +36,10 @@ public class TraceMapper {
         PublicUserProfileDTO author = userMapper.createPublicUserProfileDTO(trace.getAuthor());
 
         List<CommentResponseDTO> commentResponseDTOs = trace.getComments() != null
-            ? trace.getComments().stream()
-            .map(commentMapper::toCommentResponseDTO)
-            .toList()
-            : List.of();
+                ? trace.getComments().stream()
+                        .map(commentMapper::toCommentResponseDTO)
+                        .toList()
+                : List.of();
 
         return new TraceDownloadDTO(
                 trace.getId(),
@@ -55,32 +55,26 @@ public class TraceMapper {
 
     }
 
-    public TraceLocationDTO createTraceLocationDtoFromNativeQueryResult(Object[] result) {
-        if (result.length != 6) {
-            throw new IllegalArgumentException("Expected 5 elements in the result array, but got " + result.length);
-        }
-
-        ETraceType traceType = ETraceType.valueOf((String) result[3]);
-
-        return new TraceLocationDTO(
-                (Long) result[0],
-                (Double) result[1],
-                (Double) result[2],
-                traceType,
-                (Boolean) result[4],
-                ((Timestamp) result[5]).toLocalDateTime());
-    }
-
     public TraceLocationDTO crateTraceDownloadDtoForUser(String userId, Trace trace) {
         boolean hasDiscovered = trace.getDiscoverers().stream()
                 .anyMatch(user -> user.getId().toString().equals(userId));
 
         return new TraceLocationDTO(
                 trace.getId(),
-                trace.getLatitude(),
                 trace.getLongitude(),
+                trace.getLatitude(),
                 trace.getTraceType(),
-                hasDiscovered, 
+                hasDiscovered,
+                trace.getCreatedAt());
+    }
+
+    public TraceLocationDTO crateTraceDownloadDtoAnonymous(Trace trace) {
+        return new TraceLocationDTO(
+                trace.getId(),
+                trace.getLongitude(),
+                trace.getLatitude(),
+                trace.getTraceType(),
+                null,
                 trace.getCreatedAt());
     }
 }

@@ -38,7 +38,8 @@ public class UserMapper {
                 user.getLastName(),
                 user.getEmail(),
                 profilePictureUrl,
-                totalPoints);
+                totalPoints,
+                user.getReceiveNotifications());
     }
 
     public User createUserFromDTO(RegisteredUserDTO userDTO) {

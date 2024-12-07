@@ -17,9 +17,23 @@ public class EventMapper {
         this.traceMapper = traceMapper;
     }
 
-    public EventLocationDTO createEventLocationDTO(String userId, Event event) {
+    public EventLocationDTO createEventLocationDTOForUser(String userId, Event event) {
         List<TraceLocationDTO> traces = event.getAssociatedTraces().stream()
                 .map(t -> traceMapper.crateTraceDownloadDtoForUser(userId, t))
+                .toList();
+
+        return new EventLocationDTO(
+                event.getId(),
+                event.getEventCenter().getX(),
+                event.getEventCenter().getY(),
+                event.getName(),
+                event.getIsActive(),
+                traces);
+    }
+
+    public EventLocationDTO createEventLocationDTOAnonymous(Event event) {
+        List<TraceLocationDTO> traces = event.getAssociatedTraces().stream()
+                .map(t -> traceMapper.crateTraceDownloadDtoAnonymous(t))
                 .toList();
 
         return new EventLocationDTO(

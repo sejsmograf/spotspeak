@@ -59,8 +59,11 @@ public class EventService {
     @Transactional
     public void deactivateExpiredEvents() {
         List<Event> expiredEvents = eventRepository.findExpiredEvents(LocalDateTime.now());
-        logger.info("Deactivated " + expiredEvents.size() + " expired events.");
         expiredEvents.forEach(this::deactivateEvent);
+
+        if (!expiredEvents.isEmpty()) {
+            logger.info("Deactivated " + expiredEvents.size() + " expired events.");
+        }
     }
 
     public Event findEventWithinDistance(double longitude, double latitude, int distance) {
@@ -103,8 +106,18 @@ public class EventService {
             String userId, double longitude, double latitude, int distance) {
         List<Event> events = getNearbyEvents(longitude, latitude, distance);
         List<EventLocationDTO> eventLocations = events.stream()
-            .map(event -> eventMapper.createEventLocationDTO(userId, event))
-            .toList();
+                .map(event -> eventMapper.createEventLocationDTOForUser(userId, event))
+                .toList();
+
+        return eventLocations;
+    }
+
+    public List<EventLocationDTO> getNearbyEventsAnonymous(
+            double longitude, double latitude, int distance) {
+        List<Event> events = getNearbyEvents(longitude, latitude, distance);
+        List<EventLocationDTO> eventLocations = events.stream()
+                .map(event -> eventMapper.createEventLocationDTOAnonymous(event))
+                .toList();
 
         return eventLocations;
     }

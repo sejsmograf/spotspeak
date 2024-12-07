@@ -32,7 +32,9 @@ public class SecurityConfig {
         // Permit access to Swagger UI and API documentation
         http.authorizeHttpRequests(
                 authorize -> authorize
-                        .requestMatchers("/api/docs/**", "/swagger-ui/**").permitAll()
+                        .requestMatchers("/api/docs/**", "/swagger-ui/**",
+                                "/api/traces/nearby", "/api/events/nearby")
+                        .permitAll()
                         .anyRequest().authenticated());
 
         // Disable form login

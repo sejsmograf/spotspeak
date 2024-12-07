@@ -19,6 +19,7 @@ import com.example.spotspeak.dto.PublicUserWithFriendshipDTO;
 import com.example.spotspeak.dto.RegisteredUserDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.Resource;
+import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.exception.UserNotFoundException;
 import com.example.spotspeak.mapper.UserMapper;
@@ -79,6 +80,10 @@ public class UserService {
     @Transactional
     public void deleteById(String userIdString) {
         User user = findByIdOrThrow(userIdString);
+
+        for (Trace trace : user.getTraces()) {
+            trace.clearDiscoverers();
+        }
 
         userRepostitory.deleteById(user.getId());
         userRepostitory.flush();
@@ -141,8 +146,8 @@ public class UserService {
     public void setNotificationPreferences(String userId, NotificationPreferencesDTO preferences) {
         User user = findByIdOrThrow(userId);
         user.setReceiveNotifications(preferences.receiveNotifications());
+        userRepostitory.save(user);
     }
-
 
     private User findByIdOrThrow(UUID userId) {
         return userRepostitory.findById(userId).orElseThrow(

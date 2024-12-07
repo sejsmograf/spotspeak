@@ -25,9 +25,10 @@ public class TraceExpirationService {
     @Scheduled(fixedRate = TraceConstants.EXPIRED_TRACE_CLEANUP_INTERVAL_MS, initialDelay = 1000 * 20)
     @Transactional
     int deactivateExpiredTraces() {
-        logger.info("Deactivating expired traces...");
         int deactivatedCount = traceRepository.deactivateExpiredTraces(LocalDateTime.now());
-        logger.info("Deactivated " + deactivatedCount + " expired traces.");
+        if (deactivatedCount > 0) {
+            logger.info("Deactivated " + deactivatedCount + " expired traces.");
+        }
         return deactivatedCount;
     }
 }
