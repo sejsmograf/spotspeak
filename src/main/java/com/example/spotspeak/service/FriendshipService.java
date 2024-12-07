@@ -97,7 +97,10 @@ public class FriendshipService {
         List<User> mutualFriends = getMutualFriends(currentUserId, otherUserId);
 
         return mutualFriends.stream()
-                .map(friend -> userMapper.createAuthenticatedUserProfileDTO(friend,null))
+                .map(friend -> {
+                    Integer totalPoints = achievementService.getTotalPointsByUser(friend);
+                    return userMapper.createAuthenticatedUserProfileDTO(friend, totalPoints);
+                })
                 .toList();
     }
 
