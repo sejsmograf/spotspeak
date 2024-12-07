@@ -39,6 +39,7 @@ public class FriendRequest {
     private User receiver;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     @Column(nullable = false)
     private EFriendRequestStatus status = EFriendRequestStatus.PENDING;
 

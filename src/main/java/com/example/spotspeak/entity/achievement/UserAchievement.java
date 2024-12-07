@@ -37,9 +37,11 @@ public class UserAchievement {
     @JoinColumn(name = "achievement_id", referencedColumnName = "id", nullable = false)
     private Achievement achievement;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer quantityProgress = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer currentStreak = 0;
 
