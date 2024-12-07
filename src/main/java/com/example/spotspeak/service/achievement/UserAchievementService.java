@@ -4,6 +4,7 @@ import com.example.spotspeak.dto.PublicUserProfileDTO;
 import com.example.spotspeak.dto.achievement.UserAchievementDTO;
 import com.example.spotspeak.dto.achievement.UserAchievementDetailsDTO;
 import com.example.spotspeak.entity.User;
+import com.example.spotspeak.entity.achievement.Achievement;
 import com.example.spotspeak.entity.achievement.UserAchievement;
 import com.example.spotspeak.exception.UserAchievementNotFoundException;
 import com.example.spotspeak.mapper.UserAchievementMapper;
@@ -45,8 +46,13 @@ public class UserAchievementService {
     public UserAchievementDetailsDTO getUserAchievementDetails(String userId, Long userAchievementId) {
         User user = userService.findByIdOrThrow(userId);
 
-        UserAchievement userAchievement = userAchievementRepository.findByIdAndUser(userAchievementId, user)
+        UserAchievement originalUserAchievement = userAchievementRepository.findById(userAchievementId)
             .orElseThrow(() -> new UserAchievementNotFoundException("User achievement not found"));
+
+        Achievement achievement = originalUserAchievement.getAchievement();
+
+        UserAchievement userAchievement = userAchievementRepository.findByAchievementAndUser(achievement, user)
+            .orElseThrow(() -> new UserAchievementNotFoundException("No such achievement for this user"));
 
         return userAchievementMapper.toUserAchievementDetailsDTO(userAchievement);
     }
@@ -54,7 +60,7 @@ public class UserAchievementService {
     public List<PublicUserProfileDTO> getFriendsWhoCompletedAchievement(String userId, Long userAchievementId) {
         User user = userService.findByIdOrThrow(userId);
 
-        UserAchievement userAchievement = userAchievementRepository.findByIdAndUser(userAchievementId, user)
+        UserAchievement userAchievement = userAchievementRepository.findUserAchievementById(userAchievementId)
             .orElseThrow(() -> new UserAchievementNotFoundException("User achievement not found"));
 
         List<User> friends = friendshipService.getFriends(userId);

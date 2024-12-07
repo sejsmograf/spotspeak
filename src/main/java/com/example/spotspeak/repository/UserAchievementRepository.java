@@ -45,7 +45,8 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
     """)
     List<UserAchievement> findCompletedAchievementsByUser(@Param("user") User user);
 
-    Optional<UserAchievement> findByIdAndUser(Long id, User user);
+    @Query("SELECT ua FROM UserAchievement ua WHERE ua.id = :id")
+    Optional<UserAchievement> findUserAchievementById(@Param("id") Long id);
 
     @Query("""
     SELECT ua 
@@ -70,4 +71,7 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
 
     @Query("SELECT ua FROM UserAchievement ua WHERE ua.currentStreak > 0 AND ua.completedAt IS NULL")
     List<UserAchievement> findAllWithActiveStreaks();
+
+    @Query("SELECT ua FROM UserAchievement ua WHERE ua.achievement = :achievement AND ua.user = :user")
+    Optional<UserAchievement> findByAchievementAndUser(@Param("achievement") Achievement achievement, @Param("user") User user);
 }
