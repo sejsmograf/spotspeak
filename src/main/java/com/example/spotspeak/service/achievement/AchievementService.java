@@ -15,8 +15,6 @@ import com.example.spotspeak.repository.ConditionRepository;
 import com.example.spotspeak.repository.UserAchievementRepository;
 import com.example.spotspeak.service.KeyGenerationService;
 import com.example.spotspeak.service.ResourceService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +30,6 @@ public class AchievementService {
     private UserAchievementRepository userAchievementRepository;
     private KeyGenerationService keyGenerationService;
     private ResourceService resourceService;
-    private Logger logger = LoggerFactory.getLogger(AchievementService.class);
 
     public AchievementService(AchievementRepository achievementRepository, ConditionRepository conditionRepository,
             UserAchievementRepository userAchievementRepository,
