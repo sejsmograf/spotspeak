@@ -34,7 +34,9 @@ fi
 
 export FIREBASE_CONFIG_PATH=/app/firebase.json
 
-docker run --rm --name spotspeak -p $(echo $SERVER_PORT):8080 \
+docker stop spotspeak
+
+docker run -d --rm --name spotspeak -p $(echo $SERVER_PORT):8080 \
 	-e ENV_SPRING_DATASOURCE_URL=${ENV_SPRING_DATASOURCE_URL} \
 	-e ENV_SPRING_DATASOURCE_USERNAME=${ENV_SPRING_DATASOURCE_USERNAME} \
 	-e ENV_SPRING_DATASOURCE_PASSWORD=${ENV_SPRING_DATASOURCE_PASSWORD} \
