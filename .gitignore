@@ -35,3 +35,4 @@ build/
 secret.properties
 user-uploads/
 static/
+firebase.json
