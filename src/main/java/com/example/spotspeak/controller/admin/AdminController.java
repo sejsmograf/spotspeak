@@ -70,7 +70,9 @@ public class AdminController {
     @PutMapping("/update-achievement")
     public ResponseEntity<AchievementResponseDTO> updateAchievement(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestPart(value = "file", required = false) MultipartFile file,
+            @Valid @ValidFile(required = false, maxSize = FileUploadConsants.ACHIEVEMENT_ICON_MAX_SIZE, allowedTypes = {
+                "image/jpeg", "image/png",
+                "image/jpg" }) @RequestPart(value = "file", required = false) MultipartFile file,
             @RequestPart @Valid AchievementUpdateDTO achievementUpdateDTO) {
         Achievement updatedAchievement = achievementService.updateAchievement(file, achievementUpdateDTO);
         AchievementResponseDTO dto = mapper.createAchievementResponseDTO(updatedAchievement);
