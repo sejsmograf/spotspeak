@@ -160,11 +160,11 @@ public class TestEntityFactory {
         return new PasswordUpdateDTO(oldPassword, newPassword);
     }
 
-    public static Friendship createPersistedFriendship(EntityManager em, User userInitiating, User userReceiving) {
-        Friendship friendship = Friendship.builder()
-                .userInitiating(userInitiating)
-                .userReceiving(userReceiving)
-                .createdAt(LocalDateTime.now())
+    public static FriendRequest createPersistedFriendship(EntityManager em, User userInitiating, User userReceiving) {
+        FriendRequest friendship = FriendRequest.builder()
+                .sender(userInitiating)
+                .receiver(userReceiving)
+                .status(EFriendRequestStatus.ACCEPTED)
                 .build();
         em.persist(friendship);
         return friendship;

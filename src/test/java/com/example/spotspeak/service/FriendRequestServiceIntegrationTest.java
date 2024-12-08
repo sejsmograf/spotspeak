@@ -76,6 +76,13 @@ public class FriendRequestServiceIntegrationTest extends BaseServiceIntegrationT
             assertThrows(FriendshipExistsException.class,
                     () -> friendRequestService.sendFriendRequest(sender.getId().toString(), receiver.getId()));
         }
+
+        @Test
+        @Transactional
+        void shouldThrowException_whenSendingToYourself() {
+            assertThrows(FriendshipExistsException.class,
+                () -> friendRequestService.sendFriendRequest(sender.getId().toString(), sender.getId()));
+        }
     }
 
     @Nested

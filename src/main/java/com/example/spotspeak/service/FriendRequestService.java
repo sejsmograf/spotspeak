@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,18 +23,16 @@ import java.util.UUID;
 public class FriendRequestService {
 
     private FriendRequestRepository friendRequestRepository;
-    private FriendshipService friendshipService;
     private UserService userService;
     private FriendRequestMapper friendRequestMapper;
     private ApplicationEventPublisher eventPublisher;
     private NotificationEventPublisher notificationPublisher;
 
-    public FriendRequestService(FriendRequestRepository friendRequestRepository, FriendshipService friendshipService,
+    public FriendRequestService(FriendRequestRepository friendRequestRepository,
             UserService userService, FriendRequestMapper friendRequestMapper,
             ApplicationEventPublisher eventPublisher,
             NotificationEventPublisher domainEventPublisher) {
         this.friendRequestRepository = friendRequestRepository;
-        this.friendshipService = friendshipService;
         this.userService = userService;
         this.friendRequestMapper = friendRequestMapper;
         this.eventPublisher = eventPublisher;
@@ -55,7 +52,8 @@ public class FriendRequestService {
                 EFriendRequestStatus.PENDING)) {
             throw new FriendRequestExistsException("Request already sent to this user");
         }
-        if (friendshipService.checkFriendshipExists(sender, receiver)) {
+        if (sender.equals(receiver) || friendRequestRepository.existsAcceptedByUsers(sender, receiver,
+            EFriendRequestStatus.ACCEPTED)) {
             throw new FriendshipExistsException("Friendship between users already exists");
         }
 
@@ -81,8 +79,6 @@ public class FriendRequestService {
         friendRequest.setStatus(EFriendRequestStatus.ACCEPTED);
         friendRequest.setAcceptedAt(LocalDateTime.now());
         friendRequestRepository.save(friendRequest);
-
-        friendshipService.createFriendship(friendRequest.getSender(), currentUser);
 
         UserActionEvent friendshipEventForSender = UserActionEvent.builder()
                 .user(friendRequest.getSender())
