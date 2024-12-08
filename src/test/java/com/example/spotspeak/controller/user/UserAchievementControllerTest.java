@@ -94,7 +94,7 @@ public class UserAchievementControllerTest extends BaseTestWithKeycloak {
             .andExpect(status().isOk())
             .andReturn().getResponse();
 
-        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());;
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         List<UserAchievementDTO> result = mapper.readValue(response.getContentAsByteArray(),
             mapper.getTypeFactory().constructCollectionType(List.class, UserAchievementDTO.class));
 
@@ -112,7 +112,7 @@ public class UserAchievementControllerTest extends BaseTestWithKeycloak {
             .andExpect(status().isOk())
             .andReturn().getResponse();
 
-        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());;
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         UserAchievementDetailsDTO result = mapper.readValue(response.getContentAsByteArray(), UserAchievementDetailsDTO.class);
 
         assertThat(result.achievementName()).isEqualTo("First Trace");
@@ -134,7 +134,7 @@ public class UserAchievementControllerTest extends BaseTestWithKeycloak {
             .andExpect(status().isOk())
             .andReturn().getResponse();
 
-        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());;
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         List<PublicUserProfileDTO> result = mapper.readValue(response.getContentAsByteArray(),
             mapper.getTypeFactory().constructCollectionType(List.class, PublicUserProfileDTO.class));
 
@@ -156,7 +156,7 @@ public class UserAchievementControllerTest extends BaseTestWithKeycloak {
             .andExpect(status().isOk())
             .andReturn().getResponse();
 
-        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());;
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         List<UserAchievementDTO> result = mapper.readValue(response.getContentAsByteArray(),
             mapper.getTypeFactory().constructCollectionType(List.class, UserAchievementDTO.class));
 
