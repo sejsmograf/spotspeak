@@ -163,4 +163,25 @@ public class UserAchievementControllerTest extends BaseTestWithKeycloak {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).achievementName()).isEqualTo("First Trace");
     }
+
+    @Test
+    void getUserAchievementDetails_shouldReturnNotFoundWhenUserAchievementNotExists() throws Exception {
+        User mainUser = users.get(0);
+        String mainUserId = mainUser.getId().toString();
+        long nonExistentId = 999L;
+
+        mockMvc.perform(get(baseUri + "/details/" + nonExistentId)
+                .with(getMockAccessToken(mainUserId)))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getUserAchievementDetails_shouldReturnNotFoundWhenUserNotExists() throws Exception {
+        long nonExistentId = 999L;
+        String mainUserId = Long.toString(nonExistentId);
+
+        mockMvc.perform(get(baseUri + "/details/" + userAchievement.getId())
+                .with(getMockAccessToken(mainUserId)))
+            .andExpect(status().isNotFound());
+    }
 }
