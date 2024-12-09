@@ -83,7 +83,7 @@ public class CommentControllerTest extends BaseTestWithKeycloak {
             .andExpect(status().isOk())
             .andReturn().getResponse();
 
-        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());;
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         CommentResponseDTO result = mapper.readValue(response.getContentAsByteArray(), CommentResponseDTO.class);
 
         assertThat(result.content()).isEqualTo("This is a test comment");
@@ -104,7 +104,7 @@ public class CommentControllerTest extends BaseTestWithKeycloak {
             .andExpect(status().isOk())
             .andReturn().getResponse();
 
-        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());;
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         List<CommentResponseDTO> result = mapper.readValue(response.getContentAsByteArray(),
             mapper.getTypeFactory().constructCollectionType(List.class, CommentResponseDTO.class));
 
@@ -130,7 +130,7 @@ public class CommentControllerTest extends BaseTestWithKeycloak {
             .andExpect(status().isOk())
             .andReturn().getResponse();
 
-        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());;
+        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         CommentResponseDTO result = mapper.readValue(response.getContentAsByteArray(), CommentResponseDTO.class);
 
         assertThat(result.content()).isEqualTo("Updated comment");
