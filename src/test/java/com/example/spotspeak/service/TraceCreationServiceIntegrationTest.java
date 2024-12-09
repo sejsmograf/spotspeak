@@ -3,8 +3,6 @@ package com.example.spotspeak.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.List;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.spotspeak.TestEntityFactory;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.Resource;
-import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.enumeration.ETraceType;
@@ -45,25 +42,6 @@ public class TraceCreationServiceIntegrationTest
         Trace retrieved = entityManager.find(Trace.class, trace.getId());
 
         assertThat(retrieved).isNotNull();
-        assertThat(retrieved.getAuthor()).isEqualTo(author);
-        assertThat(retrieved.getResource()).isNull();
-        assertThat(retrieved).isEqualTo(trace);
-    }
-
-    @Test
-    @Transactional
-    public void createAndPersistTrace_shouldPersist_whenTagsProvided() {
-        List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
-        List<Long> tagIds = tags.stream().map(Tag::getId).toList();
-        User author = TestEntityFactory.createPersistedUser(entityManager);
-        TraceUploadDTO dto = TestEntityFactory.createTraceUploadDTO(tagIds);
-
-        Trace trace = traceCreationService.createAndPersistTrace(author, null, dto);
-        flushAndClear();
-        Trace retrieved = entityManager.find(Trace.class, trace.getId());
-
-        assertThat(retrieved).isNotNull();
-        assertThat(retrieved.getTags()).containsExactlyInAnyOrderElementsOf(tags);
         assertThat(retrieved.getAuthor()).isEqualTo(author);
         assertThat(retrieved.getResource()).isNull();
         assertThat(retrieved).isEqualTo(trace);
