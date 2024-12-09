@@ -67,7 +67,11 @@ public class NotificationEventPublisher {
 
     public void publishAchievementCompletedEvent(
             User associatedUser,
-            Map<String, String> additionalData) {
+            Long achievementId) {
+        Map<String, String> additionalData = Map.of(
+                "achievementId", achievementId.toString()
+        );
+
         NotificationEvent event = SingleUserNotificationEvent.builder()
                 .associatedUser(associatedUser)
                 .type(ENotificationType.ACHIEVEMENT_COMPLETED)
