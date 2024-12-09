@@ -26,7 +26,7 @@ public class MockEventNamingServiceIntegrationTest
         User mockAuthor = TestEntityFactory.createPersistedUser(entityManager);
         List<Trace> associatedTraces = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
-            TestEntityFactory.createPersistedTrace(entityManager, mockAuthor, null);
+            TestEntityFactory.createPersistedTrace(entityManager, mockAuthor);
         }
         flushAndClear();
 

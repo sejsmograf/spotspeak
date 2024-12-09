@@ -1,8 +1,11 @@
 package com.example.spotspeak.service.achievement;
 
+import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.achievement.Achievement;
 import com.example.spotspeak.entity.achievement.UserAchievement;
 import com.example.spotspeak.repository.UserAchievementRepository;
+import com.example.spotspeak.service.NotificationEventPublisher;
+
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,9 +19,12 @@ import java.util.List;
 public class AchievementActionListener {
 
     private final UserAchievementRepository userAchievementRepository;
+    private final NotificationEventPublisher notificationEventPublisher;
 
-    public AchievementActionListener(UserAchievementRepository userAchievementRepository) {
+    public AchievementActionListener(UserAchievementRepository userAchievementRepository,
+            NotificationEventPublisher notificationEventPublisher) {
         this.userAchievementRepository = userAchievementRepository;
+        this.notificationEventPublisher = notificationEventPublisher;
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -38,7 +44,11 @@ public class AchievementActionListener {
                 userAchievement.setQuantityProgress(userAchievement.getQuantityProgress() + 1);
 
                 if (userAchievement.getQuantityProgress() >= achievement.getRequiredQuantity()) {
+                    User associatedUser = userAchievement.getUser();
+                    Long achievementId = userAchievement.getAchievement().getId();
+
                     userAchievement.setCompletedAt(LocalDateTime.now());
+                    notificationEventPublisher.publishAchievementCompletedEvent(associatedUser, achievementId);
                 }
 
                 userAchievementRepository.save(userAchievement);

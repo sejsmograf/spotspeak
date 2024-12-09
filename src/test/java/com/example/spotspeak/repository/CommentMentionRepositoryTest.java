@@ -30,7 +30,7 @@ public class CommentMentionRepositoryTest extends BaseRepositoryTest {
         void saveCommentMention_shouldPersist() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             User mentionedUser = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Test comment");
             CommentMention mention = TestEntityFactory.createPersistedCommentMention(entityManager, comment,
                     mentionedUser);
@@ -43,7 +43,7 @@ public class CommentMentionRepositoryTest extends BaseRepositoryTest {
         void deleteCommentMention_shouldNotDeleteMentionedUserOrComment() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             User mentionedUser = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Test comment");
             CommentMention mention = TestEntityFactory.createPersistedCommentMention(entityManager, comment,
                     mentionedUser);
@@ -61,7 +61,7 @@ public class CommentMentionRepositoryTest extends BaseRepositoryTest {
         void deleteComment_shouldAlsoDeleteMentions() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             User mentionedUser = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Test comment");
             CommentMention commentMention = TestEntityFactory.createPersistedCommentMention(entityManager, comment,
                     mentionedUser);

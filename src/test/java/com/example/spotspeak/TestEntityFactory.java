@@ -83,7 +83,7 @@ public class TestEntityFactory {
         return user;
     }
 
-    public static Trace createPersistedTrace(EntityManager em, User author, List<Tag> tags) {
+    public static Trace createPersistedTrace(EntityManager em, User author) {
         double latitude = RANDOM.nextDouble() * 180 - 90;
         double longitude = RANDOM.nextDouble() * 360 - 180;
         Point location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
@@ -98,41 +98,18 @@ public class TestEntityFactory {
                 .expiresAt(LocalDateTime.now().plusHours(TraceConstants.TRACE_EXPIRATION_HOURS))
                 .build();
 
-        if (tags != null) {
-            tags.forEach(em::persist);
-            trace.setTags(new ArrayList<>(tags));
-        }
-
         em.persist(trace);
         return trace;
     }
 
-    public static Trace createPersistedTrace(EntityManager em, User author, List<Tag> tags, double longitude,
-            double latitude) {
+    public static Trace createPersistedTrace(EntityManager em, User author, double longitude, double latitude) {
         Point location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
         location.setSRID(4326);
-        Trace trace = createPersistedTrace(em, author, tags);
+        Trace trace = createPersistedTrace(em, author);
         trace.setLocation(location);
 
         em.persist(trace);
         return trace;
-    }
-
-    public static List<Tag> createPersistedTags(EntityManager em, int count) {
-        String[] tagNames = { "ornitology", "botany", "geology", "history", "archeology", "zoology", "entomology",
-                "ecology", "geography", "anthropology" };
-        if (count > tagNames.length) {
-            throw new IllegalArgumentException("Too many tags requested");
-        }
-
-        List<Tag> tags = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            Tag tag = Tag.builder().name(tagNames[i]).build();
-            em.persist(tag);
-            tags.add(tag);
-        }
-
-        return tags;
     }
 
     public static TraceUploadDTO createTraceUploadDTO(List<Long> tagIds) {
@@ -207,14 +184,15 @@ public class TestEntityFactory {
         return new CommentRequestDTO(content, mentions);
     }
 
-    public static Achievement createPersistedAchievement(EntityManager em, String name, String description, int points, EEventType eventType, int requiredQuantity, Set<Condition> conditions) {
+    public static Achievement createPersistedAchievement(EntityManager em, String name, String description, int points,
+            EEventType eventType, int requiredQuantity, Set<Condition> conditions) {
         Achievement achievement = Achievement.builder()
-            .name(name)
-            .description(description)
-            .points(points)
-            .eventType(eventType)
-            .requiredQuantity(requiredQuantity)
-            .build();
+                .name(name)
+                .description(description)
+                .points(points)
+                .eventType(eventType)
+                .requiredQuantity(requiredQuantity)
+                .build();
 
         if (conditions != null) {
             conditions.forEach(em::persist);
@@ -227,8 +205,8 @@ public class TestEntityFactory {
 
     public static ConsecutiveDaysCondition createPersistedConsecutiveDaysCondition(EntityManager em, int requiredDays) {
         ConsecutiveDaysCondition condition = ConsecutiveDaysCondition.builder()
-            .requiredConsecutiveDays(requiredDays)
-            .build();
+                .requiredConsecutiveDays(requiredDays)
+                .build();
         em.persist(condition);
         return condition;
     }
@@ -240,8 +218,8 @@ public class TestEntityFactory {
             polygon.setSRID(4326);
 
             LocationCondition locationCondition = LocationCondition.builder()
-                .region(polygon)
-                .build();
+                    .region(polygon)
+                    .build();
 
             em.persist(locationCondition);
             return locationCondition;
@@ -257,47 +235,46 @@ public class TestEntityFactory {
         return point;
     }
 
-    public static TimeCondition createPersistedTimeCondition(EntityManager em, LocalDateTime dateTime, EDateGranularity granularity, LocalTime startTime, LocalTime endTime) {
+    public static TimeCondition createPersistedTimeCondition(EntityManager em, LocalDateTime dateTime,
+            EDateGranularity granularity, LocalTime startTime, LocalTime endTime) {
         TimeCondition condition = TimeCondition.builder()
-            .requiredDateTime(dateTime)
-            .granularity(granularity)
-            .startTime(startTime)
-            .endTime(endTime)
-            .build();
+                .requiredDateTime(dateTime)
+                .granularity(granularity)
+                .startTime(startTime)
+                .endTime(endTime)
+                .build();
         em.persist(condition);
         return condition;
     }
 
-    public static UserAchievement createPersistedUserAchievement(EntityManager em, User user, Achievement achievement, int progress, int streak, LocalDate lastActionDate, LocalDateTime completedAt) {
+    public static UserAchievement createPersistedUserAchievement(EntityManager em, User user, Achievement achievement,
+            int progress, int streak, LocalDate lastActionDate, LocalDateTime completedAt) {
         UserAchievement userAchievement = UserAchievement.builder()
-            .user(user)
-            .achievement(achievement)
-            .quantityProgress(progress)
-            .currentStreak(streak)
-            .lastActionDate(lastActionDate)
-            .completedAt(completedAt)
-            .build();
+                .user(user)
+                .achievement(achievement)
+                .quantityProgress(progress)
+                .currentStreak(streak)
+                .lastActionDate(lastActionDate)
+                .completedAt(completedAt)
+                .build();
         em.persist(userAchievement);
         return userAchievement;
     }
 
-
     public static AchievementUploadDTO createAchievementUploadDTO(
-        String name,
-        String description,
-        int points,
-        String eventType,
-        int requiredQuantity,
-        List<ConditionDTO> conditions
-    ) {
+            String name,
+            String description,
+            int points,
+            String eventType,
+            int requiredQuantity,
+            List<ConditionDTO> conditions) {
         return new AchievementUploadDTO(
-            name,
-            description,
-            points,
-            eventType,
-            requiredQuantity,
-            conditions
-        );
+                name,
+                description,
+                points,
+                eventType,
+                requiredQuantity,
+                conditions);
     }
 
     public static ConsecutiveDaysConditionDTO createConsecutiveDaysConditionDTO(int requiredDays) {
@@ -305,17 +282,15 @@ public class TestEntityFactory {
     }
 
     public static TimeConditionDTO createTimeConditionDTO(
-        LocalDateTime requiredDateTime,
-        String granularity,
-        LocalTime startTime,
-        LocalTime endTime
-    ) {
+            LocalDateTime requiredDateTime,
+            String granularity,
+            LocalTime startTime,
+            LocalTime endTime) {
         return new TimeConditionDTO(
-            requiredDateTime,
-            granularity,
-            startTime,
-            endTime
-        );
+                requiredDateTime,
+                granularity,
+                startTime,
+                endTime);
     }
 
     public static LocationConditionDTO createLocationConditionDTO(String polygonWKT) {
@@ -323,18 +298,18 @@ public class TestEntityFactory {
     }
 
     public static AchievementUpdateDTO createAchievementUpdateDTO(
-        Long id,
-        String name,
-        String description,
-        int points,
-        String eventType,
-        int requiredQuantity,
-        List<ConditionDTO> conditions
-    ) {
+            Long id,
+            String name,
+            String description,
+            int points,
+            String eventType,
+            int requiredQuantity,
+            List<ConditionDTO> conditions) {
         return new AchievementUpdateDTO(id, name, description, points, eventType, requiredQuantity, conditions);
     }
 
-    public static void addConditionsToAchievement(EntityManager em, Achievement achievement, List<ConditionDTO> conditions) {
+    public static void addConditionsToAchievement(EntityManager em, Achievement achievement,
+            List<ConditionDTO> conditions) {
         Achievement managedAchievement = em.contains(achievement) ? achievement : em.merge(achievement);
 
         if (conditions != null) {
@@ -347,56 +322,50 @@ public class TestEntityFactory {
     }
 
     public static UserAchievement createPersistedUserAchievementWithConditions(
-        EntityManager em,
-        User user,
-        Set<Condition> conditions
-    ) {
+            EntityManager em,
+            User user,
+            Set<Condition> conditions) {
         Achievement achievement = createPersistedAchievement(
-            em,
-            "Default Achievement Name" + UUID.randomUUID(),
-            "Default Achievement Description",
-            100,
-            EEventType.ADD_TRACE,
-            1,
-            conditions
-        );
+                em,
+                "Default Achievement Name" + UUID.randomUUID(),
+                "Default Achievement Description",
+                100,
+                EEventType.ADD_TRACE,
+                1,
+                conditions);
 
         return createPersistedUserAchievement(
-            em,
-            user,
-            achievement,
-            0,
-            0,
-            null,
-            null
-        );
+                em,
+                user,
+                achievement,
+                0,
+                0,
+                null,
+                null);
     }
 
     public static UserAchievement createPersistedUserAchievementWithStreak(
-        EntityManager em,
-        User user,
-        int currentStreak,
-        LocalDate lastActionDate
-    ) {
+            EntityManager em,
+            User user,
+            int currentStreak,
+            LocalDate lastActionDate) {
         Achievement achievement = createPersistedAchievement(
-            em,
-            "Default Achievement Name" + UUID.randomUUID(),
-            "Default Achievement Description",
-            100,
-            EEventType.ADD_TRACE,
-            1,
-            null
-        );
+                em,
+                "Default Achievement Name" + UUID.randomUUID(),
+                "Default Achievement Description",
+                100,
+                EEventType.ADD_TRACE,
+                1,
+                null);
 
         return createPersistedUserAchievement(
-            em,
-            user,
-            achievement,
-            0,
-            currentStreak,
-            lastActionDate,
-            null
-        );
+                em,
+                user,
+                achievement,
+                0,
+                currentStreak,
+                lastActionDate,
+                null);
     }
 
     public static Event createPersistedEvent(EntityManager em) {
@@ -406,11 +375,11 @@ public class TestEntityFactory {
         location.setSRID(4326);
 
         Event event = Event.builder()
-            .name("Test event")
-            .eventCenter(location)
-            .expiresAt(LocalDateTime.now().plusHours(TraceConstants.EVENT_EXPIRATION_HOURS))
-            .isActive(true)
-            .build();
+                .name("Test event")
+                .eventCenter(location)
+                .expiresAt(LocalDateTime.now().plusHours(TraceConstants.EVENT_EXPIRATION_HOURS))
+                .isActive(true)
+                .build();
 
         em.persist(event);
         return event;

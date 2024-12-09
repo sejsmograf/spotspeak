@@ -31,14 +31,13 @@ public class EventServiceIntegrationTest
         double lon = 0.00;
 
         for (int i = 0; i < TraceConstants.EVENT_MIN_POINTS; i++) {
-            TestEntityFactory.createPersistedTrace(entityManager, author, null, lon, lat);
+            TestEntityFactory.createPersistedTrace(entityManager, author, lon, lat);
         }
         eventService.detectAndCreateEvents();
 
         List<Event> events = entityManager.createQuery("SELECT e FROM Event e", Event.class).getResultList();
         assertThat(events).isNotEmpty();
     }
-
 
     @Test
     @Transactional
@@ -55,7 +54,7 @@ public class EventServiceIntegrationTest
         double lat = 0.00;
         double lon = 0.00;
         for (int i = 0; i < TraceConstants.EVENT_MIN_POINTS; i++) {
-            TestEntityFactory.createPersistedTrace(entityManager, author, null, lon, lat);
+            TestEntityFactory.createPersistedTrace(entityManager, author, lon, lat);
         }
         eventService.detectAndCreateEvents();
         flushAndClear();

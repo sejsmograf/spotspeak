@@ -49,8 +49,7 @@ public class TraceServiceIntegrationTest
 
         for (int i = 0; i < USER_TRACES_COUNT; i++) {
             testTraces.add(
-                    TestEntityFactory.createPersistedTrace(
-                            entityManager, userWithTraces, null));
+                    TestEntityFactory.createPersistedTrace(entityManager, userWithTraces));
         }
     }
 

@@ -35,7 +35,7 @@ public class CommentServiceIntegrationTest extends BaseServiceIntegrationTest {
     @BeforeEach
     public void setUp() {
         testUser = TestEntityFactory.createPersistedUser(entityManager);
-        testTrace = TestEntityFactory.createPersistedTrace(entityManager, testUser, null);
+        testTrace = TestEntityFactory.createPersistedTrace(entityManager, testUser);
         mentionedUser1 = TestEntityFactory.createPersistedUser(entityManager);
         mentionedUser2 = TestEntityFactory.createPersistedUser(entityManager);
         flushAndClear();

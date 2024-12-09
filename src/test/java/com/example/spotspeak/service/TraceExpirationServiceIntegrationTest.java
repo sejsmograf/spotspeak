@@ -23,7 +23,7 @@ public class TraceExpirationServiceIntegrationTest
     @Transactional
     public void deactivateExpiredTraces_shouldDeactivateExpiredTraces() {
         User author = TestEntityFactory.createPersistedUser(entityManager);
-        Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+        Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
         trace.setExpiresAt(LocalDateTime.now().minusDays(10));
 
         int deactivatedCount = traceExpirationService.deactivateExpiredTraces();
@@ -36,7 +36,7 @@ public class TraceExpirationServiceIntegrationTest
     @Transactional
     public void deactivateExpiredTraces_shouldNotDeactivateNonExpiredTraces() {
         User author = TestEntityFactory.createPersistedUser(entityManager);
-        Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+        Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
         trace.setExpiresAt(LocalDateTime.now().plusDays(1));
         flushAndClear();
 

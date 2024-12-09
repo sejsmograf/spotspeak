@@ -31,7 +31,7 @@ public class CommentRepositoryTest extends BaseRepositoryTest {
         @Test
         void saveComment_shouldPersist() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Test comment");
             flushAndClear();
 
@@ -41,7 +41,7 @@ public class CommentRepositoryTest extends BaseRepositoryTest {
         @Test
         void findCommentById_shouldReturnCorrectComment() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Test comment");
             flushAndClear();
 
@@ -55,7 +55,7 @@ public class CommentRepositoryTest extends BaseRepositoryTest {
         @Test
         void deleteComment_shouldNotDeleteTraceOrAuthor() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Test comment");
             flushAndClear();
 
@@ -70,7 +70,7 @@ public class CommentRepositoryTest extends BaseRepositoryTest {
         @Test
         void deleteTrace_shouldAlsoDeleteComments() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace, "Test comment");
             flushAndClear();
 
@@ -86,7 +86,7 @@ public class CommentRepositoryTest extends BaseRepositoryTest {
             User author = TestEntityFactory.createPersistedUser(entityManager);
             User mentionedUser1 = TestEntityFactory.createPersistedUser(entityManager);
             User mentionedUser2 = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
 
             Comment comment = TestEntityFactory.createPersistedComment(entityManager, author, trace,
                     "Comment with mentions");
@@ -115,7 +115,7 @@ public class CommentRepositoryTest extends BaseRepositoryTest {
         @Test
         void findCommentsByTrace_shouldReturnAllCommentsForTrace() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             TestEntityFactory.createPersistedComment(entityManager, author, trace, "First comment");
             TestEntityFactory.createPersistedComment(entityManager, author, trace, "Second comment");
             flushAndClear();

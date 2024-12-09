@@ -1,7 +1,6 @@
 package com.example.spotspeak.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -14,7 +13,6 @@ import com.example.spotspeak.constants.TraceConstants;
 import com.example.spotspeak.dto.TraceUploadDTO;
 import com.example.spotspeak.entity.Event;
 import com.example.spotspeak.entity.Resource;
-import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.enumeration.EEventType;
@@ -29,7 +27,6 @@ public class TraceCreationService {
 
     private TraceRepository traceRepository;
     private ResourceService resourceService;
-    private TagService tagService;
     private KeyGenerationService keyGenerationService;
     private GeometryFactory geometryFactory;
     private ApplicationEventPublisher eventPublisher;
@@ -38,12 +35,10 @@ public class TraceCreationService {
     public TraceCreationService(TraceRepository traceRepository, ResourceService resourceService,
             KeyGenerationService keyGenerationService,
             UserService userService,
-            TagService tagService,
             ApplicationEventPublisher eventPublisher,
             EventService eventService) {
         this.traceRepository = traceRepository;
         this.resourceService = resourceService;
-        this.tagService = tagService;
         this.geometryFactory = new GeometryFactory();
         this.eventPublisher = eventPublisher;
         this.keyGenerationService = keyGenerationService;
@@ -75,7 +70,6 @@ public class TraceCreationService {
                 .location(components.location())
                 .author(author)
                 .description(components.description())
-                .tags(components.tags())
                 .resource(resource)
                 .associatedEvent(components.associatedEvent())
                 .expiresAt(LocalDateTime.now().plusHours(TraceConstants.TRACE_EXPIRATION_HOURS))
@@ -110,18 +104,14 @@ public class TraceCreationService {
     private TraceCreationComponents prepareTraceCreationComponents(TraceUploadDTO dto) {
         Point location = geometryFactory.createPoint(new Coordinate(dto.longitude(), dto.latitude()));
         location.setSRID(4326);
-        List<Tag> tags = dto.tagIds() == null
-                ? null
-                : tagService.findAllByIds(dto.tagIds());
         String description = dto.description();
         Event associatedEvent = eventService.findEventWithinDistance(dto.longitude(), dto.latitude(),
                 TraceConstants.EVENT_EPSILON_METERS);
 
-        return new TraceCreationComponents(tags, location, associatedEvent, description);
+        return new TraceCreationComponents(location, associatedEvent, description);
     }
 
     private record TraceCreationComponents(
-            List<Tag> tags,
             Point location,
             Event associatedEvent,
             String description) {
