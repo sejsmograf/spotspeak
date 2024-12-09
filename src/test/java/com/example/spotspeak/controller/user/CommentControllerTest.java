@@ -59,7 +59,7 @@ public class CommentControllerTest extends BaseTestWithKeycloak {
             users.add(localUser);
         }
 
-        trace = TestEntityFactory.createPersistedTrace(entityManager, users.get(0), null);
+        trace = TestEntityFactory.createPersistedTrace(entityManager, users.get(0));
         flushAndClear();
     }
 
