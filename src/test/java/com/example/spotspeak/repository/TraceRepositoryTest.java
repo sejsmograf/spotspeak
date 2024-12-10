@@ -4,12 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.example.spotspeak.TestEntityFactory;
-import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
-import java.util.ArrayList;
 import java.util.List;
-import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +16,6 @@ class TraceRepositoryTest extends BaseRepositoryTest {
 
     @Autowired
     private TraceRepository traceRepository;
-
-    @Autowired
-    private TagRepository tagRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -40,7 +34,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         void saveTrace_shouldPersist_whenAuthorProvided() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
 
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             flushAndClear();
 
             assertThat(trace.getId()).isNotNull();
@@ -49,7 +43,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         @Test
         void findTraceById_shouldReturnCorrectActor() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             flushAndClear();
 
             Trace found = traceRepository.findById(trace.getId()).orElseThrow();
@@ -60,7 +54,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         @Test
         void deleteTrace_shouldNotDeleteAuthor() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             flushAndClear();
 
             traceRepository.deleteById(trace.getId());
@@ -68,69 +62,6 @@ class TraceRepositoryTest extends BaseRepositoryTest {
 
             assertThat(traceRepository.findById(trace.getId())).isEmpty();
             assertThat(userRepository.findById(author.getId())).isPresent();
-        }
-    }
-
-    @Nested
-    class TraceWithTagsTests {
-        @Test
-        void findTraceById_shouldReturnCorrectTags() {
-            User author = TestEntityFactory.createPersistedUser(entityManager);
-            List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, tags);
-            flushAndClear();
-
-            Trace found = traceRepository.findById(trace.getId()).orElseThrow();
-
-            assertThat(found.getTags()).isNotEmpty().containsExactlyInAnyOrderElementsOf(tags);
-        }
-
-        @Test
-        void deleteTrace_shouldNotDeleteTags() {
-            User author = TestEntityFactory.createPersistedUser(entityManager);
-            List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, tags);
-            List<Long> tagIds = tags.stream().map(Tag::getId).toList();
-            flushAndClear();
-
-            traceRepository.deleteById(trace.getId());
-            flushAndClear();
-
-            assertThat(traceRepository.findById(trace.getId())).isEmpty();
-            assertThat(tagRepository.findAllById(tagIds))
-                    .hasSize(tags.size())
-                    .containsExactlyInAnyOrderElementsOf(tags);
-        }
-
-        @Test
-        void deleteTags_shouldThrowException_whenTagsAreReferencedByTrace() {
-            User author = TestEntityFactory.createPersistedUser(entityManager);
-            List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
-            TestEntityFactory.createPersistedTrace(entityManager, author, tags);
-            flushAndClear();
-
-            tags.forEach(tag -> tagRepository.delete(tag));
-            assertThrows(ConstraintViolationException.class, () -> entityManager.flush());
-        }
-
-        @Test
-        void clearAssociatedTags_shouldAllowTagDeletion() {
-            User author = TestEntityFactory.createPersistedUser(entityManager);
-            List<Tag> tags = TestEntityFactory.createPersistedTags(entityManager, 3);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, tags);
-            flushAndClear();
-
-            Trace persistedTrace = traceRepository.findById(trace.getId()).orElseThrow();
-            persistedTrace.setTags(new ArrayList<>());
-            traceRepository.save(persistedTrace);
-            flushAndClear();
-
-            tags.forEach(tag -> tagRepository.delete(tag));
-            flushAndClear();
-
-            assertThat(persistedTrace.getTags()).isEmpty();
-            assertThat(tagRepository.findAll()).isEmpty();
-            assertThat(traceRepository.findById(trace.getId())).isPresent();
         }
     }
 
@@ -149,7 +80,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
         @Test
         void findTracesNearby_shouldReturnTrace_whenLocationMatches() {
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null);
+            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author);
             double tracaLon = trace.getLongitude();
             double traceLat = trace.getLatitude();
             int searchDistanceMeters = 1;
@@ -168,7 +99,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
             double traceLatitude = TEST_LATITUDE_1;
 
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            TestEntityFactory.createPersistedTrace(entityManager, author, null, tracaLonitude, traceLatitude);
+            TestEntityFactory.createPersistedTrace(entityManager, author, tracaLonitude, traceLatitude);
             double searchLongitude = TEST_LONGITUDE_3;
             double searchLatitude = TEST_LATITUDE_3; // slightly outside of range
             int searchDistanceMeters = 500;
@@ -186,8 +117,7 @@ class TraceRepositoryTest extends BaseRepositoryTest {
             double traceLatitude = TEST_LATITUDE_1;
 
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace = TestEntityFactory.createPersistedTrace(entityManager, author, null, tracaLonitude,
-                    traceLatitude);
+            TestEntityFactory.createPersistedTrace(entityManager, author, tracaLonitude, traceLatitude);
 
             double searchLongitude = TEST_LONGITUDE_3;
             double searchLatitude = TEST_LATITUDE_3; // barely inside range
@@ -205,13 +135,11 @@ class TraceRepositoryTest extends BaseRepositoryTest {
             double tracaLonitude = TEST_LONGITUDE_1;
             double traceLatitude = TEST_LATITUDE_1;
             User author = TestEntityFactory.createPersistedUser(entityManager);
-            Trace trace1 = TestEntityFactory.createPersistedTrace(entityManager, author, null, tracaLonitude,
-                    traceLatitude);
+            Trace trace1 = TestEntityFactory.createPersistedTrace(entityManager, author, tracaLonitude, traceLatitude);
 
             traceLatitude = TEST_LATITUDE_2;
             tracaLonitude = TEST_LONGITUDE_2;
-            Trace trace2 = TestEntityFactory.createPersistedTrace(entityManager, author, null, tracaLonitude,
-                    traceLatitude);
+            Trace trace2 = TestEntityFactory.createPersistedTrace(entityManager, author, tracaLonitude, traceLatitude);
             flushAndClear();
 
             double searchLongitude = TEST_LONGITUDE_3;

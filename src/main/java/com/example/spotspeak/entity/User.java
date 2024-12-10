@@ -5,6 +5,7 @@ import java.util.*;
 
 import com.example.spotspeak.entity.achievement.UserAchievement;
 
+import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -50,13 +51,14 @@ public class User {
     private Resource profilePicture;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Trace> traces;
+    @Builder.Default
+    private List<Trace> traces = new ArrayList<>();
+
 
     private String fcmToken;
 
     @Builder.Default
     private Boolean receiveNotifications = true;
-
 
     @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinTable(name = "discovered_traces", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "trace_id"))
@@ -75,13 +77,11 @@ public class User {
     @Builder.Default
     private List<FriendRequest> receivedRequests = new ArrayList<>();
 
-    @OneToMany(mappedBy = "userInitiating", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    @Builder.Default
-    private List<Friendship> initiatedFriendships = new ArrayList<>();
+    @OneToMany(mappedBy = "mentionedUser", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<CommentMention> commentMentions;
 
-    @OneToMany(mappedBy = "userReceiving", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    @Builder.Default
-    private List<Friendship> receivedFriendships = new ArrayList<>();
+    @OneToMany(mappedBy = "author", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> comments;
 
     @Column(nullable = false)
     private LocalDateTime registeredAt;
@@ -107,11 +107,15 @@ public class User {
 
     public Set<User> getFriends() {
         Set<User> friends = new HashSet<>();
-        for (Friendship friendship : initiatedFriendships) {
-            friends.add(friendship.getUserReceiving());
+        for (FriendRequest friendship : sentRequests) {
+            if (friendship.getStatus() == EFriendRequestStatus.ACCEPTED) {
+                friends.add(friendship.getReceiver());
+            }
         }
-        for (Friendship friendship : receivedFriendships) {
-            friends.add(friendship.getUserInitiating());
+        for (FriendRequest friendship : receivedRequests) {
+            if (friendship.getStatus() == EFriendRequestStatus.ACCEPTED) {
+                friends.add(friendship.getSender());
+            }
         }
         return friends;
     }

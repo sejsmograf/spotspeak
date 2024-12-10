@@ -107,7 +107,7 @@ public class UserProfileController {
 
     @PutMapping("/fcm-token")
     ResponseEntity<Void> updateFcmToken(@AuthenticationPrincipal Jwt jwt,
-            @Valid @RequestBody FcmTokenDTO tokenDTO) {
+            @RequestBody FcmTokenDTO tokenDTO) {
         String userId = jwt.getSubject();
         String token = tokenDTO.fcmToken();
         userService.setFcmToken(userId, token);

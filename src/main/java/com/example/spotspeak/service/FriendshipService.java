@@ -2,7 +2,7 @@ package com.example.spotspeak.service;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.FriendshipUserInfoDTO;
-import com.example.spotspeak.entity.Friendship;
+import com.example.spotspeak.entity.FriendRequest;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
 import com.example.spotspeak.entity.enumeration.ERelationStatus;
@@ -10,7 +10,6 @@ import com.example.spotspeak.exception.FriendshipNotFoundException;
 import com.example.spotspeak.mapper.FriendshipMapper;
 import com.example.spotspeak.mapper.UserMapper;
 import com.example.spotspeak.repository.FriendRequestRepository;
-import com.example.spotspeak.repository.FriendshipRepository;
 import com.example.spotspeak.service.achievement.AchievementService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,20 +19,17 @@ import java.util.UUID;
 
 @Service
 public class FriendshipService {
-    private FriendshipRepository friendshipRepository;
     private FriendRequestRepository friendRequestRepository;
     private UserService userService;
     private FriendshipMapper friendshipMapper;
     private UserMapper userMapper;
     private AchievementService achievementService;
 
-    public FriendshipService(FriendshipRepository friendshipRepository,
-                             UserService userService,
+    public FriendshipService(UserService userService,
                              FriendshipMapper friendshipMapper,
                              UserMapper userMapper,
                              FriendRequestRepository friendRequestRepository,
                              AchievementService achievementService) {
-        this.friendshipRepository = friendshipRepository;
         this.userService = userService;
         this.friendshipMapper = friendshipMapper;
         this.userMapper = userMapper;
@@ -41,30 +37,16 @@ public class FriendshipService {
         this.achievementService = achievementService;
     }
 
-    @Transactional
-    public Friendship createFriendship(User userInitiating, User userReceiving) {
-        if (checkFriendshipExists(userInitiating, userReceiving)) {
-            throw new FriendshipNotFoundException("Friendship between users already exists");
-        }
-
-        Friendship friendship = Friendship.builder()
-                .userInitiating(userInitiating)
-                .userReceiving(userReceiving)
-                .build();
-
-        return friendshipRepository.save(friendship);
-    }
-
     public List<FriendshipUserInfoDTO> getFriendshipDTOList(String userId) {
         User currentUser = userService.findByIdOrThrow(userId);
 
-        List<Friendship> friendships = friendshipRepository.findAllByUser(currentUser);
+        List<FriendRequest> friendships = friendRequestRepository.findAllAcceptedByUser(currentUser, EFriendRequestStatus.ACCEPTED);
 
         return friendships.stream()
                 .map(friendship -> {
-                    User friend = friendship.getUserInitiating().equals(currentUser)
-                            ? friendship.getUserReceiving()
-                            : friendship.getUserInitiating();
+                    User friend = friendship.getSender().equals(currentUser)
+                            ? friendship.getReceiver()
+                            : friendship.getSender();
                     Integer totalPoints = achievementService.getTotalPointsByUser(friend);
                     return friendshipMapper.toFriendshipUserInfoDTO(friendship, friend, totalPoints);
                 })
@@ -74,12 +56,12 @@ public class FriendshipService {
     public List<User> getFriends(String userId) {
         User currentUser = userService.findByIdOrThrow(userId);
 
-        List<Friendship> friendships = friendshipRepository.findAllByUser(currentUser);
+        List<FriendRequest> friendships = friendRequestRepository.findAllAcceptedByUser(currentUser, EFriendRequestStatus.ACCEPTED);
 
         return friendships.stream()
-            .map(friendship -> friendship.getUserInitiating().equals(currentUser)
-                ? friendship.getUserReceiving()
-                : friendship.getUserInitiating())
+            .map(friendship -> friendship.getSender().equals(currentUser)
+                ? friendship.getReceiver()
+                : friendship.getSender())
             .toList();
     }
 
@@ -97,7 +79,10 @@ public class FriendshipService {
         List<User> mutualFriends = getMutualFriends(currentUserId, otherUserId);
 
         return mutualFriends.stream()
-                .map(friend -> userMapper.createAuthenticatedUserProfileDTO(friend,null))
+                .map(friend -> {
+                    Integer totalPoints = achievementService.getTotalPointsByUser(friend);
+                    return userMapper.createAuthenticatedUserProfileDTO(friend, totalPoints);
+                })
                 .toList();
     }
 
@@ -105,7 +90,7 @@ public class FriendshipService {
         User currentUser = userService.findByIdOrThrow(currentUserId);
         User otherUser = userService.findByIdOrThrow(userId);
 
-        boolean isFriend = checkFriendshipExists(currentUser, otherUser);
+        boolean isFriend = friendRequestRepository.existsAcceptedByUsers(currentUser, otherUser, EFriendRequestStatus.ACCEPTED);
 
         boolean invitationSent = friendRequestRepository.existsBySenderAndReceiverAndStatus(
                 currentUser, otherUser, EFriendRequestStatus.PENDING);
@@ -124,19 +109,12 @@ public class FriendshipService {
         }
     }
 
-
     @Transactional
     public void deleteFriend(String userId, UUID friendId) {
         User user = userService.findByIdOrThrow(userId);
         User friend = userService.findByIdOrThrow(String.valueOf(friendId));
-        Friendship friendship = friendshipRepository.findByUsers(user, friend)
+        FriendRequest friendship = friendRequestRepository.findAcceptedByUsers(user, friend, EFriendRequestStatus.ACCEPTED)
                 .orElseThrow(() -> new FriendshipNotFoundException("Friendship not found between users"));
-        friendshipRepository.delete(friendship);
-    }
-
-    public boolean checkFriendshipExists(User user1, User user2) {
-        if (user1.equals(user2))
-            return true;
-        return friendshipRepository.findByUsers(user1, user2).isPresent();
+        friendRequestRepository.delete(friendship);
     }
 }

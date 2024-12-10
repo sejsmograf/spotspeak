@@ -24,6 +24,7 @@ public interface TraceRepository extends JpaRepository<Trace, Long> {
                 trace_type, created_at
             FROM traces
             WHERE ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint(?1, ?2), 4326)::geography, ?3)
+                and is_active = true
             """, nativeQuery = true)
     List<Object[]> findNearbyTracesLocationsRaw(double longitude, double latitude, double distance);
 

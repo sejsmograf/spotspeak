@@ -96,7 +96,7 @@ public class RankingServiceIntegrationTest extends BaseServiceIntegrationTest {
         @Test
         @Transactional
         void shouldReturnOnlyUserWhenNoFriendsExist() {
-            entityManager.createQuery("DELETE FROM Friendship").executeUpdate();
+            entityManager.createQuery("DELETE FROM FriendRequest").executeUpdate();
             flushAndClear();
 
             List<RankingDTO> ranking = rankingService.getUserRanking(mainUser.getId().toString());

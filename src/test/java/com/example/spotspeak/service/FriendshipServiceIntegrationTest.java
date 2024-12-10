@@ -2,7 +2,7 @@ package com.example.spotspeak.service;
 
 import com.example.spotspeak.dto.AuthenticatedUserProfileDTO;
 import com.example.spotspeak.dto.FriendshipUserInfoDTO;
-import com.example.spotspeak.entity.Friendship;
+import com.example.spotspeak.entity.FriendRequest;
 import com.example.spotspeak.entity.User;
 import com.example.spotspeak.entity.enumeration.EFriendRequestStatus;
 import com.example.spotspeak.entity.enumeration.ERelationStatus;
@@ -31,33 +31,6 @@ public class FriendshipServiceIntegrationTest extends BaseServiceIntegrationTest
     public void setUp() {
         userInitiating = TestEntityFactory.createPersistedUser(entityManager);
         userReceiving = TestEntityFactory.createPersistedUser(entityManager);
-    }
-
-    @Nested
-    class CreateFriendshipTests {
-
-        @Test
-        @Transactional
-        void shouldCreateFriendship_whenNotExists() {
-            Friendship friendship = friendshipService.createFriendship(userInitiating, userReceiving);
-            flushAndClear();
-
-            Friendship retrieved = entityManager.find(Friendship.class, friendship.getId());
-
-            assertThat(retrieved).isNotNull();
-            assertThat(retrieved.getUserInitiating()).isEqualTo(userInitiating);
-            assertThat(retrieved.getUserReceiving()).isEqualTo(userReceiving);
-        }
-
-        @Test
-        @Transactional
-        void shouldThrowException_whenFriendshipAlreadyExists() {
-            TestEntityFactory.createPersistedFriendship(entityManager, userInitiating, userReceiving);
-            flushAndClear();
-
-            assertThrows(FriendshipNotFoundException.class,
-                    () -> friendshipService.createFriendship(userInitiating, userReceiving));
-        }
     }
 
     @Nested
@@ -121,14 +94,14 @@ public class FriendshipServiceIntegrationTest extends BaseServiceIntegrationTest
         @Test
         @Transactional
         void shouldDeleteFriendship_whenExists() {
-            Friendship friendship = TestEntityFactory.createPersistedFriendship(entityManager, userInitiating,
+            FriendRequest friendship = TestEntityFactory.createPersistedFriendship(entityManager, userInitiating,
                     userReceiving);
             flushAndClear();
 
             friendshipService.deleteFriend(userInitiating.getId().toString(), userReceiving.getId());
             flushAndClear();
 
-            Friendship retrieved = entityManager.find(Friendship.class, friendship.getId());
+            FriendRequest retrieved = entityManager.find(FriendRequest.class, friendship.getId());
 
             assertThat(retrieved).isNull();
         }
@@ -143,47 +116,16 @@ public class FriendshipServiceIntegrationTest extends BaseServiceIntegrationTest
         @Test
         @Transactional
         void shouldDeleteFriendship_whenUserIsReceiver() {
-            Friendship friendship = TestEntityFactory.createPersistedFriendship(entityManager, userReceiving,
+            FriendRequest friendship = TestEntityFactory.createPersistedFriendship(entityManager, userReceiving,
                     userInitiating);
             flushAndClear();
 
             friendshipService.deleteFriend(userInitiating.getId().toString(), userReceiving.getId());
             flushAndClear();
 
-            Friendship retrieved = entityManager.find(Friendship.class, friendship.getId());
+            FriendRequest retrieved = entityManager.find(FriendRequest.class, friendship.getId());
 
             assertThat(retrieved).isNull();
-        }
-    }
-
-    @Nested
-    class CheckFriendshipExistsTests {
-
-        @Test
-        @Transactional
-        void shouldReturnTrue_whenFriendshipExists() {
-            TestEntityFactory.createPersistedFriendship(entityManager, userInitiating, userReceiving);
-            flushAndClear();
-
-            boolean exists = friendshipService.checkFriendshipExists(userInitiating, userReceiving);
-
-            assertThat(exists).isTrue();
-        }
-
-        @Test
-        @Transactional
-        void shouldReturnFalse_whenFriendshipDoesNotExist() {
-            boolean exists = friendshipService.checkFriendshipExists(userInitiating, userReceiving);
-
-            assertThat(exists).isFalse();
-        }
-
-        @Test
-        @Transactional
-        void shouldReturnTrue_whenUsersAreTheSame() {
-            boolean exists = friendshipService.checkFriendshipExists(userInitiating, userInitiating);
-
-            assertThat(exists).isTrue();
         }
     }
 

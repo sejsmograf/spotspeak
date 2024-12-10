@@ -20,7 +20,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.spotspeak.BaseTestWithKeycloak;
@@ -28,6 +27,8 @@ import com.example.spotspeak.TestEntityFactory;
 import com.example.spotspeak.constants.FileUploadConsants;
 import com.example.spotspeak.dto.ChallengeRequestDTO;
 import com.example.spotspeak.dto.ChallengeResponseDTO;
+import com.example.spotspeak.dto.FcmTokenDTO;
+import com.example.spotspeak.dto.NotificationPreferencesDTO;
 import com.example.spotspeak.dto.PasswordUpdateDTO;
 import com.example.spotspeak.dto.UserUpdateDTO;
 import com.example.spotspeak.entity.User;
@@ -56,10 +57,6 @@ public class UserProfileControllerTest
 
     private List<User> users;
 
-    private JwtRequestPostProcessor getMockAccessToken(String userId) {
-        return jwt().jwt(jwt -> jwt.subject(userId));
-    }
-
     @BeforeEach
     void setUp() {
         users = new ArrayList<>();
@@ -81,7 +78,7 @@ public class UserProfileControllerTest
         String userId = user.getId().toString();
 
         mockMvc.perform(get(baseUri)
-                .with(getMockAccessToken(userId)))
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("id").value(userId))
                 .andExpect(jsonPath("username").value(user.getUsername()))
@@ -105,7 +102,7 @@ public class UserProfileControllerTest
         mockMvc.perform(post(baseUri + "/generate-challenge")
                 .header("Content-Type", "application/json")
                 .content(body)
-                .with(getMockAccessToken(userId)))
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("token").isNotEmpty());
     }
@@ -303,5 +300,41 @@ public class UserProfileControllerTest
 
         User retrieved = entityManager.find(User.class, UUID.fromString(userId));
         assertThat(retrieved).isNull();
+    }
+
+    @Test
+    void updateFcmToken_shouldUpdateFcmToken() throws Exception {
+        User user = users.get(0);
+        String userId = user.getId().toString();
+
+        FcmTokenDTO dto = new FcmTokenDTO("token");
+        String body = new ObjectMapper().writeValueAsString(dto);
+
+        mockMvc.perform(put(baseUri + "/fcm-token")
+                .header("Content-Type", "application/json")
+                .content(body)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isNoContent());
+
+        User retrieved = entityManager.find(User.class, UUID.fromString(userId));
+        assertThat(retrieved.getFcmToken()).isEqualTo(dto.fcmToken());
+    }
+
+    @Test
+    void updateNotificationPreferences_shouldUpdateNotificationPreferences() throws Exception {
+        User user = users.get(0);
+        String userId = user.getId().toString();
+
+        NotificationPreferencesDTO dto = new NotificationPreferencesDTO(false);
+        String body = new ObjectMapper().writeValueAsString(dto);
+
+        mockMvc.perform(put(baseUri + "/preferences/notifications")
+                .header("Content-Type", "application/json")
+                .content(body)
+                .with(jwt().jwt(jwt -> jwt.subject(userId))))
+                .andExpect(status().isNoContent());
+
+        User retrieved = entityManager.find(User.class, UUID.fromString(userId));
+        assertThat(retrieved.getReceiveNotifications()).isFalse();
     }
 }

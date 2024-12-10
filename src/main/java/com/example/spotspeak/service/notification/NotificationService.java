@@ -33,6 +33,8 @@ public class NotificationService {
                 break;
             case FRIEND_REQUEST_RECEIVED:
                 sendFriendRequestReceivedMessage(event);
+            case ACHIEVEMENT_COMPLETED:
+                sendAchievementCompletedMessage(event);
                 break;
 
             default:
@@ -51,7 +53,7 @@ public class NotificationService {
 
     private void sendUserMentionedMessage(NotificationEvent event) {
         String traceId = event.getAdditionalData().get("traceId");
-        String deepLink = "spotspeak:///home?initialIndex=0//map?traceId=" + traceId;
+        String deepLink = "spotspeak:///home/map?initialIndex=0&traceId=" + traceId;
         sendLocalizedNotification(event,
                 deepLink,
                 "user.mentioned.title",
@@ -59,11 +61,19 @@ public class NotificationService {
     }
 
     private void sendFriendRequestReceivedMessage(NotificationEvent event) {
-        String deepLink = "spotspeak:///home?initialIndex=2//friends-tab?initialTabIndex=1";
+        String deepLink = "spotspeak:///home/friends-tab?initialIndex=2&initialTabIndex=1";
         sendLocalizedNotification(event,
                 deepLink,
                 "friend.request.received.title",
                 "friend.request.received.body");
+    }
+
+    private void sendAchievementCompletedMessage(NotificationEvent event) {
+        String deepLink = "spotspeak:///home/achievements";
+        sendLocalizedNotification(event,
+                deepLink,
+                "achievement.completed.title",
+                "achievement.completed.body");
     }
 
     private void sendLocalizedNotification(NotificationEvent event,

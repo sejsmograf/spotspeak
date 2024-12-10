@@ -8,11 +8,8 @@ import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.entity.Resource;
 import com.example.spotspeak.entity.Trace;
-import com.example.spotspeak.entity.enumeration.ETraceType;
 import com.example.spotspeak.service.ResourceService;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -47,7 +44,6 @@ public class TraceMapper {
                 resourceUrl,
                 trace.getDescription(),
                 commentResponseDTOs,
-                trace.getTags(),
                 trace.getLatitude(),
                 trace.getLongitude(),
                 trace.getTraceType(),

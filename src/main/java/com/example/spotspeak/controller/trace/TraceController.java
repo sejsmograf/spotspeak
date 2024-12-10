@@ -4,10 +4,8 @@ import com.example.spotspeak.constants.FileUploadConsants;
 import com.example.spotspeak.dto.TraceDownloadDTO;
 import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.dto.TraceUploadDTO;
-import com.example.spotspeak.entity.Tag;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.mapper.TraceMapper;
-import com.example.spotspeak.service.TagService;
 import com.example.spotspeak.service.TraceService;
 import com.example.spotspeak.validation.ValidFile;
 import jakarta.validation.Valid;
@@ -25,14 +23,11 @@ import org.springframework.web.multipart.MultipartFile;
 public class TraceController {
 
     private TraceService traceService;
-    private TagService tagService;
     private TraceMapper mapper;
 
     public TraceController(TraceService traceService,
-            TagService tagService,
             TraceMapper mapper) {
         this.traceService = traceService;
-        this.tagService = tagService;
         this.mapper = mapper;
     }
 
@@ -63,7 +58,7 @@ public class TraceController {
             nearby = traceService.getNearbyTracesAnonymous(longitude, latitude, distance);
         } else {
             String userId = jwt.getSubject();
-            traceService.getNearbyTracesForUser(userId, longitude, latitude,
+            nearby = traceService.getNearbyTracesForUser(userId, longitude, latitude,
                     distance);
         }
 
@@ -112,11 +107,5 @@ public class TraceController {
         String userId = jwt.getSubject();
         traceService.deleteTrace(traceId, userId);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/tags")
-    public ResponseEntity<List<Tag>> getTags() {
-        List<Tag> tags = tagService.findAll();
-        return ResponseEntity.ok(tags);
     }
 }

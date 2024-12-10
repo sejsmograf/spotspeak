@@ -29,7 +29,6 @@ public class CommentService {
     private TraceService traceService;
     private CommentMentionService mentionService;
     private CommentMapper commentMapper;
-    private CommentMentionService commentMentionService;
     private NotificationEventPublisher publisher;
 
     public CommentService(CommentRepository commentRepository,
@@ -37,14 +36,12 @@ public class CommentService {
             TraceService traceService,
             CommentMentionService mentionService,
             CommentMapper commentMapper,
-            CommentMentionService commentMentionService,
             NotificationEventPublisher publisher) {
         this.commentRepository = commentRepository;
         this.userService = userService;
         this.traceService = traceService;
         this.mentionService = mentionService;
         this.commentMapper = commentMapper;
-        this.commentMentionService = commentMentionService;
         this.publisher = publisher;
     }
 
@@ -114,7 +111,7 @@ public class CommentService {
         Map<String, String> additionalData = Map.of("traceId", comment.getTrace().getId().toString());
         publisher.publishMentionEvent(mentionedUsers, additionalData);
 
-        commentMentionService.saveAllMentions(commentMentions);
+        mentionService.saveAllMentions(commentMentions);
         return commentMentions;
     }
 

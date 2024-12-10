@@ -85,22 +85,6 @@ public class S3Service implements StorageService {
         }
     }
 
-    private String generatePresignedDownloadUrl(String key) {
-        GetObjectRequest objectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build();
-
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(PRESIGNED_URL_EXPIRATION_DURATION)
-                .getObjectRequest(objectRequest)
-                .build();
-
-        PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
-
-        return presignedRequest.url().toExternalForm();
-    }
-
     private void putObject(MultipartFile file, String key) {
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)

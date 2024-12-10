@@ -34,8 +34,9 @@ public class AIEventNamingService implements EventNamingService {
 
             The event name should be: "Mecz Legii Warszawa".
 
-            Now, based on the following descriptions, please provide the event name (do not provide any additional text, just the event name, without quotes):
-
+            Now, based on the following descriptions, please provide the event name.
+            Avoid being biased by the example and favoring ("Mecz") above and focus on the descriptions provided.
+            (do not provide any additional text, just the event name, without quotes):
             """;
 
     public AIEventNamingService(ChatClient.Builder chatClientBuilder) {

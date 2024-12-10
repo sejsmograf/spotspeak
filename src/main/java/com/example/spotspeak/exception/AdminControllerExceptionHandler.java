@@ -25,13 +25,4 @@ public class AdminControllerExceptionHandler {
         response.addMessage(ex.getMessage());
         return response;
     }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleIllegalArgumentException(IllegalArgumentException ex) {
-        ErrorResponse response = ErrorResponse.createInstance();
-        response.addMessage("Invalid input: " + ex.getMessage());
-        return response;
-    }
-
 }
