@@ -3,7 +3,6 @@ package com.example.spotspeak.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -11,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.spotspeak.TestEntityFactory;
 import com.example.spotspeak.constants.TraceConstants;
+import com.example.spotspeak.dto.EventLocationDTO;
+import com.example.spotspeak.dto.TraceLocationDTO;
 import com.example.spotspeak.entity.Event;
 import com.example.spotspeak.entity.Trace;
 import com.example.spotspeak.entity.User;
@@ -74,5 +75,83 @@ public class EventServiceIntegrationTest
         Event retrieved = entityManager.find(Event.class, event.getId());
 
         assertThat(retrieved.getIsActive()).isFalse();
+    }
+
+    @Test
+    @Transactional
+    void getNearbyEvent_shouldReturnEvent_whenWithinDistance() {
+        User author = TestEntityFactory.createPersistedUser(entityManager);
+        double lat = 0.00;
+        double lon = 0.00;
+        for (int i = 0; i < TraceConstants.EVENT_MIN_POINTS; i++) {
+            TestEntityFactory.createPersistedTrace(entityManager, author, lon, lat);
+        }
+        eventService.detectAndCreateEvents();
+        flushAndClear();
+
+        List<Event> found = eventService.getNearbyEvents(0.00, 0.00, 100);
+        assertThat(found).isNotEmpty();
+    }
+
+    @Test
+    @Transactional
+    void getNearbyEvent_shouldNotReturnEvent_whenNotWithinDistance() {
+        User author = TestEntityFactory.createPersistedUser(entityManager);
+        double lat = 0.00;
+        double lon = 0.00;
+        for (int i = 0; i < TraceConstants.EVENT_MIN_POINTS; i++) {
+            TestEntityFactory.createPersistedTrace(entityManager, author, lon, lat);
+        }
+        eventService.detectAndCreateEvents();
+        flushAndClear();
+
+        List<Event> found = eventService.getNearbyEvents(1.00, 0.00, 100);
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @Transactional
+    void getNearbyEventAnonymous_shouldReturnCorrectDtos_whenAnotherUserQueries() {
+        User author = TestEntityFactory.createPersistedUser(entityManager);
+        double lat = 0.00;
+        double lon = 0.00;
+        for (int i = 0; i < TraceConstants.EVENT_MIN_POINTS; i++) {
+            TestEntityFactory.createPersistedTrace(entityManager, author, lon, lat);
+        }
+        eventService.detectAndCreateEvents();
+        flushAndClear();
+
+        List<EventLocationDTO> found = eventService.getNearbyEventsAnonymous(0.00, 0.00, 100);
+        assertThat(found).isNotEmpty();
+        Long eventId = found.get(0).id();
+        for (TraceLocationDTO trace : found.get(0).traces()) {
+            assertThat(trace.hasDiscovered()).isNull();
+            Trace containedTrace = entityManager.find(Trace.class, trace.id());
+            assertThat(containedTrace.getAssociatedEvent().getId()).isEqualTo(eventId);
+        }
+    }
+
+    @Test
+    @Transactional
+    void getNearbyEventForUser_shouldReturnCorrectDtos() {
+        User author = TestEntityFactory.createPersistedUser(entityManager);
+        User anotherUser = TestEntityFactory.createPersistedUser(entityManager);
+        double lat = 0.00;
+        double lon = 0.00;
+        for (int i = 0; i < TraceConstants.EVENT_MIN_POINTS; i++) {
+            TestEntityFactory.createPersistedTrace(entityManager, author, lon, lat);
+        }
+        eventService.detectAndCreateEvents();
+        flushAndClear();
+
+        List<EventLocationDTO> found = eventService.getNearbyEventsForUser(anotherUser.getId().toString(),
+                0.00, 0.00, 100);
+        assertThat(found).isNotEmpty();
+        Long eventId = found.get(0).id();
+        for (TraceLocationDTO trace : found.get(0).traces()) {
+            assertThat(trace.hasDiscovered()).isNotNull().isFalse();
+            Trace containedTrace = entityManager.find(Trace.class, trace.id());
+            assertThat(containedTrace.getAssociatedEvent().getId()).isEqualTo(eventId);
+        }
     }
 }
