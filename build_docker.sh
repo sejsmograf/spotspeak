@@ -27,5 +27,5 @@ echo "Using Dockerfile: $DOCKERFILE"
 if [ "$DOCKERFILE" == "Dockerfile.two-stage" ]; then
   docker build --no-cache -t $IMAGE_NAME -f $DOCKERFILE .
 else
-  docker build -t $IMAGE_NAME -f $DOCKERFILE .
+  docker build --no-cache -t $IMAGE_NAME -f $DOCKERFILE .
 fi
