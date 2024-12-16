@@ -12,7 +12,7 @@ Architektura backendu składa się z następujących części:
  - Usługa FirebaseCloudMessaging do wysyłania powiadomień push
 
 W związku ze stosunkowo skomplikowaną architekturą, zdecydowano się na wykorzystanie narzędzi
-ułatwiających ten proces. Zautomatyzowano proces tworzenia architekruy chmurowej za pomocą Terraform.
+ułatwiających proces wdrożenia. Zautomatyzowano proces tworzenia architektury chmurowej za pomocą Terraform.
 Użyto również Docker oraz Docker Compose do zautomatyzowania procesu budowania i uruchamiania kontenerów.
 Pozwoliło to w znacznym stopniu zautomatyzować proces wdrożenia oraz zarządzania infrastrukturą.
 
